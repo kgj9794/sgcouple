@@ -78,11 +78,12 @@ body {
     touch-action: manipulation;
 }
 
+/* 스크롤이나 터치와 관계없이 화면 우측 상단에 고정 (fixed) */
 .bgm-btn {
-    position: absolute;
+    position: fixed;
     top: 16px;
-    right: 16px;
-    z-index: 100;
+    right: max(16px, calc(50% - 240px + 16px));
+    z-index: 10000;
     background: rgba(0, 0, 0, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.3);
     color: #ffffff;
@@ -130,7 +131,7 @@ body {
     transform: translateX(-50%) translateY(0);
 }
 
-/* --- INTRO OVERLAY (연한 핑크 배경 & 폭죽 캔버스 & 글자 타이핑) --- */
+/* --- INTRO OVERLAY --- */
 .intro-overlay {
     position: fixed;
     top: 0;
@@ -206,7 +207,6 @@ body {
     70% { transform: scale(1); }
 }
 
-/* 인트로 타이핑 박스 스타일 */
 .intro-typing-box {
     display: flex;
     flex-direction: column;
@@ -387,7 +387,7 @@ body {
     animation: bounce 2s infinite;
 }
 
-/* --- SECTION 2: GREETING SECTION --- */
+/* --- SECTION GENERAL --- */
 .section {
     padding: 70px 24px;
     text-align: center;
@@ -478,6 +478,372 @@ body {
 .contact-trigger-btn:active {
     background-color: #ede3d3;
     transform: scale(0.99);
+}
+
+/* --- SECTION 4: COUPLE INTRO --- */
+.couple-section {
+    background-color: #ffffff;
+    border-top: 1px solid #f0eae1;
+}
+
+.couple-container {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+    margin-top: 10px;
+}
+
+.couple-card {
+    background-color: #faf8f5;
+    border: 1px solid #f0eae1;
+    border-radius: 18px;
+    padding: 24px 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.couple-photo-frame {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid #ffffff;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    background-color: #f4ede4;
+    flex-shrink: 0;
+}
+
+.couple-photo-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.couple-info {
+    text-align: center;
+}
+
+.couple-role {
+    font-size: 0.82rem;
+    letter-spacing: 1px;
+    font-weight: 700;
+    margin-bottom: 2px;
+    display: block;
+}
+
+.couple-role.groom-role { color: #5a7b9c; }
+.couple-role.bride-role { color: #d68798; }
+
+.couple-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #222222;
+    margin-bottom: 8px;
+}
+
+.couple-desc {
+    font-size: 0.88rem;
+    color: #666666;
+    line-height: 1.7;
+    word-break: keep-all;
+    white-space: pre-line;
+}
+
+/* --- SECTION 5: OUR STORY --- */
+.story-section {
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+    background-color: #fbfaf8;
+    border-top: 1px solid #f0eae1;
+    position: relative;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.story-view-wrapper {
+    width: 100%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+.story-cover-tag {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.15rem;
+    color: #d18b95;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+    font-weight: 400;
+}
+
+.story-cover-dday {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.85rem;
+    font-weight: 400;
+    color: #222222;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+}
+
+.story-cover-img-box {
+    width: 100%;
+    max-width: 280px;
+    aspect-ratio: 1 / 1;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    background-color: #f4ede4;
+    margin-bottom: 22px;
+}
+
+.story-cover-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.story-cover-meta-grid {
+    width: 100%;
+    border-top: 1px solid #e0dad0;
+    border-bottom: 1px solid #e0dad0;
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 12px;
+}
+
+.story-meta-left {
+    border-right: 1px solid #e0dad0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-left: 8px;
+    text-align: left;
+}
+
+.story-meta-left .meta-label {
+    font-size: 0.8rem;
+    color: #777777;
+    font-family: sans-serif;
+    font-weight: 600;
+}
+
+.story-meta-left .meta-sub {
+    font-size: 0.7rem;
+    color: #aaaaaa;
+    font-family: sans-serif;
+}
+
+.story-meta-right {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.story-meta-right .meta-cursive {
+    font-family: 'Alex Brush', cursive;
+    font-size: 2.3rem;
+    color: #1a1a1a;
+    line-height: 1;
+    padding-top: 4px;
+}
+
+.story-cover-subtext {
+    font-size: 0.65rem;
+    color: #999999;
+    line-height: 1.4;
+    letter-spacing: 0.2px;
+    margin-bottom: 22px;
+    word-break: keep-all;
+}
+
+.story-cover-action {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.story-cover-action span {
+    font-size: 0.95rem;
+    color: #222222;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.story-circle-arrow-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.story-cover-action:active .story-circle-arrow-btn {
+    transform: scale(0.92);
+    background-color: #333333;
+}
+
+.story-inline-topbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 4px;
+    margin-bottom: 20px;
+}
+
+.story-inline-no {
+    font-size: 1.1rem;
+    color: #999999;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.story-inline-page {
+    font-size: 0.9rem;
+    color: #444444;
+    letter-spacing: 2px;
+    font-family: sans-serif;
+}
+
+.story-card-viewport {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    border-radius: 16px;
+    margin-bottom: 20px;
+}
+
+.story-page-card {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    will-change: transform, opacity;
+}
+
+.story-inline-img-box {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+    background-color: #f4f0e8;
+}
+
+.story-inline-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.story-inline-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.3rem;
+    font-weight: 400;
+    color: #222222;
+    letter-spacing: -0.3px;
+    margin-top: 4px;
+}
+
+.story-inline-desc {
+    font-size: 0.92rem;
+    color: #666666;
+    line-height: 1.85;
+    word-break: keep-all;
+    white-space: pre-line;
+    min-height: 52px;
+}
+
+.story-inline-nav-bottom {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+    margin-top: 10px;
+}
+
+.story-arrow-btn {
+    background: none;
+    border: none;
+    color: #888888;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.story-arrow-btn:active {
+    color: #222222;
+    transform: scale(0.9);
+}
+
+.story-arrow-btn:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+}
+
+@keyframes slideOutLeft {
+    to { transform: translateX(-100%); opacity: 0; }
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOutRight {
+    to { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes slideInLeft {
+    from { transform: translateX(-100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.story-page-card.slide-out-left {
+    animation: slideOutLeft 0.22s forwards cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.story-page-card.slide-in-right {
+    animation: slideInRight 0.25s forwards cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.story-page-card.slide-out-right {
+    animation: slideOutRight 0.22s forwards cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.story-page-card.slide-in-left {
+    animation: slideInLeft 0.25s forwards cubic-bezier(0.215, 0.61, 0.355, 1);
 }
 
 /* --- SECTION 3: DATE & COUNTDOWN SECTION --- */
@@ -850,7 +1216,7 @@ body {
     background-color: #cccccc;
 }
 
-/* --- ANIMATIONS & REVEAL (객체별 밑에서 위로 스르륵 등장) --- */
+/* --- ANIMATIONS & REVEAL --- */
 .reveal {
     opacity: 0;
     transform: translateY(40px);
