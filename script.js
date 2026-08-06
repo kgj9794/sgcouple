@@ -20,6 +20,7 @@ let bgmIndex = 0;         // 현재 재생 중인 큐 인덱스
 let fireworksAnimationId = null;
 let scrollPosition = 0;
 let hasShownInitialBgmToast = false;
+let currentStoryPage = 1; // 연애 스토리 현재 페이지 (1~5)
 
 let prevValues = {
     days: '',
@@ -165,16 +166,13 @@ function initBgm() {
 
     bgmAudio.volume = 0.6;
 
-    // 1. 접속 시 무작위 셔플 적용 및 첫 무작위 곡 로드
     shuffleBgmPlaylist();
     loadBgmTrack();
 
-    // 2. 한 곡 종료 시 셔플된 다음 무작위 곡 재생
     bgmAudio.addEventListener('ended', () => {
         playNextBgmTrack();
     });
 
-    // 3. 특정 링크 연결 실패 시 해당 링크 스킵 후 다음 무작위 곡 로드
     bgmAudio.onerror = () => {
         console.warn("음원 로딩 실패 링크 스킵:", bgmAudio.src);
         if (bgmQueue.length > 1) {
@@ -185,10 +183,8 @@ function initBgm() {
         }
     };
 
-    // 1차: 데스크톱/크롬/사파리 등 자동재생 시도
     startAudio();
 
-    // 2차: 모바일 자동재생 제한 우회 리스너 연결
     window.addEventListener('click', unlockInteraction);
     window.addEventListener('touchstart', unlockInteraction, { passive: true });
     window.addEventListener('scroll', unlockInteraction, { passive: true });
@@ -256,6 +252,139 @@ function updateBgmBtnUI(isPlaying) {
     const bgmBtn = document.getElementById('bgm-btn');
     if (bgmBtn) {
         bgmBtn.innerText = isPlaying ? '🎵' : '🔇';
+    }
+}
+
+// --- 5섹션 연애 스토리 인라인 화면 전환 (표지 ↔ 1~5페이지) ---
+function startStoryInline() {
+    const coverView = document.getElementById('story-cover-view');
+    const inlineView = document.getElementById('story-inline-view');
+
+    if (coverView && inlineView) {
+        coverView.style.display = 'none';
+        inlineView.style.display = 'flex';
+        currentStoryPage = 1;
+        renderStoryPage(currentStoryPage);
+    }
+}
+
+function showStoryCover() {
+    const coverView = document.getElementById('story-cover-view');
+    const inlineView = document.getElementById('story-inline-view');
+
+    if (coverView && inlineView) {
+        inlineView.style.display = 'none';
+        coverView.style.display = 'flex';
+    }
+}
+
+function renderStoryPage(page) {
+    const indicatorEl = document.getElementById('story-page-indicator');
+    const imgEl = document.getElementById('story-display-img');
+    const titleEl = document.getElementById('story-display-title');
+    const descEl = document.getElementById('story-display-desc');
+    const prevBtn = document.getElementById('story-prev-btn');
+    const nextBtn = document.getElementById('story-next-btn');
+
+    if (indicatorEl) {
+        const pageStr = String(page).padStart(2, '0');
+        indicatorEl.innerText = `${pageStr}  /  05`;
+    }
+
+    const defaultTitles = ["첫 만남", "관계가 이어졌습니다", "함께한 특별한 날", "언제나 서로의 편", "약속, 그리고 새로운 시작"];
+    const defaultDescs = [
+        "처음 서로를 마주했던 그날의 설렘을 기억합니다.",
+        "특별한 선언 없이\n그렇게, 함께가 되었습니다.",
+        "계절이 바뀔 때마다 함께 차곡차곡 쌓아온 소중한 추억들.",
+        "기쁠 때나 힘들 때나 언제나 서로의 든든한 버팀목이 되어주었습니다.",
+        "이제 서로의 손을 꼭 잡고 평생을 함께 걸어가고자 합니다."
+    ];
+
+    const imgSrc = dbData[`story_img_${page}`] || dbData.hero_img || '';
+    const titleText = dbData[`story_title_${page}`] || defaultTitles[page - 1];
+    const descText = dbData[`story_desc_${page}`] || defaultDescs[page - 1];
+
+    if (imgEl) imgEl.src = imgSrc;
+    if (titleEl) titleEl.innerText = titleText;
+    if (descEl) descEl.innerText = descText;
+
+    // 1페이지에서도 이전 버튼 클릭이 가능하도록 disabled 비활성화
+    if (prevBtn) prevBtn.disabled = false;
+    if (nextBtn) nextBtn.disabled = (page === 5);
+}
+
+// 좌우 슬라이드 애니메이션 적용 넘김
+function animateStorySlide(direction, callback) {
+    const card = document.getElementById('story-page-card');
+    if (!card) {
+        callback();
+        return;
+    }
+
+    const outClass = direction === 'next' ? 'slide-out-left' : 'slide-out-right';
+    const inClass = direction === 'next' ? 'slide-in-right' : 'slide-in-left';
+
+    card.classList.add(outClass);
+
+    setTimeout(() => {
+        callback();
+        card.classList.remove(outClass);
+        card.classList.add(inClass);
+
+        setTimeout(() => {
+            card.classList.remove(inClass);
+        }, 250);
+    }, 200);
+}
+
+function prevStoryPage() {
+    // 1페이지에서 이전 버튼 클릭 시 연애 스토리 표지 화면으로 이동
+    if (currentStoryPage === 1) {
+        showStoryCover();
+    } else if (currentStoryPage > 1) {
+        animateStorySlide('prev', () => {
+            currentStoryPage--;
+            renderStoryPage(currentStoryPage);
+        });
+    }
+}
+
+function nextStoryPage() {
+    if (currentStoryPage < 5) {
+        animateStorySlide('next', () => {
+            currentStoryPage++;
+            renderStoryPage(currentStoryPage);
+        });
+    }
+}
+
+// --- 함께 보낸 소중한 날 (D+Day) 계산 함수 ---
+function updateStoryDday(startDateStr) {
+    const ddayTextEl = document.getElementById('story-dday-text');
+    if (!ddayTextEl) return;
+
+    if (!startDateStr) {
+        ddayTextEl.innerText = '+ 0 일';
+        return;
+    }
+
+    const start = new Date(startDateStr);
+    const now = new Date();
+
+    if (isNaN(start.getTime())) {
+        ddayTextEl.innerText = '+ 0 일';
+        return;
+    }
+
+    const startMidnight = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const diffDays = Math.floor((todayMidnight - startMidnight) / (1000 * 60 * 60 * 24)) + 1;
+
+    if (diffDays >= 0) {
+        ddayTextEl.innerText = `+ ${diffDays.toLocaleString()} 일`;
+    } else {
+        ddayTextEl.innerText = `- ${Math.abs(diffDays).toLocaleString()} 일`;
     }
 }
 
@@ -581,6 +710,33 @@ function applyDataToDOM(data) {
     document.getElementById('groom-name-display').innerText = groomName;
     document.getElementById('bride-name-display').innerText = brideName;
 
+    // 신랑 신부 아기사진 & 소개 글 반영
+    document.getElementById('groom-baby-name').innerText = groomName;
+    document.getElementById('bride-baby-name').innerText = brideName;
+
+    if (data.groom_baby_img) {
+        document.getElementById('groom-baby-img').src = data.groom_baby_img;
+    }
+    if (data.bride_baby_img) {
+        document.getElementById('bride-baby-img').src = data.bride_baby_img;
+    }
+
+    document.getElementById('groom-intro-display').innerText = data.groom_intro_text || '';
+    document.getElementById('bride-intro-display').innerText = data.bride_intro_text || '';
+
+    // 5섹션 연애 스토리 하단 세부 서브텍스트 & 연애 시작일 기반 D-Day & 표지 사진 반영
+    const storyIntroEl = document.getElementById('story-intro-desc-display');
+    if (storyIntroEl) {
+        storyIntroEl.innerHTML = data.story_intro_text || "Milestone Documentation. These moments, carefully documented and lovingly preserved.<br>Relationship Development Timeline.";
+    }
+
+    updateStoryDday(data.relationship_start_date);
+
+    if (data.story_cover_img) {
+        const coverImgEl = document.getElementById('story-cover-img-element');
+        if (coverImgEl) coverImgEl.src = data.story_cover_img;
+    }
+
     // 3. 날짜 및 장소 변경
     if (data.wedding_datetime) {
         targetWeddingDate = new Date(data.wedding_datetime);
@@ -664,6 +820,18 @@ function formatForDateTimeLocal(dateStr) {
 
     const pad = (n) => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// --- YYYY-MM-DD 날짜 규격 변환 헬퍼 ---
+function formatForDateOnly(dateStr) {
+    if (!dateStr) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 // --- 동적 달력 생성 ---
@@ -817,25 +985,45 @@ async function verifyAdminPassword(event) {
 
 // --- 관리자 설정 2단계 모달 ---
 function openAdminModalValues() {
-    document.getElementById('input-groom-name').value = dbData.groom_name || '';
-    document.getElementById('input-groom-tel').value = normalizePhoneNumber(dbData.groom_tel);
-    document.getElementById('input-bride-name').value = dbData.bride_name || '';
-    document.getElementById('input-bride-tel').value = normalizePhoneNumber(dbData.bride_tel);
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val || '';
+    };
 
-    document.getElementById('input-hero-img').value = dbData.hero_img || '';
-    document.getElementById('input-wedding-datetime').value = formatForDateTimeLocal(dbData.wedding_datetime);
-    document.getElementById('input-wedding-venue').value = dbData.wedding_venue || '';
-    document.getElementById('input-wedding-venue-detail').value = dbData.wedding_venue_detail || '';
+    setVal('input-groom-name', dbData.groom_name);
+    setVal('input-groom-tel', normalizePhoneNumber(dbData.groom_tel));
+    setVal('input-bride-name', dbData.bride_name);
+    setVal('input-bride-tel', normalizePhoneNumber(dbData.bride_tel));
 
-    document.getElementById('input-groom-father-name').value = dbData.groom_father_name || '';
-    document.getElementById('input-groom-father-tel').value = normalizePhoneNumber(dbData.groom_father_tel);
-    document.getElementById('input-groom-mother-name').value = dbData.groom_mother_name || '';
-    document.getElementById('input-groom-mother-tel').value = normalizePhoneNumber(dbData.groom_mother_tel);
+    setVal('input-hero-img', dbData.hero_img);
+    setVal('input-wedding-datetime', formatForDateTimeLocal(dbData.wedding_datetime));
+    setVal('input-wedding-venue', dbData.wedding_venue);
+    setVal('input-wedding-venue-detail', dbData.wedding_venue_detail);
 
-    document.getElementById('input-bride-father-name').value = dbData.bride_father_name || '';
-    document.getElementById('input-bride-father-tel').value = normalizePhoneNumber(dbData.bride_father_tel);
-    document.getElementById('input-bride-mother-name').value = dbData.bride_mother_name || '';
-    document.getElementById('input-bride-mother-tel').value = normalizePhoneNumber(dbData.bride_mother_tel);
+    setVal('input-groom-baby-img', dbData.groom_baby_img);
+    setVal('input-groom-intro-text', dbData.groom_intro_text);
+    setVal('input-bride-baby-img', dbData.bride_baby_img);
+    setVal('input-bride-intro-text', dbData.bride_intro_text);
+
+    setVal('input-story-intro-text', dbData.story_intro_text);
+    setVal('input-relationship-start-date', formatForDateOnly(dbData.relationship_start_date));
+    setVal('input-story-cover-img', dbData.story_cover_img);
+
+    for (let i = 1; i <= 5; i++) {
+        setVal(`input-story-img-${i}`, dbData[`story_img_${i}`]);
+        setVal(`input-story-title-${i}`, dbData[`story_title_${i}`]);
+        setVal(`input-story-desc-${i}`, dbData[`story_desc_${i}`]);
+    }
+
+    setVal('input-groom-father-name', dbData.groom_father_name);
+    setVal('input-groom-father-tel', normalizePhoneNumber(dbData.groom_father_tel));
+    setVal('input-groom-mother-name', dbData.groom_mother_name);
+    setVal('input-groom-mother-tel', normalizePhoneNumber(dbData.groom_mother_tel));
+
+    setVal('input-bride-father-name', dbData.bride_father_name);
+    setVal('input-bride-father-tel', normalizePhoneNumber(dbData.bride_father_tel));
+    setVal('input-bride-mother-name', dbData.bride_mother_name);
+    setVal('input-bride-mother-tel', normalizePhoneNumber(dbData.bride_mother_tel));
 }
 
 function closeAdminModal(isFromHistory = false) {
@@ -845,37 +1033,70 @@ function closeAdminModal(isFromHistory = false) {
 async function saveAdminSettings(event) {
     event.preventDefault();
     const saveBtn = document.getElementById('admin-save-btn');
-    saveBtn.disabled = true;
-    saveBtn.innerText = '저장 중...';
-
-    const payload = {
-        password: verifiedAdminPassword,
-        data: {
-            groom_name: document.getElementById('input-groom-name').value,
-            groom_tel: normalizePhoneNumber(document.getElementById('input-groom-tel').value),
-            bride_name: document.getElementById('input-bride-name').value,
-            bride_tel: normalizePhoneNumber(document.getElementById('input-bride-tel').value),
-            hero_img: document.getElementById('input-hero-img').value,
-            wedding_datetime: document.getElementById('input-wedding-datetime').value,
-            wedding_venue: document.getElementById('input-wedding-venue').value,
-            wedding_venue_detail: document.getElementById('input-wedding-venue-detail').value,
-            groom_father_name: document.getElementById('input-groom-father-name').value,
-            groom_father_tel: normalizePhoneNumber(document.getElementById('input-groom-father-tel').value),
-            groom_mother_name: document.getElementById('input-groom-mother-name').value,
-            groom_mother_tel: normalizePhoneNumber(document.getElementById('input-groom-mother-tel').value),
-            bride_father_name: document.getElementById('input-bride-father-name').value,
-            bride_father_tel: normalizePhoneNumber(document.getElementById('input-bride-father-tel').value),
-            bride_mother_name: document.getElementById('input-bride-mother-name').value,
-            bride_mother_tel: normalizePhoneNumber(document.getElementById('input-bride-mother-tel').value)
-        }
-    };
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerText = '저장 중...';
+    }
 
     try {
+        const getVal = (id) => {
+            const el = document.getElementById(id);
+            return el ? el.value : '';
+        };
+
+        const payloadData = {
+            groom_name: getVal('input-groom-name'),
+            groom_tel: normalizePhoneNumber(getVal('input-groom-tel')),
+            bride_name: getVal('input-bride-name'),
+            bride_tel: normalizePhoneNumber(getVal('input-bride-tel')),
+            hero_img: getVal('input-hero-img'),
+            wedding_datetime: getVal('input-wedding-datetime'),
+            wedding_venue: getVal('input-wedding-venue'),
+            wedding_venue_detail: getVal('input-wedding-venue-detail'),
+            groom_baby_img: getVal('input-groom-baby-img'),
+            groom_intro_text: getVal('input-groom-intro-text'),
+            bride_baby_img: getVal('input-bride-baby-img'),
+            bride_intro_text: getVal('input-bride-intro-text'),
+            story_intro_text: getVal('input-story-intro-text'),
+            relationship_start_date: getVal('input-relationship-start-date'),
+            story_cover_img: getVal('input-story-cover-img'),
+            groom_father_name: getVal('input-groom-father-name'),
+            groom_father_tel: normalizePhoneNumber(getVal('input-groom-father-tel')),
+            groom_mother_name: getVal('input-groom-mother-name'),
+            groom_mother_tel: normalizePhoneNumber(getVal('input-groom-mother-tel')),
+            bride_father_name: getVal('input-bride-father-name'),
+            bride_father_tel: normalizePhoneNumber(getVal('input-bride-father-tel')),
+            bride_mother_name: getVal('input-bride-mother-name'),
+            bride_mother_tel: normalizePhoneNumber(getVal('input-bride-mother-tel'))
+        };
+
+        for (let i = 1; i <= 5; i++) {
+            payloadData[`story_img_${i}`] = getVal(`input-story-img-${i}`);
+            payloadData[`story_title_${i}`] = getVal(`input-story-title-${i}`);
+            payloadData[`story_desc_${i}`] = getVal(`input-story-desc-${i}`);
+        }
+
+        const payload = {
+            password: verifiedAdminPassword,
+            data: payloadData
+        };
+
         const res = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8'
+            },
             body: JSON.stringify(payload)
         });
-        const result = await res.json();
+
+        const resText = await res.text();
+        let result;
+        try {
+            result = JSON.parse(resText);
+        } catch (e) {
+            console.error("서버 응답 파싱 실패:", resText);
+            throw new Error("구글 앱스 스크립트 서버 응답 오류입니다. 앱스 스크립트 웹 앱 배포 버전을 확인해주세요.");
+        }
 
         if (result.result === 'success') {
             alert('성공적으로 저장되었습니다!');
@@ -886,11 +1107,13 @@ async function saveAdminSettings(event) {
             alert(result.message || '저장에 실패했습니다.');
         }
     } catch (err) {
-        alert('저장 중 오류가 발생했습니다.');
+        alert('저장 중 오류가 발생했습니다: ' + err.message);
         console.error(err);
     } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerText = '저장하기';
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerText = '저장하기';
+        }
     }
 }
 
