@@ -14,18 +14,18 @@
 
     <!-- 카카오톡 / SNS 공유 (Open Graph) 메타 태그 -->
     <meta property="og:type" content="website">
-    <meta property="og:title" id="og-title" content="모바일 청첩장">
+    <meta property="og:title" id="og-title" content="건주수아 모바일 청첩장">
     <meta property="og:description" id="og-description" content="소중한 여러분을 초대합니다.">
     <meta property="og:image" id="og-image" content="https://scontent-gmp1-1.cdninstagram.com/v/t39.30808-6/395704580_18084637762381219_7734685049594669121_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6IkNBUk9VU0VMX0lURU0uaW1hZ2VfdXJsZ2VuLjE0NDAuc2RyLnJlZ3VsYXJfcGhvdG8uYzIifQ&_nc_ht=scontent-gmp1-1.cdninstagram.com&_nc_cat=107&_nc_oc=Q6cZ2gEhUAo2CnNAfObrsZUs_SVDmXIxY8a9kvtEfX1oI46QTJcnEpAWdKKHY8M08W5U_I4&_nc_ohc=fl7EEQ-myLAQ7kNvwGHju7d&_nc_gid=jGFJ_zdkLbF1GypFa-7e7g&edm=APs17CUAAAAA&ccb=7-5&ig_cache_key=MzIyMTI4NzcyNjAyMDc4NTAxNw%3D%3D.3-ccb7-5&oh=00_AQFwQn27zY9XoLNaB-l_WRRXSftuR_bS__-gRysvQYeoxQ&oe=6A7A5DAB&_nc_sid=10d13b">
 
-    <!-- 폰트 연결 -->
+    <!-- 폰트 연결 (영문 필기체 Alex Brush 추가) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Yeon+Sung&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Gowun+Batang:wght@400;700&family=Yeon+Sung&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body oncontextmenu="return false;" onselectstart="return false;" ondragstart="return false;">
-    <!-- 배경음악 플레이어 (loop 제거: 연속 플레이리스트 재생 적용) -->
+    <!-- 배경음악 플레이어 -->
     <audio id="bgm-player" preload="auto"></audio>
 
     <!-- 토스트 알림 메시지 레퍼 -->
@@ -79,7 +79,7 @@
             </div>
         </section>
 
-        <!-- Section 2: 초대의 글 섹션 (객체별 개별 스크롤 애니메이션) -->
+        <!-- Section 2: 초대의 글 섹션 -->
         <section class="section greeting-section">
             <span class="section-tag reveal">INVITATION</span>
             <h2 class="section-title reveal">소중한 분들을 초대합니다.</h2>
@@ -114,7 +114,7 @@
             </button>
         </section>
 
-        <!-- Section 3: 날짜 및 실시간 카운트다운 섹션 (객체별 개별 스크롤 애니메이션) -->
+        <!-- Section 3: 날짜 및 실시간 카운트다운 섹션 -->
         <section class="section date-section">
             <div class="date-header reveal">
                 <span class="section-tag">WEDDING DAY</span>
@@ -157,6 +157,100 @@
 
             <div class="dday-counter-box reveal">
                 <p id="dday-text"></p>
+            </div>
+        </section>
+
+        <!-- Section 4: 신랑 & 신부 소개 (어린 시절 사진) 섹션 -->
+        <section class="section couple-section">
+            <span class="section-tag reveal">ABOUT US</span>
+            <h2 class="section-title reveal">저희 두 사람을 소개합니다.</h2>
+            <div class="divider-line reveal"></div>
+
+            <div class="couple-container">
+                <!-- 신랑 아기 사진 & 소개 -->
+                <div class="couple-card reveal">
+                    <div class="couple-photo-frame">
+                        <img id="groom-baby-img" src="" alt="신랑 어린 시절 사진">
+                    </div>
+                    <div class="couple-info">
+                        <span class="couple-role groom-role">신랑</span>
+                        <h3 class="couple-name" id="groom-baby-name"></h3>
+                        <p class="couple-desc" id="groom-intro-display"></p>
+                    </div>
+                </div>
+
+                <!-- 신부 아기 사진 & 소개 -->
+                <div class="couple-card reveal">
+                    <div class="couple-photo-frame">
+                        <img id="bride-baby-img" src="" alt="신부 어린 시절 사진">
+                    </div>
+                    <div class="couple-info">
+                        <span class="couple-role bride-role">신부</span>
+                        <h3 class="couple-name" id="bride-baby-name"></h3>
+                        <p class="couple-desc" id="bride-intro-display"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: 우리의 연애 스토리 (참고 사진 벤치마킹 디자인) -->
+        <section class="section story-section">
+            <!-- 5섹션 - 상태 A: 표지 화면 -->
+            <div id="story-cover-view" class="story-view-wrapper">
+                <p class="story-cover-tag reveal">함께 보낸 소중한 날</p>
+                <h3 class="story-cover-dday reveal" id="story-dday-text">+ 0 일</h3>
+
+                <div class="story-cover-img-box reveal">
+                    <img id="story-cover-img-element" src="" alt="연애 스토리 표지 사진">
+                </div>
+
+                <div class="story-cover-meta-grid reveal">
+                    <div class="story-meta-left">
+                        <span class="meta-label">Collection :</span>
+                        <span class="meta-sub">Ongoing Records</span>
+                    </div>
+                    <div class="story-meta-right">
+                        <span class="meta-cursive">Our story</span>
+                    </div>
+                </div>
+
+                <p class="story-cover-subtext reveal" id="story-intro-desc-display">
+                    Milestone Documentation. These moments, carefully documented and lovingly preserved.<br>Relationship Development Timeline.
+                </p>
+
+                <div class="story-cover-action reveal" onclick="startStoryInline()">
+                    <span>이야기 시작하기</span>
+                    <button type="button" class="story-circle-arrow-btn" aria-label="이야기 시작하기">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 5섹션 - 상태 B: 카드 화면 (1~5페이지 좌우 슬라이드) -->
+            <div id="story-inline-view" class="story-view-wrapper" style="display: none;">
+                <div class="story-inline-topbar">
+                    <span class="story-inline-no" onclick="showStoryCover()" title="표지로 돌아가기">№·</span>
+                    <span class="story-inline-page" id="story-page-indicator">01 / 05</span>
+                </div>
+
+                <div class="story-card-viewport">
+                    <div class="story-page-card" id="story-page-card">
+                        <div class="story-inline-img-box">
+                            <img id="story-display-img" src="" alt="스토리 사진">
+                        </div>
+                        <h4 class="story-inline-title" id="story-display-title"></h4>
+                        <p class="story-inline-desc" id="story-display-desc"></p>
+                    </div>
+                </div>
+
+                <div class="story-inline-nav-bottom">
+                    <button type="button" class="story-arrow-btn" id="story-prev-btn" onclick="prevStoryPage()" aria-label="이전 페이지">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </button>
+                    <button type="button" class="story-arrow-btn" id="story-next-btn" onclick="nextStoryPage()" aria-label="다음 페이지">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
             </div>
         </section>
     </div>
@@ -277,7 +371,7 @@
             </div>
             <div class="modal-body admin-body">
                 <form id="admin-form" onsubmit="saveAdminSettings(event)">
-                    <div class="admin-section-title">섹션 1: 신랑 & 신부 정보</div>
+                    <div class="admin-section-title">신랑과 신부 기본 정보</div>
                     <div class="admin-field-group">
                         <div class="admin-field">
                             <label>신랑 이름</label>
@@ -299,7 +393,7 @@
                         </div>
                     </div>
 
-                    <div class="admin-section-title">섹션 2: 메인 이미지 & 결혼 정보</div>
+                    <div class="admin-section-title">메인 이미지 & 결혼 정보</div>
                     <div class="admin-field">
                         <label>메인 사진 URL</label>
                         <input type="url" id="input-hero-img" required>
@@ -317,7 +411,74 @@
                         <input type="text" id="input-wedding-venue-detail" required>
                     </div>
 
-                    <div class="admin-section-title">섹션 3: 신랑신부 부모님 정보</div>
+                    <div class="admin-section-title">신랑 & 신부 소개 (어린 시절 사진 및 설명)</div>
+                    <div class="admin-field">
+                        <label>신랑 어린시절 사진 URL</label>
+                        <input type="url" id="input-groom-baby-img">
+                    </div>
+                    <div class="admin-field">
+                        <label>신랑 소개 글</label>
+                        <input type="text" id="input-groom-intro-text" placeholder="예: 씩씩하고 다정한 신랑 건주입니다.">
+                    </div>
+                    <div class="admin-field">
+                        <label>신부 어린시절 사진 URL</label>
+                        <input type="url" id="input-bride-baby-img">
+                    </div>
+                    <div class="admin-field">
+                        <label>신부 소개 글</label>
+                        <input type="text" id="input-bride-intro-text" placeholder="예: 밝은 미소로 따뜻함을 전하는 신부 수아입니다.">
+                    </div>
+
+                    <div class="admin-section-title">우리의 연애 스토리 (표지 & 1~5 페이지)</div>
+                    <div class="admin-field">
+                        <label>연애 스토리 표지 하단 문구</label>
+                        <input type="text" id="input-story-intro-text" placeholder="예: Milestone Documentation. These moments, carefully documented and lovingly preserved.">
+                    </div>
+                    <div class="admin-field">
+                        <label>연애 시작일 (YYYY-MM-DD)</label>
+                        <input type="date" id="input-relationship-start-date">
+                    </div>
+                    <div class="admin-field">
+                        <label>연애 스토리 표지 사진 URL</label>
+                        <input type="url" id="input-story-cover-img">
+                    </div>
+
+                    <!-- 페이지 1 -->
+                    <div class="admin-field-group">
+                        <div class="admin-field"><label>페이지 1 사진 URL</label><input type="url" id="input-story-img-1"></div>
+                        <div class="admin-field"><label>페이지 1 제목</label><input type="text" id="input-story-title-1" placeholder="예: 첫 만남"></div>
+                    </div>
+                    <div class="admin-field"><label>페이지 1 내용</label><input type="text" id="input-story-desc-1"></div>
+
+                    <!-- 페이지 2 -->
+                    <div class="admin-field-group">
+                        <div class="admin-field"><label>페이지 2 사진 URL</label><input type="url" id="input-story-img-2"></div>
+                        <div class="admin-field"><label>페이지 2 제목</label><input type="text" id="input-story-title-2" placeholder="예: 첫 여행"></div>
+                    </div>
+                    <div class="admin-field"><label>페이지 2 내용</label><input type="text" id="input-story-desc-2"></div>
+
+                    <!-- 페이지 3 -->
+                    <div class="admin-field-group">
+                        <div class="admin-field"><label>페이지 3 사진 URL</label><input type="url" id="input-story-img-3"></div>
+                        <div class="admin-field"><label>페이지 3 제목</label><input type="text" id="input-story-title-3" placeholder="예: 소중한 추억"></div>
+                    </div>
+                    <div class="admin-field"><label>페이지 3 내용</label><input type="text" id="input-story-desc-3"></div>
+
+                    <!-- 페이지 4 -->
+                    <div class="admin-field-group">
+                        <div class="admin-field"><label>페이지 4 사진 URL</label><input type="url" id="input-story-img-4"></div>
+                        <div class="admin-field"><label>페이지 4 제목</label><input type="text" id="input-story-title-4" placeholder="예: 프로포즈"></div>
+                    </div>
+                    <div class="admin-field"><label>페이지 4 내용</label><input type="text" id="input-story-desc-4"></div>
+
+                    <!-- 페이지 5 -->
+                    <div class="admin-field-group">
+                        <div class="admin-field"><label>페이지 5 사진 URL</label><input type="url" id="input-story-img-5"></div>
+                        <div class="admin-field"><label>페이지 5 제목</label><input type="text" id="input-story-title-5" placeholder="예: 결실을 맺으며"></div>
+                    </div>
+                    <div class="admin-field"><label>페이지 5 내용</label><input type="text" id="input-story-desc-5"></div>
+
+                    <div class="admin-section-title">신랑신부 부모님 정보</div>
                     <div class="admin-field-group">
                         <div class="admin-field">
                             <label>신랑 아버지 성함</label>
