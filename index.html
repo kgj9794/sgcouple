@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>모바일 청첩장</title>
+
+    <!-- Favicon 설정 (웹 서버 경로 image.png 반영) -->
+    <link rel="icon" type="image/png" href="Image.png">
+
+    <!-- 상단 바 색상 설정 (모바일 브라우저 상태표시줄 핑크색) -->
+    <meta name="theme-color" content="#ffccd5">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#ffccd5">
+
+    <!-- 카카오톡 / SNS 공유 (Open Graph) 메타 태그 -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" id="og-title" content="모바일 청첩장">
+    <meta property="og:description" id="og-description" content="소중한 여러분을 초대합니다.">
+    <meta property="og:image" id="og-image" content="https://scontent-gmp1-1.cdninstagram.com/v/t39.30808-6/395704580_18084637762381219_7734685049594669121_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6IkNBUk9VU0VMX0lURU0uaW1hZ2VfdXJsZ2VuLjE0NDAuc2RyLnJlZ3VsYXJfcGhvdG8uYzIifQ&_nc_ht=scontent-gmp1-1.cdninstagram.com&_nc_cat=107&_nc_oc=Q6cZ2gEhUAo2CnNAfObrsZUs_SVDmXIxY8a9kvtEfX1oI46QTJcnEpAWdKKHY8M08W5U_I4&_nc_ohc=fl7EEQ-myLAQ7kNvwGHju7d&_nc_gid=jGFJ_zdkLbF1GypFa-7e7g&edm=APs17CUAAAAA&ccb=7-5&ig_cache_key=MzIyMTI4NzcyNjAyMDc4NTAxNw%3D%3D.3-ccb7-5&oh=00_AQFwQn27zY9XoLNaB-l_WRRXSftuR_bS__-gRysvQYeoxQ&oe=6A7A5DAB&_nc_sid=10d13b">
+
+    <!-- 폰트 연결 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Yeon+Sung&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body oncontextmenu="return false;" onselectstart="return false;" ondragstart="return false;">
+    <!-- 배경음악 플레이어 (loop 제거: 연속 플레이리스트 재생 적용) -->
+    <audio id="bgm-player" preload="auto"></audio>
+
+    <!-- 토스트 알림 메시지 레퍼 -->
+    <div id="toast-msg" class="toast-msg"></div>
+
+    <!-- 최초 접속 시 연한 핑크 배경에 콩닥거리는 하트와 흰색 필기체 인트로 -->
+    <div id="intro-overlay" class="intro-overlay">
+        <canvas id="intro-fireworks-canvas"></canvas>
+        <div class="intro-content">
+            <div class="beating-heart">♥</div>
+            <div class="intro-typing-box">
+                <p class="typing-text" id="typing-title"></p>
+                <p class="typing-text-sub" id="typing-sub"></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="mobile-frame">
+        <!-- 숨겨진 관리자 모드 버튼 (좌측 상단, 5초 긴 누름 전용) -->
+        <button type="button" class="admin-lock-btn" id="admin-lock-btn" aria-label="관리자 모드">
+            🔒
+        </button>
+
+        <!-- 배경음악 토글 버튼 (우측 상단) -->
+        <button type="button" class="bgm-btn" id="bgm-btn" onclick="toggleBgm()" aria-label="배경음악 설정">
+            🎵
+        </button>
+
+        <!-- Section 1: 메인 커버 섹션 -->
+        <section class="hero-section">
+            <canvas id="sakura-canvas"></canvas>
+            <div class="hero-overlay"></div>
+            <div class="hero-bg-img">
+                <img id="hero-img-element" src="" alt="메인 사진">
+            </div>
+
+            <div class="hero-text-container">
+                <p class="hero-subtitle">우리 결혼합니다.</p>
+                <h1 class="hero-names">
+                    <span class="groom" id="hero-groom-name"></span>
+                    <span class="heart">♥</span>
+                    <span class="bride" id="hero-bride-name"></span>
+                </h1>
+                <p class="hero-date" id="hero-date-text"></p>
+                <p class="hero-venue" id="hero-venue-text"></p>
+            </div>
+
+            <div class="scroll-indicator" id="scroll-indicator">
+                <span>아래로 스크롤 하세요.</span>
+                <div class="scroll-arrow"></div>
+            </div>
+        </section>
+
+        <!-- Section 2: 초대의 글 섹션 (객체별 개별 스크롤 애니메이션) -->
+        <section class="section greeting-section">
+            <span class="section-tag reveal">INVITATION</span>
+            <h2 class="section-title reveal">소중한 분들을 초대합니다.</h2>
+            <div class="divider-line reveal"></div>
+            
+            <p class="greeting-body reveal">
+                우연처럼 다가온 인연이<br>
+                매일을 특별하게 만들었습니다.<br>
+                서로의 이야기를 들으며 웃고,<br>
+                함께의 내일을 꿈꾸게 되었습니다.<br><br>
+                하루하루 마음이 깊어진 끝에<br>
+                우리라는 한 편의 이야기가 시작됩니다.<br>
+                두 사람의 설레는 시작에<br>
+                소중한 분의 따뜻한 축복을 기다립니다.
+            </p>
+
+            <div class="family-info reveal">
+                <div class="family-row">
+                    <span class="parents" id="groom-parents-display"></span>
+                    <span class="relation">의 아들</span>
+                    <strong class="name" id="groom-name-display"></strong>
+                </div>
+                <div class="family-row">
+                    <span class="parents" id="bride-parents-display"></span>
+                    <span class="relation">의 딸</span>
+                    <strong class="name" id="bride-name-display"></strong>
+                </div>
+            </div>
+
+            <button type="button" class="contact-trigger-btn reveal" onclick="openContactModal()">
+                <span>📞</span> 축하 연락하기
+            </button>
+        </section>
+
+        <!-- Section 3: 날짜 및 실시간 카운트다운 섹션 (객체별 개별 스크롤 애니메이션) -->
+        <section class="section date-section">
+            <div class="date-header reveal">
+                <span class="section-tag">WEDDING DAY</span>
+                <h2 class="date-big-title" id="date-big-title-text"></h2>
+                <p class="date-sub-info" id="date-sub-info-text"></p>
+            </div>
+
+            <!-- 동적 달력 -->
+            <div class="calendar-card reveal">
+                <div class="calendar-header">
+                    <span class="sun">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+                </div>
+                <div class="calendar-days" id="calendar-days-container">
+                    <!-- 스크립트에서 동적 생성 -->
+                </div>
+            </div>
+
+            <!-- 실시간 카운트다운 타이머 -->
+            <div class="countdown-container reveal">
+                <div class="timer-box">
+                    <div class="number-wrap"><span id="timer-days" class="number">00</span></div>
+                    <span class="label">DAYS</span>
+                </div>
+                <span class="timer-colon">:</span>
+                <div class="timer-box">
+                    <div class="number-wrap"><span id="timer-hours" class="number">00</span></div>
+                    <span class="label">HOURS</span>
+                </div>
+                <span class="timer-colon">:</span>
+                <div class="timer-box">
+                    <div class="number-wrap"><span id="timer-mins" class="number">00</span></div>
+                    <span class="label">MINS</span>
+                </div>
+                <span class="timer-colon">:</span>
+                <div class="timer-box">
+                    <div class="number-wrap"><span id="timer-secs" class="number">00</span></div>
+                    <span class="label">SECS</span>
+                </div>
+            </div>
+
+            <div class="dday-counter-box reveal">
+                <p id="dday-text"></p>
+            </div>
+        </section>
+    </div>
+
+    <!-- 축하 연락하기 팝업 모달 -->
+    <div id="contact-modal" class="modal-overlay" onclick="handleBackdropClick(event)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>축하 연락하기</h3>
+                <button type="button" class="modal-close-btn" onclick="closeContactModal()">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="contact-group">
+                    <h4 class="group-title groom-title">신랑측</h4>
+                    <div class="contact-item">
+                        <span class="role">신랑 <strong class="person-name" id="modal-groom-name"></strong></span>
+                        <div class="action-btns">
+                            <a id="btn-tel-groom" href="javascript:void(0)" class="btn-icon btn-call" aria-label="전화걸기">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            </a>
+                            <a id="btn-sms-groom" href="javascript:void(0)" class="btn-icon btn-sms" aria-label="문자보내기">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span class="role">아버지 <strong class="person-name" id="modal-groom-father-name"></strong></span>
+                        <div class="action-btns">
+                            <a id="btn-tel-groom-father" href="javascript:void(0)" class="btn-icon btn-call" aria-label="전화걸기">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            </a>
+                            <a id="btn-sms-groom-father" href="javascript:void(0)" class="btn-icon btn-sms" aria-label="문자보내기">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span class="role">어머니 <strong class="person-name" id="modal-groom-mother-name"></strong></span>
+                        <div class="action-btns">
+                            <a id="btn-tel-groom-mother" href="javascript:void(0)" class="btn-icon btn-call" aria-label="전화걸기">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            </a>
+                            <a id="btn-sms-groom-mother" href="javascript:void(0)" class="btn-icon btn-sms" aria-label="문자보내기">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-divider"></div>
+
+                <div class="contact-group">
+                    <h4 class="group-title bride-title">신부측</h4>
+                    <div class="contact-item">
+                        <span class="role">신부 <strong class="person-name" id="modal-bride-name"></strong></span>
+                        <div class="action-btns">
+                            <a id="btn-tel-bride" href="javascript:void(0)" class="btn-icon btn-call" aria-label="전화걸기">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            </a>
+                            <a id="btn-sms-bride" href="javascript:void(0)" class="btn-icon btn-sms" aria-label="문자보내기">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span class="role">아버지 <strong class="person-name" id="modal-bride-father-name"></strong></span>
+                        <div class="action-btns">
+                            <a id="btn-tel-bride-father" href="javascript:void(0)" class="btn-icon btn-call" aria-label="전화걸기">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            </a>
+                            <a id="btn-sms-bride-father" href="javascript:void(0)" class="btn-icon btn-sms" aria-label="문자보내기">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span class="role">어머니 <strong class="person-name" id="modal-bride-mother-name"></strong></span>
+                        <div class="action-btns">
+                            <a id="btn-tel-bride-mother" href="javascript:void(0)" class="btn-icon btn-call" aria-label="전화걸기">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            </a>
+                            <a id="btn-sms-bride-mother" href="javascript:void(0)" class="btn-icon btn-sms" aria-label="문자보내기">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1단계: 관리자 비밀번호 확인 모달 -->
+    <div id="admin-auth-modal" class="modal-overlay" onclick="handleBackdropClick(event)">
+        <div class="modal-content admin-modal-content">
+            <div class="modal-header">
+                <h3>관리자 인증</h3>
+                <button type="button" class="modal-close-btn" onclick="closeAdminAuthModal()">&times;</button>
+            </div>
+            <div class="modal-body admin-body">
+                <form onsubmit="verifyAdminPassword(event)">
+                    <div class="admin-field">
+                        <label>관리자 비밀번호</label>
+                        <input type="password" id="input-auth-pass" required placeholder="비밀번호 입력">
+                    </div>
+                    <button type="submit" class="admin-save-btn" id="admin-auth-btn">인증하기</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2단계: 관리자 설정 모달 -->
+    <div id="admin-modal" class="modal-overlay" onclick="handleBackdropClick(event)">
+        <div class="modal-content admin-modal-content">
+            <div class="modal-header">
+                <h3>관리자 설정 (DB 연동)</h3>
+                <button type="button" class="modal-close-btn" onclick="closeAdminModal()">&times;</button>
+            </div>
+            <div class="modal-body admin-body">
+                <form id="admin-form" onsubmit="saveAdminSettings(event)">
+                    <div class="admin-section-title">섹션 1: 신랑 & 신부 정보</div>
+                    <div class="admin-field-group">
+                        <div class="admin-field">
+                            <label>신랑 이름</label>
+                            <input type="text" id="input-groom-name" required>
+                        </div>
+                        <div class="admin-field">
+                            <label>신랑 연락처</label>
+                            <input type="tel" id="input-groom-tel" required>
+                        </div>
+                    </div>
+                    <div class="admin-field-group">
+                        <div class="admin-field">
+                            <label>신부 이름</label>
+                            <input type="text" id="input-bride-name" required>
+                        </div>
+                        <div class="admin-field">
+                            <label>신부 연락처</label>
+                            <input type="tel" id="input-bride-tel" required>
+                        </div>
+                    </div>
+
+                    <div class="admin-section-title">섹션 2: 메인 이미지 & 결혼 정보</div>
+                    <div class="admin-field">
+                        <label>메인 사진 URL</label>
+                        <input type="url" id="input-hero-img" required>
+                    </div>
+                    <div class="admin-field">
+                        <label>결혼 일시 (YYYY-MM-DDTHH:MM)</label>
+                        <input type="datetime-local" id="input-wedding-datetime" required>
+                    </div>
+                    <div class="admin-field">
+                        <label>결혼 장소 (웨딩홀/호텔명)</label>
+                        <input type="text" id="input-wedding-venue" required>
+                    </div>
+                    <div class="admin-field">
+                        <label>상세 장소 (층/홀)</label>
+                        <input type="text" id="input-wedding-venue-detail" required>
+                    </div>
+
+                    <div class="admin-section-title">섹션 3: 신랑신부 부모님 정보</div>
+                    <div class="admin-field-group">
+                        <div class="admin-field">
+                            <label>신랑 아버지 성함</label>
+                            <input type="text" id="input-groom-father-name" required>
+                        </div>
+                        <div class="admin-field">
+                            <label>신랑 아버지 연락처</label>
+                            <input type="tel" id="input-groom-father-tel" required>
+                        </div>
+                    </div>
+                    <div class="admin-field-group">
+                        <div class="admin-field">
+                            <label>신랑 어머니 성함</label>
+                            <input type="text" id="input-groom-mother-name" required>
+                        </div>
+                        <div class="admin-field">
+                            <label>신랑 어머니 연락처</label>
+                            <input type="tel" id="input-groom-mother-tel" required>
+                        </div>
+                    </div>
+
+                    <div class="admin-field-group">
+                        <div class="admin-field">
+                            <label>신부 아버지 성함</label>
+                            <input type="text" id="input-bride-father-name" required>
+                        </div>
+                        <div class="admin-field">
+                            <label>신부 아버지 연락처</label>
+                            <input type="tel" id="input-bride-father-tel" required>
+                        </div>
+                    </div>
+                    <div class="admin-field-group">
+                        <div class="admin-field">
+                            <label>신부 어머니 성함</label>
+                            <input type="text" id="input-bride-mother-name" required>
+                        </div>
+                        <div class="admin-field">
+                            <label>신부 어머니 연락처</label>
+                            <input type="tel" id="input-bride-mother-tel" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="admin-save-btn" id="admin-save-btn">저장하기</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
