@@ -491,7 +491,7 @@ body {
     transform: scale(0.99);
 }
 
-/* --- SECTION 4: COUPLE INTRO (흰색 감싸는 박스 사이즈 최적화) --- */
+/* --- SECTION 4: COUPLE INTRO (흰색 감싸는 박스 사이즈 아담하게 조절) --- */
 .couple-section {
     background-color: #f4edd9;
     padding: 60px 24px;
@@ -529,27 +529,27 @@ body {
     gap: 22px;
 }
 
-/* 흰색 박스 전체 너비 축소 (max-width: 310px) 및 적절한 패딩 적용 */
+/* 흰색 박스 크기 축소 (max-width: 280px) 및 내부 패딩 슬림화 */
 .couple-card {
     background-color: #ffffff;
     border-radius: 18px;
-    padding: 18px 16px;
+    padding: 16px 14px 18px;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03);
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
-    max-width: 310px;
+    max-width: 280px;
 }
 
 .couple-photo-frame {
     width: 100%;
-    max-width: 220px;
+    max-width: 200px;
     aspect-ratio: 1 / 1;
     border-radius: 16px;
     overflow: hidden;
     background-color: #f2eee4;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
 }
 
@@ -659,7 +659,7 @@ body {
     }
 }
 
-/* 05/05 사진 페이지 조건부 하단 스크롤 안내 */
+/* 05/05 사진 연핑크 하트 페이지 전용 조건부 하단 스크롤 안내 */
 .story-scroll-indicator {
     position: absolute;
     bottom: 18px;
