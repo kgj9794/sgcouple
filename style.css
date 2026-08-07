@@ -979,7 +979,7 @@ body {
 
 .gallery-more-btn svg { color: #777777; }
 
-/* SECTION 7: LOCATION (오시는 길) */
+/* SECTION 7: LOCATION */
 .location-section {
     background-color: #faf9f7;
     padding: 60px 20px 70px;
@@ -1023,7 +1023,6 @@ body {
     word-break: keep-all;
 }
 
-/* 지도 iframe 레이아웃 */
 .map-iframe-container {
     width: 100%;
     height: 280px;
@@ -1040,7 +1039,6 @@ body {
     border: 0;
 }
 
-/* 약도 이미지 보기 버튼 */
 .map-image-btn-wrap {
     margin-bottom: 40px;
 }
@@ -1068,7 +1066,6 @@ body {
     transform: scale(0.99);
 }
 
-/* 내비게이션 박스 */
 .navigation-box {
     text-align: left;
     padding-top: 10px;
@@ -1139,8 +1136,8 @@ body {
 
 /* LIGHTBOX & MAP MODAL */
 .lightbox-modal, .map-img-modal {
-    background-color: rgba(0, 0, 0, 0.85) !important;
-    backdrop-filter: blur(4px) !important;
+    background-color: rgba(0, 0, 0, 0.9) !important;
+    backdrop-filter: blur(5px) !important;
     padding: 0 !important;
 }
 
@@ -1169,11 +1166,15 @@ body {
     background: none;
     border: none;
     font-size: 2rem;
-    color: #222222;
+    color: #ffffff;
     cursor: pointer;
     z-index: 10001;
     line-height: 1;
     padding: 6px;
+}
+
+.map-modal-content .lightbox-close-btn {
+    color: #222222;
 }
 
 .lightbox-img-wrapper {
@@ -1199,10 +1200,17 @@ body {
     max-width: 100%;
     max-height: 75vh;
     object-fit: contain;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
     border-radius: 4px;
     will-change: transform, opacity;
+    user-select: none;
+    -webkit-user-drag: none;
 }
+
+.lightbox-img-wrapper img.slide-out-left { animation: slideOutLeft 0.22s forwards cubic-bezier(0.4, 0, 0.2, 1); }
+.lightbox-img-wrapper img.slide-in-right { animation: slideInRight 0.25s forwards cubic-bezier(0.215, 0.61, 0.355, 1); }
+.lightbox-img-wrapper img.slide-out-right { animation: slideOutRight 0.22s forwards cubic-bezier(0.4, 0, 0.2, 1); }
+.lightbox-img-wrapper img.slide-in-left { animation: slideInLeft 0.25s forwards cubic-bezier(0.215, 0.61, 0.355, 1); }
 
 .map-img-scroll-wrapper img {
     max-height: none;
