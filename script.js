@@ -3,7 +3,7 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDQCQbrwOX9F_K
 
 // BGM 음원 목록
 const BGM_PLAYLIST = [
-    "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/%E1%84%8B%E1%85%A6%E1%84%8B%E1%85%AE%E1%84%85%E1%85%A6%E1%86%AF.mp3"
+    "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/%E1%84%8B%E1%85%A6%E1%84%8B%E1%85%A6%E1%84%85%E1%85%A6%E1%86%AF.mp3"
 ];
 
 let dbData = {};
@@ -21,6 +21,7 @@ let fireworksAnimationId = null;
 let scrollPosition = 0;
 let hasShownInitialBgmToast = false;
 let currentStoryPage = 1; // 연애 스토리 현재 페이지 (1~5)
+let heartsInterval = null; // 5페이지 날아가는 하트 타이머
 
 let prevValues = {
     days: '',
@@ -162,7 +163,7 @@ function playNextBgmTrack() {
     }
 }
 
-// --- BGM 초기화 & 모바일 대응 (스크롤, 터치, 클릭 제스처 해제) ---
+// --- BGM 초기화 & 모바일 대응 ---
 function initBgm() {
     bgmAudio = document.getElementById('bgm-player');
     if (!bgmAudio) return;
@@ -188,7 +189,6 @@ function initBgm() {
 
     startAudio();
 
-    // 스크롤 및 화면 상호작용 시 자동 재생 등록
     UNLOCK_EVENTS.forEach(evt => {
         window.addEventListener(evt, unlockInteraction, { passive: true });
     });
@@ -275,6 +275,16 @@ function startStoryInline() {
 function showStoryCover() {
     const coverView = document.getElementById('story-cover-view');
     const inlineView = document.getElementById('story-inline-view');
+    const storySection = document.querySelector('.story-section');
+    const storyScrollIndicator = document.querySelector('.story-scroll-indicator');
+
+    if (storySection) {
+        storySection.classList.remove('pink-bg');
+    }
+    if (storyScrollIndicator) {
+        storyScrollIndicator.classList.remove('show');
+    }
+    stopFloatingHearts();
 
     if (coverView && inlineView) {
         inlineView.style.display = 'none';
@@ -289,6 +299,21 @@ function renderStoryPage(page) {
     const descEl = document.getElementById('story-display-desc');
     const prevBtn = document.getElementById('story-prev-btn');
     const nextBtn = document.getElementById('story-next-btn');
+    const storySection = document.querySelector('.story-section');
+    const storyScrollIndicator = document.querySelector('.story-scroll-indicator');
+
+    // 05/05 페이지에서만 연핑크 배경, 날아가는 하트, 하단 스크롤 안내 표시
+    if (storySection) {
+        if (page === 5) {
+            storySection.classList.add('pink-bg');
+            startFloatingHearts();
+            if (storyScrollIndicator) storyScrollIndicator.classList.add('show');
+        } else {
+            storySection.classList.remove('pink-bg');
+            stopFloatingHearts();
+            if (storyScrollIndicator) storyScrollIndicator.classList.remove('show');
+        }
+    }
 
     if (indicatorEl) {
         const pageStr = String(page).padStart(2, '0');
@@ -314,6 +339,58 @@ function renderStoryPage(page) {
 
     if (prevBtn) prevBtn.disabled = false;
     if (nextBtn) nextBtn.disabled = (page === 5);
+}
+
+// --- 05/05 페이지 날아가는 하트 생성 함수 ---
+function startFloatingHearts() {
+    stopFloatingHearts();
+    const container = document.getElementById('story-hearts-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    for (let i = 0; i < 10; i++) {
+        createSingleHeart(container, true);
+    }
+
+    heartsInterval = setInterval(() => {
+        createSingleHeart(container, false);
+    }, 450);
+}
+
+function stopFloatingHearts() {
+    if (heartsInterval) {
+        clearInterval(heartsInterval);
+        heartsInterval = null;
+    }
+    const container = document.getElementById('story-hearts-container');
+    if (container) container.innerHTML = '';
+}
+
+function createSingleHeart(container, isInitial) {
+    if (!container) return;
+    const heart = document.createElement('div');
+    heart.className = 'floating-heart';
+    heart.innerText = Math.random() > 0.35 ? '♥' : '💕';
+
+    const size = Math.random() * 1.0 + 0.8;
+    const left = Math.random() * 90 + 5;
+    const duration = Math.random() * 2.5 + 3.5;
+    const delay = isInitial ? Math.random() * 2 : 0;
+
+    heart.style.cssText = `
+        left: ${left}%;
+        font-size: ${size}rem;
+        animation-duration: ${duration}s;
+        animation-delay: ${delay}s;
+    `;
+
+    container.appendChild(heart);
+
+    setTimeout(() => {
+        if (heart.parentNode === container) {
+            container.removeChild(heart);
+        }
+    }, (duration + delay) * 1000);
 }
 
 // 좌우 슬라이드 애니메이션 적용 넘김
@@ -712,7 +789,6 @@ function applyDataToDOM(data) {
     document.getElementById('groom-name-display').innerText = groomName;
     document.getElementById('bride-name-display').innerText = brideName;
 
-    // 신랑 신부 아기사진 & 소개 글 반영
     document.getElementById('groom-baby-name').innerText = groomName;
     document.getElementById('bride-baby-name').innerText = brideName;
 
