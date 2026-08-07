@@ -3,7 +3,6 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Gowun Batang', serif;
-    /* 전체 우클릭/드래그/선택 방지 */
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -11,7 +10,6 @@
     -webkit-touch-callout: none;
 }
 
-/* 이미지에 대한 저장/우클릭/롱프레스 팝업 강제 방지 */
 img {
     -webkit-touch-callout: none !important;
     -webkit-user-select: none !important;
@@ -23,7 +21,6 @@ img {
     pointer-events: auto;
 }
 
-/* 관리자 입력창 등 input 요소는 선택 및 입력 가능하게 예외 처리 */
 input, textarea {
     -webkit-user-select: text !important;
     -moz-user-select: text !important;
@@ -38,7 +35,6 @@ html, body {
     overflow-x: hidden;
 }
 
-/* 팝업 오픈 시 배경 스크롤 완전 차단 및 BGM 버튼 자동 숨김 */
 body.no-scroll {
     overflow: hidden !important;
     height: 100vh !important;
@@ -47,12 +43,10 @@ body.no-scroll {
     touch-action: none;
 }
 
-/* 팝업 오픈 시 BGM 노래 버튼 숨김 처리 */
 body.no-scroll .bgm-btn {
     display: none !important;
 }
 
-/* --- 모바일 프레임 레이아웃 (반응형 최적화) --- */
 body {
     display: flex;
     justify-content: center;
@@ -71,15 +65,10 @@ body {
 }
 
 @media (max-width: 480px) {
-    body {
-        background-color: #ffffff;
-    }
-    .mobile-frame {
-        box-shadow: none;
-    }
+    body { background-color: #ffffff; }
+    .mobile-frame { box-shadow: none; }
 }
 
-/* --- BGM (좌측 상단) & ADMIN LOCK BUTTON (상단 중앙) --- */
 .admin-lock-btn {
     position: absolute;
     top: 16px;
@@ -122,7 +111,6 @@ body {
     background: rgba(0, 0, 0, 0.6);
 }
 
-/* --- TOAST NOTIFICATION --- */
 .toast-msg {
     position: fixed;
     bottom: 40px;
@@ -149,7 +137,7 @@ body {
     transform: translateX(-50%) translateY(0);
 }
 
-/* --- INTRO OVERLAY --- */
+/* INTRO OVERLAY */
 .intro-overlay {
     position: fixed;
     top: 0;
@@ -258,7 +246,7 @@ body {
     50% { border-color: rgba(255, 255, 255, 0.85); }
 }
 
-/* --- HERO SECTION --- */
+/* HERO SECTION */
 .hero-section {
     position: relative;
     width: 100%;
@@ -390,7 +378,7 @@ body {
     animation: bounce 2s infinite;
 }
 
-/* --- SECTION GENERAL --- */
+/* SECTION GENERAL */
 .section {
     padding: 70px 24px;
     text-align: center;
@@ -471,7 +459,7 @@ body {
     transform: scale(0.99);
 }
 
-/* --- SECTION 4: COUPLE INTRO --- */
+/* SECTION 4: COUPLE INTRO */
 .couple-section {
     background-color: #f4edd9;
     padding: 60px 24px;
@@ -574,7 +562,7 @@ body {
     white-space: pre-line;
 }
 
-/* --- SECTION 5: OUR STORY --- */
+/* SECTION 5: OUR STORY */
 .story-section {
     width: 100%;
     min-height: 100vh;
@@ -905,7 +893,7 @@ body {
 .story-page-card.slide-out-right { animation: slideOutRight 0.22s forwards cubic-bezier(0.4, 0, 0.2, 1); }
 .story-page-card.slide-in-left { animation: slideInLeft 0.25s forwards cubic-bezier(0.215, 0.61, 0.355, 1); }
 
-/* --- SECTION 6: WEDDING GALLERY --- */
+/* SECTION 6: WEDDING GALLERY */
 .gallery-section {
     background-color: #fcfbfa;
     padding: 60px 20px;
@@ -947,10 +935,7 @@ body {
     contain-intrinsic-size: 200px;
 }
 
-.gallery-item.hidden-item {
-    display: none !important;
-}
-
+.gallery-item.hidden-item { display: none !important; }
 .gallery-item:active { transform: scale(0.97); }
 
 .gallery-item img {
@@ -992,14 +977,170 @@ body {
     color: #222222;
 }
 
-.gallery-more-btn svg {
-    color: #777777;
+.gallery-more-btn svg { color: #777777; }
+
+/* SECTION 7: LOCATION (오시는 길) */
+.location-section {
+    background-color: #faf9f7;
+    padding: 60px 20px 70px;
+    border-top: 1px solid #f0eae1;
 }
 
-/* --- LIGHTBOX MODAL --- */
-.lightbox-modal {
-    background-color: #ffffff !important;
-    backdrop-filter: none !important;
+.location-section-tag {
+    font-size: 0.8rem;
+    letter-spacing: 4px;
+    color: #c98b95;
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 400;
+}
+
+.location-section-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: #a86b75;
+    margin-bottom: 30px;
+    letter-spacing: -0.3px;
+}
+
+.location-info-box {
+    margin-bottom: 24px;
+}
+
+.location-venue {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #222222;
+    margin-bottom: 8px;
+    word-break: keep-all;
+}
+
+.location-address {
+    font-size: 1.02rem;
+    color: #666666;
+    letter-spacing: -0.2px;
+    word-break: keep-all;
+}
+
+/* 지도 iframe 레이아웃 */
+.map-iframe-container {
+    width: 100%;
+    height: 280px;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #eee;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+}
+
+.map-iframe-container iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+/* 약도 이미지 보기 버튼 */
+.map-image-btn-wrap {
+    margin-bottom: 40px;
+}
+
+.btn-map-image {
+    width: 100%;
+    padding: 14px;
+    background-color: #ffffff;
+    border: 1px solid #f2dbe0;
+    border-radius: 12px;
+    color: #a86b75;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 10px rgba(168, 107, 117, 0.05);
+    transition: all 0.2s ease;
+}
+
+.btn-map-image:active {
+    background-color: #fff5f7;
+    transform: scale(0.99);
+}
+
+/* 내비게이션 박스 */
+.navigation-box {
+    text-align: left;
+    padding-top: 10px;
+}
+
+.nav-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #333333;
+    margin-bottom: 4px;
+}
+
+.nav-subtitle {
+    font-size: 0.82rem;
+    color: #888888;
+    margin-bottom: 16px;
+    word-break: keep-all;
+}
+
+.nav-buttons-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.nav-app-btn {
+    background-color: #ffffff;
+    border: 1px solid #eaeaea;
+    border-radius: 12px;
+    padding: 12px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s ease;
+}
+
+.nav-app-btn:active {
+    background-color: #f8f8f8;
+    transform: scale(0.97);
+}
+
+.app-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 900;
+    color: #ffffff;
+    font-family: sans-serif;
+}
+
+.naver-icon { background-color: #03cf5d; }
+.tmap-icon { background-color: #1e64ff; }
+.kakao-icon { background-color: #fee500; color: #191919; }
+
+.app-name {
+    font-size: 0.85rem;
+    color: #333333;
+    font-weight: 700;
+    font-family: sans-serif;
+}
+
+/* LIGHTBOX & MAP MODAL */
+.lightbox-modal, .map-img-modal {
+    background-color: rgba(0, 0, 0, 0.85) !important;
+    backdrop-filter: blur(4px) !important;
     padding: 0 !important;
 }
 
@@ -1007,7 +1148,6 @@ body {
     width: 100vw;
     height: 100vh;
     height: 100dvh;
-    background-color: #ffffff;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -1017,13 +1157,18 @@ body {
     box-sizing: border-box;
 }
 
+.map-modal-content {
+    background-color: #f7f7f7;
+    justify-content: center;
+}
+
 .lightbox-close-btn {
     position: absolute;
     top: 16px;
     right: 20px;
     background: none;
     border: none;
-    font-size: 1.8rem;
+    font-size: 2rem;
     color: #222222;
     cursor: pointer;
     z-index: 10001;
@@ -1043,19 +1188,27 @@ body {
     touch-action: pan-y;
 }
 
+.map-img-scroll-wrapper {
+    overflow-y: auto;
+    touch-action: auto;
+    padding: 50px 10px 20px;
+    align-items: flex-start;
+}
+
 .lightbox-img-wrapper img {
     max-width: 100%;
     max-height: 75vh;
     object-fit: contain;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    border-radius: 2px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
     will-change: transform, opacity;
 }
 
-.lightbox-img-wrapper img.slide-out-left { animation: slideOutLeft 0.22s forwards cubic-bezier(0.4, 0, 0.2, 1); }
-.lightbox-img-wrapper img.slide-in-right { animation: slideInRight 0.25s forwards cubic-bezier(0.215, 0.61, 0.355, 1); }
-.lightbox-img-wrapper img.slide-out-right { animation: slideOutRight 0.22s forwards cubic-bezier(0.4, 0, 0.2, 1); }
-.lightbox-img-wrapper img.slide-in-left { animation: slideInLeft 0.25s forwards cubic-bezier(0.215, 0.61, 0.355, 1); }
+.map-img-scroll-wrapper img {
+    max-height: none;
+    width: 100%;
+    max-width: 480px;
+}
 
 .lightbox-nav-bar {
     display: flex;
@@ -1069,29 +1222,22 @@ body {
 .lightbox-nav-btn {
     background: none;
     border: none;
-    color: #444444;
+    color: #ffffff;
     cursor: pointer;
     padding: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.15s ease;
-}
-
-.lightbox-nav-btn:active {
-    transform: scale(0.88);
-    color: #000000;
 }
 
 .lightbox-counter {
     font-size: 0.95rem;
-    color: #333333;
+    color: #ffffff;
     font-family: sans-serif;
     letter-spacing: 2px;
-    font-weight: 500;
 }
 
-/* --- 관리자 모드 - 갤러리 업로드 & 좌우 스크롤 순서 변경 UI --- */
+/* 관리자 모드 - 갤러리 업로드 */
 .admin-gallery-upload-box {
     background-color: #faf8f5;
     border: 1px dashed #d8c29d;
@@ -1139,7 +1285,7 @@ body {
     overflow: hidden;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
     background-color: #f4efe6;
-    touch-action: pan-x; /* 좌우 자유 스와이프 스크롤 허용 */
+    touch-action: pan-x;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     user-select: none;
 }
@@ -1189,7 +1335,7 @@ body {
     justify-content: center;
 }
 
-/* --- SECTION 3: DATE & COUNTDOWN SECTION --- */
+/* SECTION 3: DATE & COUNTDOWN */
 .date-section {
     width: 100%;
     min-height: 100vh;
@@ -1336,7 +1482,7 @@ body {
 
 .dday-heart { color: #ff85a1; font-size: 0.85rem; }
 
-/* --- MODALS (전체 화면 풀스크린) --- */
+/* MODALS */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -1506,7 +1652,7 @@ body {
 
 .admin-save-btn:disabled { background-color: #cccccc; }
 
-/* --- ANIMATIONS & REVEAL --- */
+/* ANIMATIONS & REVEAL */
 .reveal {
     opacity: 0;
     transform: translateY(40px);
