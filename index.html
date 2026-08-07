@@ -18,7 +18,7 @@
     <meta property="og:description" id="og-description" content="소중한 여러분을 초대합니다.">
     <meta property="og:image" id="og-image" content="https://scontent-gmp1-1.cdninstagram.com/v/t39.30808-6/395704580_18084637762381219_7734685049594669121_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6IkNBUk9VU0VMX0lURU0uaW1hZ2VfdXJsZ2VuLjE0NDAuc2RyLnJlZ3VsYXJfcGhvdG8uYzIifQ&_nc_ht=scontent-gmp1-1.cdninstagram.com&_nc_cat=107&_nc_oc=Q6cZ2gEhUAo2CnNAfObrsZUs_SVDmXIxY8a9kvtEfX1oI46QTJcnEpAWdKKHY8M08W5U_I4&_nc_ohc=fl7EEQ-myLAQ7kNvwGHju7d&_nc_gid=jGFJ_zdkLbF1GypFa-7e7g&edm=APs17CUAAAAA&ccb=7-5&ig_cache_key=MzIyMTI4NzcyNjAyMDc4NTAxNw%3D%3D.3-ccb7-5&oh=00_AQFwQn27zY9XoLNaB-l_WRRXSftuR_bS__-gRysvQYeoxQ&oe=6A7A5DAB&_nc_sid=10d13b">
 
-    <!-- 폰트 연결 (영문 필기체 Alex Brush 추가) -->
+    <!-- 폰트 연결 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Gowun+Batang:wght@400;700&family=Yeon+Sung&display=swap" rel="stylesheet">
@@ -160,33 +160,37 @@
             </div>
         </section>
 
-        <!-- Section 4: 신랑 & 신부 소개 (어린 시절 사진) 섹션 -->
+        <!-- Section 4: 신랑 & 신부 소개 (어린 시절 사진) -->
         <section class="section couple-section">
-            <span class="section-tag reveal">ABOUT US</span>
-            <h2 class="section-title reveal">저희 두 사람을 소개합니다.</h2>
-            <div class="divider-line reveal"></div>
+            <span class="about-us-tag reveal">ABOUT US</span>
+            <h2 class="couple-main-title reveal">저희 커플을 소개합니다</h2>
+            <p class="couple-subtitle reveal">하나로 이어진 두개의 우주</p>
 
             <div class="couple-container">
-                <!-- 신랑 아기 사진 & 소개 -->
+                <!-- 신랑 카드 -->
                 <div class="couple-card reveal">
                     <div class="couple-photo-frame">
                         <img id="groom-baby-img" src="" alt="신랑 어린 시절 사진" oncontextmenu="return false;" ondragstart="return false;">
                     </div>
                     <div class="couple-info">
-                        <span class="couple-role groom-role">신랑</span>
-                        <h3 class="couple-name" id="groom-baby-name"></h3>
+                        <div class="couple-name-row">
+                            <span class="role groom-role">신랑</span>
+                            <span class="name" id="groom-baby-name"></span>
+                        </div>
                         <p class="couple-desc" id="groom-intro-display"></p>
                     </div>
                 </div>
 
-                <!-- 신부 아기 사진 & 소개 -->
+                <!-- 신부 카드 -->
                 <div class="couple-card reveal">
                     <div class="couple-photo-frame">
                         <img id="bride-baby-img" src="" alt="신부 어린 시절 사진" oncontextmenu="return false;" ondragstart="return false;">
                     </div>
                     <div class="couple-info">
-                        <span class="couple-role bride-role">신부</span>
-                        <h3 class="couple-name" id="bride-baby-name"></h3>
+                        <div class="couple-name-row">
+                            <span class="role bride-role">신부</span>
+                            <span class="name" id="bride-baby-name"></span>
+                        </div>
                         <p class="couple-desc" id="bride-intro-display"></p>
                     </div>
                 </div>
@@ -195,6 +199,9 @@
 
         <!-- Section 5: 우리의 연애 스토리 -->
         <section class="section story-section">
+            <!-- 5페이지 도달 시 아래에서 위로 날아가는 하트 컨테이너 -->
+            <div id="story-hearts-container" class="story-hearts-container"></div>
+
             <!-- 5섹션 - 상태 A: 표지 화면 -->
             <div id="story-cover-view" class="story-view-wrapper">
                 <p class="story-cover-tag reveal">함께 보낸 소중한 날</p>
@@ -251,6 +258,12 @@
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                     </button>
                 </div>
+            </div>
+
+            <!-- 05/05 사진 연핑크 하트 페이지 전용 하단 스크롤 안내 -->
+            <div class="story-scroll-indicator">
+                <span>아래로 스크롤 하세요.</span>
+                <div class="scroll-arrow"></div>
             </div>
         </section>
     </div>
