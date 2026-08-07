@@ -11,6 +11,18 @@
     -webkit-touch-callout: none;
 }
 
+/* 이미지에 대한 저장/우클릭/롱프레스 팝업 강제 방지 */
+img {
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    -khtml-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+    -webkit-user-drag: none !important;
+    pointer-events: auto;
+}
+
 /* 관리자 입력창 등 input 요소는 선택 및 입력 가능하게 예외 처리 */
 input, textarea {
     -webkit-user-select: text !important;
@@ -78,7 +90,6 @@ body {
     touch-action: manipulation;
 }
 
-/* 스크롤이나 터치와 관계없이 화면 우측 상단에 고정 (fixed) */
 .bgm-btn {
     position: fixed;
     top: 16px;
