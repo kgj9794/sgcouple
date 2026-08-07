@@ -491,40 +491,66 @@ body {
     transform: scale(0.99);
 }
 
-/* --- SECTION 4: COUPLE INTRO --- */
+/* --- SECTION 4: COUPLE INTRO (흰색 감싸는 박스 사이즈 최적화) --- */
 .couple-section {
-    background-color: #ffffff;
-    border-top: 1px solid #f0eae1;
+    background-color: #f4edd9;
+    padding: 60px 24px;
+    border-top: 1px solid #e8decb;
+}
+
+.couple-section .about-us-tag {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.7rem;
+    letter-spacing: 5px;
+    color: #4a443a;
+    font-weight: 400;
+    display: block;
+    margin-bottom: 14px;
+}
+
+.couple-section .couple-main-title {
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: #3b352b;
+    margin-bottom: 4px;
+}
+
+.couple-section .couple-subtitle {
+    font-size: 0.88rem;
+    color: #7a7061;
+    margin-bottom: 28px;
+    font-weight: 400;
 }
 
 .couple-container {
     display: flex;
     flex-direction: column;
-    gap: 36px;
-    margin-top: 10px;
+    align-items: center;
+    gap: 22px;
 }
 
+/* 흰색 박스 전체 너비 축소 (max-width: 310px) 및 적절한 패딩 적용 */
 .couple-card {
-    background-color: #faf8f5;
-    border: 1px solid #f0eae1;
+    background-color: #ffffff;
     border-radius: 18px;
-    padding: 24px 20px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.02);
+    padding: 18px 16px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    width: 100%;
+    max-width: 310px;
 }
 
 .couple-photo-frame {
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
+    width: 100%;
+    max-width: 220px;
+    aspect-ratio: 1 / 1;
+    border-radius: 16px;
     overflow: hidden;
-    border: 4px solid #ffffff;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-    background-color: #f4ede4;
-    flex-shrink: 0;
+    background-color: #f2eee4;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
 }
 
 .couple-photo-frame img {
@@ -536,29 +562,38 @@ body {
 
 .couple-info {
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
 }
 
-.couple-role {
-    font-size: 0.82rem;
-    letter-spacing: 1px;
+.couple-name-row {
+    font-size: 1.02rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.couple-name-row .role {
+    font-size: 0.92rem;
     font-weight: 700;
-    margin-bottom: 2px;
-    display: block;
 }
 
-.couple-role.groom-role { color: #5a7b9c; }
-.couple-role.bride-role { color: #d68798; }
+.couple-name-row .role.groom-role { color: #b8975a; }
+.couple-name-row .role.bride-role { color: #b8975a; }
 
-.couple-name {
-    font-size: 1.15rem;
+.couple-name-row .name {
+    font-size: 1.05rem;
     font-weight: 700;
     color: #222222;
-    margin-bottom: 8px;
 }
 
 .couple-desc {
-    font-size: 0.88rem;
-    color: #666666;
+    font-size: 0.86rem;
+    color: #555555;
     line-height: 1.7;
     word-break: keep-all;
     white-space: pre-line;
@@ -573,12 +608,84 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 40px 20px;
+    padding: 40px 20px 60px;
     background-color: #fbfaf8;
     border-top: 1px solid #f0eae1;
     position: relative;
     box-sizing: border-box;
     overflow: hidden;
+    transition: background-color 0.5s ease;
+}
+
+.story-section.pink-bg {
+    background-color: #ffe6ea !important;
+}
+
+/* 아래에서 위로 날아가는 하트 연출 컨테이너 */
+.story-hearts-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 2;
+}
+
+.floating-heart {
+    position: absolute;
+    bottom: -30px;
+    color: #ff758f;
+    opacity: 0;
+    animation: floatUpHeart linear forwards;
+    filter: drop-shadow(0 2px 5px rgba(255, 117, 143, 0.3));
+}
+
+@keyframes floatUpHeart {
+    0% {
+        transform: translateY(0) scale(0.8) rotate(0deg);
+        opacity: 0;
+    }
+    15% {
+        opacity: 0.85;
+    }
+    85% {
+        opacity: 0.85;
+    }
+    100% {
+        transform: translateY(-105vh) scale(1.3) rotate(25deg);
+        opacity: 0;
+    }
+}
+
+/* 05/05 사진 페이지 조건부 하단 스크롤 안내 */
+.story-scroll-indicator {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    color: #c95b73;
+    font-size: 0.72rem;
+    letter-spacing: 1px;
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.story-scroll-indicator.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.story-scroll-indicator .scroll-arrow {
+    width: 1px;
+    height: 16px;
+    background: linear-gradient(to bottom, #c95b73, transparent);
+    margin: 6px auto 0;
+    animation: bounce 2s infinite;
 }
 
 .story-view-wrapper {
@@ -589,6 +696,8 @@ body {
     align-items: center;
     text-align: center;
     animation: fadeIn 0.4s ease-out forwards;
+    position: relative;
+    z-index: 3;
 }
 
 .story-cover-tag {
