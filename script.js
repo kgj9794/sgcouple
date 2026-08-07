@@ -279,15 +279,22 @@ function preloadStoryImages(data) {
     });
 }
 
+// --- 연애 스토리 시작 (화면 자동 맞춤 스크롤 추가) ---
 function startStoryInline() {
     const coverView = document.getElementById('story-cover-view');
     const inlineView = document.getElementById('story-inline-view');
+    const storySection = document.querySelector('.story-section');
 
     if (coverView && inlineView) {
         coverView.style.display = 'none';
         inlineView.style.display = 'flex';
         currentStoryPage = 1;
         renderStoryPage(currentStoryPage);
+
+        // 연애 스토리 섹션이 모바일 화면 상단에 딱 맞도록 부드럽게 스크롤
+        if (storySection) {
+            storySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     }
 }
 
@@ -451,7 +458,7 @@ function nextStoryPage() {
     }
 }
 
-// --- 섹션 6: 웨딩 갤러리 렌더링 & 더보기/접기 토글 ---
+// --- 웨딩 갤러리 렌더링 & 더보기/접기 토글 ---
 function renderGalleryGrid(urls) {
     const container = document.getElementById('gallery-grid');
     const btnContainer = document.getElementById('gallery-more-btn-container');
@@ -614,7 +621,7 @@ function initLightboxTouch() {
     }, { passive: true });
 }
 
-// --- ImgBB 업로드 & 좌우 슬라이드 썸네일 리스트 (길게 터치 순서 변경) ---
+// --- ImgBB 업로드 & 좌우 슬라이드 썸네일 리스트 ---
 async function uploadGalleryImagesToImgBB(event) {
     const files = event.target.files;
     if (!files || files.length === 0) return;
