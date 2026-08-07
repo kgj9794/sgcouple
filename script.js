@@ -3,7 +3,7 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDQCQbrwOX9F_K
 
 // BGM 음원 목록
 const BGM_PLAYLIST = [
-    "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/%E1%84%8B%E1%85%A6%E1%84%8B%E1%85%A6%E1%84%85%E1%85%A6%E1%86%AF.mp3"
+    "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/%E1%84%8B%E1%85%A6%E1%84%8B%E1%85%AE%E1%84%85%E1%85%A6%E1%86%AF.mp3"
 ];
 
 let dbData = {};
@@ -259,6 +259,28 @@ function updateBgmBtnUI(isPlaying) {
     }
 }
 
+// --- 5섹션 연애 스토리 사전 이미지 로딩 (이미지 flickering 방지 핵심) ---
+function preloadStoryImages(data) {
+    if (!data) return;
+    const urlsToPreload = [];
+
+    if (data.story_cover_img) urlsToPreload.push(data.story_cover_img);
+    if (data.hero_img) urlsToPreload.push(data.hero_img);
+
+    for (let i = 1; i <= 5; i++) {
+        if (data[`story_img_${i}`]) {
+            urlsToPreload.push(data[`story_img_${i}`]);
+        }
+    }
+
+    urlsToPreload.forEach(url => {
+        if (url) {
+            const img = new Image();
+            img.src = url;
+        }
+    });
+}
+
 // --- 5섹션 연애 스토리 인라인 화면 전환 (표지 ↔ 1~5페이지) ---
 function startStoryInline() {
     const coverView = document.getElementById('story-cover-view');
@@ -393,7 +415,7 @@ function createSingleHeart(container, isInitial) {
     }, (duration + delay) * 1000);
 }
 
-// 좌우 슬라이드 애니메이션 적용 넘김
+// 좌우 슬라이드 애니메이션 적용 넘김 (잔상 튐 방지 강화)
 function animateStorySlide(direction, callback) {
     const card = document.getElementById('story-page-card');
     if (!card) {
@@ -404,11 +426,16 @@ function animateStorySlide(direction, callback) {
     const outClass = direction === 'next' ? 'slide-out-left' : 'slide-out-right';
     const inClass = direction === 'next' ? 'slide-in-right' : 'slide-in-left';
 
+    card.classList.remove('slide-out-left', 'slide-out-right', 'slide-in-left', 'slide-in-right');
     card.classList.add(outClass);
 
     setTimeout(() => {
         callback();
         card.classList.remove(outClass);
+        
+        // DOM Reflow 강제 트리거로 이미지 변경 완료 후 트랜지션 실행
+        void card.offsetWidth;
+
         card.classList.add(inClass);
 
         setTimeout(() => {
@@ -745,6 +772,7 @@ async function fetchDBData() {
         const res = await fetch(`${APPS_SCRIPT_URL}?action=getData`);
         const data = await res.json();
         dbData = data;
+        preloadStoryImages(data); // DB 수신 즉시 스토리 이미지 사전 로드
         applyDataToDOM(data);
     } catch (err) {
         console.error("DB 데이터 연동 실패:", err);
