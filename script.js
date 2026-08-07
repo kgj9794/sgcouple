@@ -6,7 +6,7 @@ const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
 // BGM 음원 목록
 const BGM_PLAYLIST = [
-    "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/%E1%84%8B%E1%85%A6%E1%84%8B%E1%85%A6%E1%84%85%E1%85%A6%E1%86%AF.mp3"
+    "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/%E1%84%8B%E1%85%A6%E1%84%8B%E1%85%AE%E1%84%85%E1%85%A6%E1%86%AF.mp3"
 ];
 
 let dbData = {};
@@ -35,9 +35,8 @@ let heartsInterval = null;
 let touchStartX = 0;
 let touchEndX = 0;
 
-// 관리자 갤러리 길게 터치(Long Press) 드래그 변수
+// 관리자 갤러리 터치 드래그 변수
 let touchDragIndex = null;
-let touchLongPressTimer = null;
 
 let prevValues = {
     days: '',
@@ -257,7 +256,7 @@ function updateBgmBtnUI(isPlaying) {
     }
 }
 
-// --- 스토리 및 갤러리 이미지 사전 로딩 ---
+// --- 필수 필수 스토리 이미지만 사전 로딩 (갤러리는 렌더링 속도 최적화를 위해 제외) ---
 function preloadStoryImages(data) {
     if (!data) return;
     const urlsToPreload = [];
@@ -269,10 +268,6 @@ function preloadStoryImages(data) {
         if (data[`story_img_${i}`]) {
             urlsToPreload.push(data[`story_img_${i}`]);
         }
-    }
-
-    if (data.gallery && Array.isArray(data.gallery)) {
-        data.gallery.forEach(url => urlsToPreload.push(url));
     }
 
     urlsToPreload.forEach(url => {
@@ -455,7 +450,7 @@ function nextStoryPage() {
     }
 }
 
-// --- 섹션 6: 웨딩 갤러리 렌더링 & 풀스크린 라이트박스 ---
+// --- 섹션 6: 웨딩 갤러리 렌더링 속도 고도화 ---
 function renderGalleryGrid(urls) {
     const container = document.getElementById('gallery-grid');
     if (!container) return;
@@ -468,6 +463,8 @@ function renderGalleryGrid(urls) {
 
     galleryUrls = urls;
 
+    const fragment = document.createDocumentFragment();
+
     urls.forEach((url, idx) => {
         const item = document.createElement('div');
         item.className = 'gallery-item';
@@ -477,12 +474,15 @@ function renderGalleryGrid(urls) {
         img.src = url;
         img.alt = `웨딩 갤러리 사진 ${idx + 1}`;
         img.loading = 'lazy';
+        img.setAttribute('decoding', 'async');
         img.oncontextmenu = () => false;
         img.ondragstart = () => false;
 
         item.appendChild(img);
-        container.appendChild(item);
+        fragment.appendChild(item);
     });
+
+    container.appendChild(fragment);
 }
 
 function openLightbox(index) {
@@ -532,7 +532,7 @@ function navigateLightbox(direction) {
         }
 
         imgEl.classList.remove(outClass);
-        void imgEl.offsetWidth; // 리플로우 강제
+        void imgEl.offsetWidth;
         imgEl.classList.add(inClass);
 
         setTimeout(() => {
@@ -555,14 +555,14 @@ function initLightboxTouch() {
         const diffX = touchEndX - touchStartX;
 
         if (diffX < -40) {
-            navigateLightbox(1);  // 다음 사진 (오른쪽에서 좌측으로)
+            navigateLightbox(1);
         } else if (diffX > 40) {
-            navigateLightbox(-1); // 이전 사진 (좌측에서 우측으로)
+            navigateLightbox(-1);
         }
     }, { passive: true });
 }
 
-// --- ImgBB 업로드 & 순서 변경 기능 (순서 기입 필드 + 길게 터치 드래그앤드롭) ---
+// --- ImgBB 업로드 & 좌우 슬라이드 썸네일 리스트 (길게 터치 순서 변경) ---
 async function uploadGalleryImagesToImgBB(event) {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -604,38 +604,29 @@ async function uploadGalleryImagesToImgBB(event) {
     renderAdminGalleryList();
 }
 
-// 순서 직접 입력 변경 함수
-function changeAdminGalleryOrder(fromIdx, newOrderVal) {
-    let targetIdx = parseInt(newOrderVal, 10) - 1;
-    if (isNaN(targetIdx)) return;
-    if (targetIdx < 0) targetIdx = 0;
-    if (targetIdx >= adminGalleryUrls.length) targetIdx = adminGalleryUrls.length - 1;
-
-    if (fromIdx === targetIdx) return;
-
-    const movedItem = adminGalleryUrls.splice(fromIdx, 1)[0];
-    adminGalleryUrls.splice(targetIdx, 0, movedItem);
-    renderAdminGalleryList();
-}
-
 function renderAdminGalleryList() {
     const container = document.getElementById('admin-gallery-list');
     if (!container) return;
     container.innerHTML = '';
 
+    if (!adminGalleryUrls || adminGalleryUrls.length === 0) {
+        container.innerHTML = '<p style="font-size:0.8rem; color:#888; padding:10px;">등록된 사진이 없습니다.</p>';
+        return;
+    }
+
     adminGalleryUrls.forEach((url, idx) => {
         const item = document.createElement('div');
         item.className = 'admin-gallery-thumb';
-        item.draggable = true;
         item.dataset.index = idx;
 
         item.innerHTML = `
             <img src="${url}" alt="갤러리 썸네일 ${idx + 1}" oncontextmenu="return false;">
-            <input type="number" min="1" max="${adminGalleryUrls.length}" value="${idx + 1}" class="thumb-order-input" onchange="changeAdminGalleryOrder(${idx}, this.value)" title="순서 직접 변경">
+            <span class="thumb-idx">${idx + 1}</span>
             <button type="button" class="btn-thumb-del" onclick="removeAdminGalleryImg(${idx})" aria-label="삭제">&times;</button>
         `;
 
-        // PC 마우스 드래그 앤 드롭 이벤트
+        // PC 마우스 드래그 앤 드롭
+        item.draggable = true;
         item.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('text/plain', idx);
             item.classList.add('dragging');
@@ -659,43 +650,45 @@ function renderAdminGalleryList() {
             item.classList.remove('dragging');
         });
 
-        // 모바일 길게 터치(Long Press) 드래그 앤 드롭 이벤트
-        item.addEventListener('touchstart', (e) => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+        // 모바일 길게 터치(Long Press) 드래그 순서 변경
+        let touchTimer = null;
 
-            touchLongPressTimer = setTimeout(() => {
+        item.addEventListener('touchstart', (e) => {
+            if (e.target.tagName === 'BUTTON') return;
+
+            touchTimer = setTimeout(() => {
                 touchDragIndex = idx;
                 item.classList.add('dragging');
                 if (navigator.vibrate) navigator.vibrate(40);
-                showToast('사진 이동 준비됨');
+                showToast('위치를 이동해 순서를 변경하세요.');
             }, 300);
         }, { passive: true });
 
         item.addEventListener('touchmove', (e) => {
-            if (touchLongPressTimer && touchDragIndex === null) {
-                clearTimeout(touchLongPressTimer);
-                touchLongPressTimer = null;
-            }
-        }, { passive: true });
-
-        item.addEventListener('touchend', (e) => {
-            if (touchLongPressTimer) {
-                clearTimeout(touchLongPressTimer);
-                touchLongPressTimer = null;
+            if (touchDragIndex === null) {
+                clearTimeout(touchTimer);
+                return;
             }
 
-            if (touchDragIndex !== null) {
-                const touch = e.changedTouches[0];
-                const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
-                const thumbEl = targetEl ? targetEl.closest('.admin-gallery-thumb') : null;
+            e.preventDefault(); // 드래그 중 화면 스크롤 방지
+            const touch = e.touches[0];
+            const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+            const thumbEl = targetEl ? targetEl.closest('.admin-gallery-thumb') : null;
 
-                if (thumbEl && thumbEl.dataset.index !== undefined) {
-                    const toIdx = parseInt(thumbEl.dataset.index, 10);
-                    if (touchDragIndex !== toIdx) {
-                        const moved = adminGalleryUrls.splice(touchDragIndex, 1)[0];
-                        adminGalleryUrls.splice(toIdx, 0, moved);
-                    }
+            if (thumbEl && thumbEl.dataset.index !== undefined) {
+                const toIdx = parseInt(thumbEl.dataset.index, 10);
+                if (touchDragIndex !== toIdx) {
+                    const moved = adminGalleryUrls.splice(touchDragIndex, 1)[0];
+                    adminGalleryUrls.splice(toIdx, 0, moved);
+                    touchDragIndex = toIdx;
+                    renderAdminGalleryList();
                 }
+            }
+        }, { passive: false });
+
+        item.addEventListener('touchend', () => {
+            clearTimeout(touchTimer);
+            if (touchDragIndex !== null) {
                 touchDragIndex = null;
                 renderAdminGalleryList();
             }
