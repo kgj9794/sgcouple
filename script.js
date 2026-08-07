@@ -18,7 +18,7 @@ let galleryUrls = [];
 let adminGalleryUrls = [];
 let currentGalleryIndex = 0;
 let isLightboxAnimating = false;
-let isGalleryExpanded = false; // 갤러리 더보기 상태 관리
+let isGalleryExpanded = false;
 
 let toastTimeout = null;
 let adminPressTimer = null;
@@ -465,7 +465,7 @@ function renderGalleryGrid(urls) {
     }
 
     galleryUrls = urls;
-    isGalleryExpanded = false; // 초기화 시 접힘 상태
+    isGalleryExpanded = false;
 
     const fragment = document.createDocumentFragment();
 
@@ -473,7 +473,7 @@ function renderGalleryGrid(urls) {
         const item = document.createElement('div');
         item.className = 'gallery-item';
         if (idx >= 6) {
-            item.classList.add('hidden-item'); // 6장(3줄) 초과 사진 초기 숨김
+            item.classList.add('hidden-item');
         }
         item.onclick = () => openLightbox(idx);
 
@@ -491,7 +491,6 @@ function renderGalleryGrid(urls) {
 
     container.appendChild(fragment);
 
-    // 사진 수가 6개(3줄) 초과 시 "더 보기" 버튼 표시
     if (btnContainer) {
         if (urls.length > 6) {
             btnContainer.style.display = 'flex';
@@ -502,7 +501,6 @@ function renderGalleryGrid(urls) {
     }
 }
 
-// "더 보기 / 접기" 토글 함수
 function toggleGalleryExpand() {
     isGalleryExpanded = !isGalleryExpanded;
 
@@ -519,7 +517,6 @@ function toggleGalleryExpand() {
 
     updateGalleryMoreBtnUI(isGalleryExpanded);
 
-    // "접기" 처리 시 갤러리 섹션 상단으로 자연스럽게 스크롤 이동
     if (!isGalleryExpanded) {
         const gallerySec = document.querySelector('.gallery-section');
         if (gallerySec) {
@@ -533,10 +530,10 @@ function updateGalleryMoreBtnUI(expanded) {
     const text = document.getElementById('gallery-more-text');
 
     if (expanded) {
-        if (icon) icon.innerHTML = '<polyline points="18 15 12 9 6 15"></polyline>'; // 위로 화살표
+        if (icon) icon.innerHTML = '<polyline points="18 15 12 9 6 15"></polyline>';
         if (text) text.innerText = '접기';
     } else {
-        if (icon) icon.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>'; // 아래로 화살표
+        if (icon) icon.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
         if (text) text.innerText = '더 보기';
     }
 }
@@ -558,7 +555,6 @@ function openLightbox(index) {
     openModal('gallery-lightbox-modal');
 }
 
-// 라이트박스 부드러운 좌우 슬라이드 기능
 function navigateLightbox(direction) {
     if (!galleryUrls || galleryUrls.length === 0 || isLightboxAnimating) return;
 
