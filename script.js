@@ -1,9 +1,12 @@
 // ⚠️ 배포한 Google Apps Script Web App URL을 여기에 넣으세요.
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDQCQbrwOX9F_Kx2uf_fg4tBTyslIdWFd_CDIHSS98O79V42Mia94KYT9hpWzTY0K7Fw/exec";
 
+// ImgBB API Key
+const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
+
 // BGM 음원 목록
 const BGM_PLAYLIST = [
-    "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/%E1%84%8B%E1%85%A6%E1%84%8B%E1%85%AE%E1%84%85%E1%85%A6%E1%86%AF.mp3"
+    "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/%E1%84%8B%E1%85%A6%E1%84%8B%E1%85%A6%E1%84%85%E1%85%A6%E1%86%AF.mp3"
 ];
 
 let dbData = {};
@@ -11,17 +14,25 @@ let targetWeddingDate = null;
 let verifiedAdminPassword = "";
 let activeModalStack = [];
 
+let galleryUrls = [];
+let adminGalleryUrls = [];
+let currentGalleryIndex = 0;
+
 let toastTimeout = null;
 let adminPressTimer = null;
 let bgmAudio = null;
 let isBgmPlaying = false;
-let bgmQueue = [];        // 셔플된 무작위 음원 재생 큐
-let bgmIndex = 0;         // 현재 재생 중인 큐 인덱스
+let bgmQueue = [];        
+let bgmIndex = 0;         
 let fireworksAnimationId = null;
 let scrollPosition = 0;
 let hasShownInitialBgmToast = false;
-let currentStoryPage = 1; // 연애 스토리 현재 페이지 (1~5)
-let heartsInterval = null; // 5페이지 날아가는 하트 타이머
+let currentStoryPage = 1; 
+let heartsInterval = null; 
+
+// 라이트박스 스와이프 관련 변수
+let touchStartX = 0;
+let touchEndX = 0;
 
 let prevValues = {
     days: '',
@@ -30,30 +41,19 @@ let prevValues = {
     secs: ''
 };
 
-// 해제용 이벤트 리스트 (클릭, 터치, 스크롤, 휠, 터치이동)
 const UNLOCK_EVENTS = ['click', 'touchstart', 'touchend', 'touchmove', 'scroll', 'wheel', 'pointerdown', 'keydown'];
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // 0. 우클릭, 드래그 및 이미지 보호
     document.addEventListener('contextmenu', (e) => e.preventDefault());
     document.addEventListener('dragstart', (e) => e.preventDefault());
 
-    // 1. BGM 플레이어 초기화 및 셔플 세팅
     initBgm();
-
-    // 2. 아래에서 위로 솟구쳐 터지는 인트로 폭죽 애니메이션 시작
     initFireworks();
-
-    // 3. 타이핑 애니메이션 실행 시작
     const typingPromise = startTypingAnimation();
-
-    // 4. 관리자 버튼 5초 긴 누름 이벤트 바인딩
     initAdminLongPress();
-
-    // 5. 벚꽃 애니메이션 시작
     initSakura();
+    initLightboxTouch();
 
-    // 6. DB 데이터 불러오기 및 최소 인트로 연출 시간(3초) 동시 대기 후 '자동 전환'
     const minIntroDelay = new Promise(resolve => setTimeout(resolve, 3000));
 
     try {
@@ -64,7 +64,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         hideIntroOverlay();
     }
 
-    // 7. 5초 뒤 스크롤 안내 노출
     setTimeout(() => {
         const scrollIndicator = document.getElementById('scroll-indicator');
         if (scrollIndicator) {
@@ -72,7 +71,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }, 5000);
 
-    // 8. 개별 객체 스크롤 감지 페이드인 (Intersection Observer)
     const observerOptions = {
         threshold: 0.12,
         rootMargin: '0px 0px -40px 0px'
@@ -87,7 +85,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-    // 9. 뒤로가기(popstate) 발생 시 열려있는 최상단 모달 부드럽게 닫기
     window.addEventListener('popstate', () => {
         if (activeModalStack.length > 0) {
             const topModalId = activeModalStack[activeModalStack.length - 1];
@@ -95,11 +92,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // 실시간 타이머 작동
+    // 키보드 좌우 화살표로 갤러리 라이트박스 제어
+    window.addEventListener('keydown', (e) => {
+        const lightboxModal = document.getElementById('gallery-lightbox-modal');
+        if (lightboxModal && lightboxModal.style.display === 'flex') {
+            if (e.key === 'ArrowLeft') navigateLightbox(-1);
+            if (e.key === 'ArrowRight') navigateLightbox(1);
+            if (e.key === 'Escape') closeModal('gallery-lightbox-modal');
+        }
+    });
+
     setInterval(updateCountdown, 1000);
 });
 
-// --- 인트로 한 글자씩 타이핑 애니메이션 ---
+// --- 인트로 타이핑 애니메이션 ---
 async function startTypingAnimation() {
     const titleEl = document.getElementById('typing-title');
     const subEl = document.getElementById('typing-sub');
@@ -112,7 +118,6 @@ async function startTypingAnimation() {
 
     const text1 = "소중한 여러분을 초대합니다.";
 
-    // 1번째 줄 타이핑
     for (let i = 0; i < text1.length; i++) {
         titleEl.textContent += text1[i];
         await new Promise(resolve => setTimeout(resolve, 75));
@@ -121,12 +126,10 @@ async function startTypingAnimation() {
     titleEl.classList.add('done');
     await new Promise(resolve => setTimeout(resolve, 180));
 
-    // DB에서 신랑/신부 성함 가져오기 (기본값: 건주와 수아)
     const groom = dbData.groom_name || '건주';
     const bride = dbData.bride_name || '수아';
     const text2 = `From ${groom}와 ${bride}`;
 
-    // 2번째 줄 타이핑
     for (let i = 0; i < text2.length; i++) {
         subEl.textContent += text2[i];
         await new Promise(resolve => setTimeout(resolve, 75));
@@ -136,7 +139,7 @@ async function startTypingAnimation() {
     subEl.classList.add('done');
 }
 
-// --- 음원 플레이리스트 완전 무작위 셔플 함수 ---
+// --- BGM 제어 ---
 function shuffleBgmPlaylist() {
     bgmQueue = [...BGM_PLAYLIST];
     for (let i = bgmQueue.length - 1; i > 0; i--) {
@@ -163,22 +166,16 @@ function playNextBgmTrack() {
     }
 }
 
-// --- BGM 초기화 & 모바일 대응 ---
 function initBgm() {
     bgmAudio = document.getElementById('bgm-player');
     if (!bgmAudio) return;
 
     bgmAudio.volume = 0.6;
-
     shuffleBgmPlaylist();
     loadBgmTrack();
 
-    bgmAudio.addEventListener('ended', () => {
-        playNextBgmTrack();
-    });
-
+    bgmAudio.addEventListener('ended', playNextBgmTrack);
     bgmAudio.onerror = () => {
-        console.warn("음원 로딩 실패 링크 스킵:", bgmAudio.src);
         if (bgmQueue.length > 1) {
             bgmQueue.splice(bgmIndex, 1);
             if (bgmIndex >= bgmQueue.length) bgmIndex = 0;
@@ -205,9 +202,7 @@ function unlockInteraction(e) {
         removeUnlockListeners();
         return;
     }
-
     startAudio();
-
     if (isBgmPlaying) {
         removeUnlockListeners();
     }
@@ -228,7 +223,6 @@ function startAudio() {
     }
 }
 
-// BGM 음소거 / 재생 토글
 function toggleBgm() {
     if (!bgmAudio) return;
 
@@ -259,7 +253,7 @@ function updateBgmBtnUI(isPlaying) {
     }
 }
 
-// --- 5섹션 연애 스토리 사전 이미지 로딩 (이미지 flickering 방지 핵심) ---
+// --- 5섹션 연애 스토리 이미지 사전 로딩 ---
 function preloadStoryImages(data) {
     if (!data) return;
     const urlsToPreload = [];
@@ -273,6 +267,10 @@ function preloadStoryImages(data) {
         }
     }
 
+    if (data.gallery && Array.isArray(data.gallery)) {
+        data.gallery.forEach(url => urlsToPreload.push(url));
+    }
+
     urlsToPreload.forEach(url => {
         if (url) {
             const img = new Image();
@@ -281,7 +279,6 @@ function preloadStoryImages(data) {
     });
 }
 
-// --- 5섹션 연애 스토리 인라인 화면 전환 (표지 ↔ 1~5페이지) ---
 function startStoryInline() {
     const coverView = document.getElementById('story-cover-view');
     const inlineView = document.getElementById('story-inline-view');
@@ -300,12 +297,8 @@ function showStoryCover() {
     const storySection = document.querySelector('.story-section');
     const storyScrollIndicator = document.querySelector('.story-scroll-indicator');
 
-    if (storySection) {
-        storySection.classList.remove('pink-bg');
-    }
-    if (storyScrollIndicator) {
-        storyScrollIndicator.classList.remove('show');
-    }
+    if (storySection) storySection.classList.remove('pink-bg');
+    if (storyScrollIndicator) storyScrollIndicator.classList.remove('show');
     stopFloatingHearts();
 
     if (coverView && inlineView) {
@@ -324,7 +317,6 @@ function renderStoryPage(page) {
     const storySection = document.querySelector('.story-section');
     const storyScrollIndicator = document.querySelector('.story-scroll-indicator');
 
-    // 05/05 페이지에서만 연핑크 배경, 날아가는 하트, 하단 스크롤 안내 표시
     if (storySection) {
         if (page === 5) {
             storySection.classList.add('pink-bg');
@@ -363,7 +355,6 @@ function renderStoryPage(page) {
     if (nextBtn) nextBtn.disabled = (page === 5);
 }
 
-// --- 05/05 페이지 날아가는 하트 생성 함수 ---
 function startFloatingHearts() {
     stopFloatingHearts();
     const container = document.getElementById('story-hearts-container');
@@ -415,7 +406,6 @@ function createSingleHeart(container, isInitial) {
     }, (duration + delay) * 1000);
 }
 
-// 좌우 슬라이드 애니메이션 적용 넘김 (잔상 튐 방지 강화)
 function animateStorySlide(direction, callback) {
     const card = document.getElementById('story-page-card');
     if (!card) {
@@ -432,10 +422,7 @@ function animateStorySlide(direction, callback) {
     setTimeout(() => {
         callback();
         card.classList.remove(outClass);
-        
-        // DOM Reflow 강제 트리거로 이미지 변경 완료 후 트랜지션 실행
         void card.offsetWidth;
-
         card.classList.add(inClass);
 
         setTimeout(() => {
@@ -464,7 +451,159 @@ function nextStoryPage() {
     }
 }
 
-// --- 함께 보낸 소중한 날 (D+Day) 계산 함수 ---
+// --- 섹션 6: 웨딩 갤러리 렌더링 & 풀스크린 라이트박스 ---
+function renderGalleryGrid(urls) {
+    const container = document.getElementById('gallery-grid');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (!urls || urls.length === 0) {
+        container.innerHTML = '<p class="gallery-empty-text">등록된 사진이 없습니다.</p>';
+        return;
+    }
+
+    galleryUrls = urls;
+
+    urls.forEach((url, idx) => {
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        item.onclick = () => openLightbox(idx);
+
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = `웨딩 갤러리 사진 ${idx + 1}`;
+        img.loading = 'lazy';
+        img.oncontextmenu = () => false;
+        img.ondragstart = () => false;
+
+        item.appendChild(img);
+        container.appendChild(item);
+    });
+}
+
+function openLightbox(index) {
+    if (!galleryUrls || galleryUrls.length === 0) return;
+
+    currentGalleryIndex = index;
+    updateLightboxUI();
+    openModal('gallery-lightbox-modal');
+}
+
+function updateLightboxUI() {
+    const imgEl = document.getElementById('lightbox-img');
+    const counterEl = document.getElementById('lightbox-counter');
+
+    if (imgEl && galleryUrls[currentGalleryIndex]) {
+        imgEl.style.opacity = '0.4';
+        imgEl.src = galleryUrls[currentGalleryIndex];
+        setTimeout(() => {
+            imgEl.style.opacity = '1';
+        }, 50);
+    }
+
+    if (counterEl) {
+        counterEl.innerText = `${currentGalleryIndex + 1} / ${galleryUrls.length}`;
+    }
+}
+
+function navigateLightbox(direction) {
+    if (!galleryUrls || galleryUrls.length === 0) return;
+
+    currentGalleryIndex += direction;
+    if (currentGalleryIndex < 0) {
+        currentGalleryIndex = galleryUrls.length - 1;
+    } else if (currentGalleryIndex >= galleryUrls.length) {
+        currentGalleryIndex = 0;
+    }
+
+    updateLightboxUI();
+}
+
+function initLightboxTouch() {
+    const wrapper = document.getElementById('lightbox-img-wrapper');
+    if (!wrapper) return;
+
+    wrapper.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    wrapper.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        const diffX = touchEndX - touchStartX;
+
+        if (diffX < -40) {
+            navigateLightbox(1); // 다음 사진
+        } else if (diffX > 40) {
+            navigateLightbox(-1); // 이전 사진
+        }
+    }, { passive: true });
+}
+
+// --- ImgBB 이미지 업로드 및 관리자 설정 ---
+async function uploadGalleryImagesToImgBB(event) {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const statusEl = document.getElementById('admin-upload-status');
+    if (statusEl) statusEl.innerText = `업로드 중... (0 / ${files.length})`;
+
+    let successCount = 0;
+
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                method: 'POST',
+                body: formData
+            });
+            const json = await res.json();
+
+            if (json.success && json.data && json.data.url) {
+                adminGalleryUrls.push(json.data.url);
+                successCount++;
+                if (statusEl) statusEl.innerText = `업로드 중... (${successCount} / ${files.length})`;
+            } else {
+                alert(`업로드 실패: ${file.name}`);
+            }
+        } catch (err) {
+            console.error("ImgBB 업로드 오류:", err);
+            alert(`업로드 중 오류 발생: ${file.name}`);
+        }
+    }
+
+    if (statusEl) statusEl.innerText = '업로드 완료!';
+    setTimeout(() => { if (statusEl) statusEl.innerText = ''; }, 2000);
+
+    event.target.value = '';
+    renderAdminGalleryList();
+}
+
+function renderAdminGalleryList() {
+    const container = document.getElementById('admin-gallery-list');
+    if (!container) return;
+    container.innerHTML = '';
+
+    adminGalleryUrls.forEach((url, idx) => {
+        const item = document.createElement('div');
+        item.className = 'admin-gallery-thumb';
+        item.innerHTML = `
+            <img src="${url}" alt="갤러리 썸네일 ${idx + 1}">
+            <span class="thumb-idx">${idx + 1}</span>
+            <button type="button" class="btn-thumb-del" onclick="removeAdminGalleryImg(${idx})">&times;</button>
+        `;
+        container.appendChild(item);
+    });
+}
+
+function removeAdminGalleryImg(index) {
+    adminGalleryUrls.splice(index, 1);
+    renderAdminGalleryList();
+}
+
+// --- 함께 보낸 소중한 날 (D+Day) 계산 ---
 function updateStoryDday(startDateStr) {
     const ddayTextEl = document.getElementById('story-dday-text');
     if (!ddayTextEl) return;
@@ -494,14 +633,12 @@ function updateStoryDday(startDateStr) {
     }
 }
 
-// --- 토스트 알림 함수 ---
+// --- 토스트 알림 ---
 function showToast(message) {
     const toast = document.getElementById('toast-msg');
     if (!toast) return;
 
-    if (toastTimeout) {
-        clearTimeout(toastTimeout);
-    }
+    if (toastTimeout) clearTimeout(toastTimeout);
 
     toast.innerText = message;
     toast.classList.add('show');
@@ -511,7 +648,7 @@ function showToast(message) {
     }, 2200);
 }
 
-// --- 아래에서 위로 솟구쳐 터지는 인트로 폭죽 애니메이션 ---
+// --- 폭죽 애니메이션 ---
 function initFireworks() {
     const canvas = document.getElementById('intro-fireworks-canvas');
     if (!canvas) return;
@@ -528,10 +665,7 @@ function initFireworks() {
 
     const rockets = [];
     const particles = [];
-    const colors = [
-        '#ffffff', '#ffccd5', '#ff85a1', '#f72585', 
-        '#ffb703', '#ffd166', '#e7c6ff', '#e0aaff', '#7209b7'
-    ];
+    const colors = ['#ffffff', '#ffccd5', '#ff85a1', '#f72585', '#ffb703', '#ffd166', '#e7c6ff', '#e0aaff', '#7209b7'];
 
     class Rocket {
         constructor() {
@@ -547,19 +681,15 @@ function initFireworks() {
         update() {
             this.trail.push({ x: this.x, y: this.y });
             if (this.trail.length > 5) this.trail.shift();
-
             this.y -= this.speed;
-            if (this.y <= this.targetY) {
-                this.exploded = true;
-            }
+            if (this.y <= this.targetY) this.exploded = true;
         }
 
         draw() {
             ctx.save();
             ctx.beginPath();
             for (let i = 0; i < this.trail.length; i++) {
-                const pt = this.trail[i];
-                ctx.lineTo(pt.x, pt.y);
+                ctx.lineTo(this.trail[i].x, this.trail[i].y);
             }
             ctx.strokeStyle = this.color;
             ctx.lineWidth = 2.5;
@@ -612,8 +742,7 @@ function initFireworks() {
     }
 
     function createExplosion(x, y, color) {
-        const count = 75;
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < 75; i++) {
             particles.push(new Particle(x, y, color));
         }
     }
@@ -622,16 +751,13 @@ function initFireworks() {
     function render() {
         ctx.clearRect(0, 0, width, height);
 
-        if (frameCount % 16 === 0) {
-            rockets.push(new Rocket());
-        }
+        if (frameCount % 16 === 0) rockets.push(new Rocket());
         frameCount++;
 
         for (let i = rockets.length - 1; i >= 0; i--) {
             const r = rockets[i];
             r.update();
             r.draw();
-
             if (r.exploded) {
                 createExplosion(r.x, r.y, r.color);
                 rockets.splice(i, 1);
@@ -642,10 +768,7 @@ function initFireworks() {
             const p = particles[i];
             p.update();
             p.draw();
-
-            if (p.alpha <= 0) {
-                particles.splice(i, 1);
-            }
+            if (p.alpha <= 0) particles.splice(i, 1);
         }
 
         fireworksAnimationId = requestAnimationFrame(render);
@@ -660,7 +783,7 @@ function stopFireworks() {
     }
 }
 
-// --- 좌측 상단 관리자 버튼 5초 긴 누름(Long Press) 로직 ---
+// --- 관리자 버튼 5초 클릭 ---
 function initAdminLongPress() {
     const adminBtn = document.getElementById('admin-lock-btn');
     if (!adminBtn) return;
@@ -682,13 +805,11 @@ function initAdminLongPress() {
     adminBtn.addEventListener('mousedown', startPress);
     adminBtn.addEventListener('mouseup', cancelPress);
     adminBtn.addEventListener('mouseleave', cancelPress);
-
     adminBtn.addEventListener('touchstart', startPress, { passive: true });
     adminBtn.addEventListener('touchend', cancelPress);
     adminBtn.addEventListener('touchcancel', cancelPress);
 }
 
-// --- 인트로 숨기기 ---
 function hideIntroOverlay() {
     const introOverlay = document.getElementById('intro-overlay');
     if (introOverlay && !introOverlay.classList.contains('zoom-into-heart')) {
@@ -697,7 +818,7 @@ function hideIntroOverlay() {
     }
 }
 
-// --- 공통 통합 모달 및 히스토리/스크롤 방지 관리 ---
+// --- 공통 모달 제어 ---
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
@@ -766,26 +887,23 @@ function handleBackdropClick(event) {
     }
 }
 
-// --- DB 데이터 가져오기 & DOM 적용 ---
+// --- DB 가져오기 ---
 async function fetchDBData() {
     try {
         const res = await fetch(`${APPS_SCRIPT_URL}?action=getData`);
         const data = await res.json();
         dbData = data;
-        preloadStoryImages(data); // DB 수신 즉시 스토리 이미지 사전 로드
+        preloadStoryImages(data);
         applyDataToDOM(data);
     } catch (err) {
         console.error("DB 데이터 연동 실패:", err);
     }
 }
 
-// --- 전화번호 맨 앞 0 보정 헬퍼 함수 ---
 function normalizePhoneNumber(phoneNum) {
     if (!phoneNum) return '';
     let clean = String(phoneNum).trim().replace(/[^0-9]/g, '');
-    if (/^1[0-9]{8,9}$/.test(clean)) {
-        clean = '0' + clean;
-    }
+    if (/^1[0-9]{8,9}$/.test(clean)) clean = '0' + clean;
     return clean;
 }
 
@@ -795,23 +913,18 @@ function applyDataToDOM(data) {
     const groomName = data.groom_name || '';
     const brideName = data.bride_name || '';
 
-    // 1. 페이지 타이틀 및 카카오톡 Open Graph 메타 태그 업데이트
     if (groomName && brideName) {
-        const pageTitle = `${groomName} & ${brideName}의 모바일 청첩장`;
-        document.title = pageTitle;
-
+        document.title = `${groomName} & ${brideName}의 모바일 청첩장`;
         const ogTitle = document.getElementById('og-title');
         if (ogTitle) ogTitle.setAttribute('content', `${groomName} ♥ ${brideName} 결혼합니다`);
     }
 
     if (data.hero_img) {
         document.getElementById('hero-img-element').src = data.hero_img;
-
         const ogImage = document.getElementById('og-image');
         if (ogImage) ogImage.setAttribute('content', data.hero_img);
     }
 
-    // 2. 신랑 신부 이름 반영
     document.getElementById('hero-groom-name').innerText = groomName;
     document.getElementById('hero-bride-name').innerText = brideName;
     document.getElementById('groom-name-display').innerText = groomName;
@@ -820,17 +933,12 @@ function applyDataToDOM(data) {
     document.getElementById('groom-baby-name').innerText = groomName;
     document.getElementById('bride-baby-name').innerText = brideName;
 
-    if (data.groom_baby_img) {
-        document.getElementById('groom-baby-img').src = data.groom_baby_img;
-    }
-    if (data.bride_baby_img) {
-        document.getElementById('bride-baby-img').src = data.bride_baby_img;
-    }
+    if (data.groom_baby_img) document.getElementById('groom-baby-img').src = data.groom_baby_img;
+    if (data.bride_baby_img) document.getElementById('bride-baby-img').src = data.bride_baby_img;
 
     document.getElementById('groom-intro-display').innerText = data.groom_intro_text || '';
     document.getElementById('bride-intro-display').innerText = data.bride_intro_text || '';
 
-    // 5섹션 연애 스토리 하단 세부 서브텍스트 & 연애 시작일 기반 D-Day & 표지 사진 반영
     const storyIntroEl = document.getElementById('story-intro-desc-display');
     if (storyIntroEl) {
         storyIntroEl.innerHTML = data.story_intro_text || "Milestone Documentation. These moments, carefully documented and lovingly preserved.<br>Relationship Development Timeline.";
@@ -843,7 +951,9 @@ function applyDataToDOM(data) {
         if (coverImgEl) coverImgEl.src = data.story_cover_img;
     }
 
-    // 3. 날짜 및 장소 변경
+    // 갤러리 그리드 적용
+    renderGalleryGrid(data.gallery || []);
+
     if (data.wedding_datetime) {
         targetWeddingDate = new Date(data.wedding_datetime);
         
@@ -871,7 +981,6 @@ function applyDataToDOM(data) {
         renderCalendar(year, targetWeddingDate.getMonth(), date);
     }
 
-    // 4. 신랑신부 및 부모님 성함/연락처 반영
     const gFather = data.groom_father_name || '';
     const gMother = data.groom_mother_name || '';
     const bFather = data.bride_father_name || '';
@@ -916,7 +1025,6 @@ function setContactLink(telId, smsId, phoneNum) {
     }
 }
 
-// --- datetime-local 입력창 규격(YYYY-MM-DDTHH:mm) 변환 ---
 function formatForDateTimeLocal(dateStr) {
     if (!dateStr) return '';
     if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(dateStr)) return dateStr;
@@ -928,7 +1036,6 @@ function formatForDateTimeLocal(dateStr) {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-// --- YYYY-MM-DD 날짜 규격 변환 헬퍼 ---
 function formatForDateOnly(dateStr) {
     if (!dateStr) return '';
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
@@ -940,7 +1047,6 @@ function formatForDateOnly(dateStr) {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-// --- 동적 달력 생성 ---
 function renderCalendar(year, month, weddingDay) {
     const container = document.getElementById('calendar-days-container');
     if (!container) return;
@@ -976,7 +1082,6 @@ function renderCalendar(year, month, weddingDay) {
     }
 }
 
-// --- 실시간 카운트다운 타이머 ---
 function updateCountdown() {
     if (!targetWeddingDate) return;
 
@@ -1036,7 +1141,6 @@ function updateValWithSlide(element, newVal, key) {
     }
 }
 
-// --- 축하 연락하기 모달 트리거 ---
 function openContactModal() {
     openModal('contact-modal');
 }
@@ -1045,7 +1149,6 @@ function closeContactModal(isFromHistory = false) {
     closeModal('contact-modal', isFromHistory);
 }
 
-// --- 관리자 비밀번호 1단계 검증 모달 ---
 function openAdminAuthModal() {
     document.getElementById('input-auth-pass').value = '';
     openModal('admin-auth-modal');
@@ -1089,7 +1192,6 @@ async function verifyAdminPassword(event) {
     }
 }
 
-// --- 관리자 설정 2단계 모달 ---
 function openAdminModalValues() {
     const setVal = (id, val) => {
         const el = document.getElementById(id);
@@ -1130,6 +1232,10 @@ function openAdminModalValues() {
     setVal('input-bride-father-tel', normalizePhoneNumber(dbData.bride_father_tel));
     setVal('input-bride-mother-name', dbData.bride_mother_name);
     setVal('input-bride-mother-tel', normalizePhoneNumber(dbData.bride_mother_tel));
+
+    // 관리자 모드 갤러리 이미지 주소 복사
+    adminGalleryUrls = dbData.gallery ? [...dbData.gallery] : [];
+    renderAdminGalleryList();
 }
 
 function closeAdminModal(isFromHistory = false) {
@@ -1184,7 +1290,8 @@ async function saveAdminSettings(event) {
 
         const payload = {
             password: verifiedAdminPassword,
-            data: payloadData
+            data: payloadData,
+            gallery: adminGalleryUrls
         };
 
         const res = await fetch(APPS_SCRIPT_URL, {
@@ -1206,7 +1313,7 @@ async function saveAdminSettings(event) {
 
         if (result.result === 'success') {
             alert('성공적으로 저장되었습니다!');
-            dbData = { ...dbData, ...payload.data };
+            dbData = { ...dbData, ...payload.data, gallery: adminGalleryUrls };
             applyDataToDOM(dbData);
             closeAdminModal();
         } else {
@@ -1223,7 +1330,6 @@ async function saveAdminSettings(event) {
     }
 }
 
-// --- 벚꽃 캔버스 애니메이션 ---
 function initSakura() {
     const canvas = document.getElementById('sakura-canvas');
     if (!canvas) return;
@@ -1237,13 +1343,7 @@ function initSakura() {
         height = canvas.height = canvas.parentElement.clientHeight;
     });
 
-    const petalColors = [
-        'rgba(255, 204, 213, 0.9)',
-        'rgba(255, 226, 232, 0.85)',
-        'rgba(255, 182, 193, 0.8)',
-        'rgba(255, 240, 243, 0.95)'
-    ];
-
+    const petalColors = ['rgba(255, 204, 213, 0.9)', 'rgba(255, 226, 232, 0.85)', 'rgba(255, 182, 193, 0.8)', 'rgba(255, 240, 243, 0.95)'];
     const totalPetals = 30;
     const petals = [];
 
