@@ -279,7 +279,6 @@ function preloadStoryImages(data) {
     });
 }
 
-// --- 연애 스토리 시작 (화면 자동 맞춤 스크롤 추가) ---
 function startStoryInline() {
     const coverView = document.getElementById('story-cover-view');
     const inlineView = document.getElementById('story-inline-view');
@@ -291,7 +290,6 @@ function startStoryInline() {
         currentStoryPage = 1;
         renderStoryPage(currentStoryPage);
 
-        // 연애 스토리 섹션이 모바일 화면 상단에 딱 맞도록 부드럽게 스크롤
         if (storySection) {
             storySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
@@ -621,7 +619,44 @@ function initLightboxTouch() {
     }, { passive: true });
 }
 
-// --- ImgBB 업로드 & 좌우 슬라이드 썸네일 리스트 ---
+// --- 약도 이미지 모달 및 내비게이션 연결 ---
+function openMapImageModal() {
+    const imgEl = document.getElementById('map-modal-img');
+    if (imgEl) {
+        const url = dbData.map_image_url || '';
+        if (!url) {
+            showToast('등록된 약도 이미지가 없습니다.');
+            return;
+        }
+        imgEl.src = url;
+    }
+    openModal('map-image-modal');
+}
+
+function openNavApp(type) {
+    const keyword = dbData.map_search_keyword || dbData.wedding_venue || '';
+    if (!keyword) {
+        showToast('등록된 검색어가 없습니다.');
+        return;
+    }
+
+    const encoded = encodeURIComponent(keyword);
+    let targetUrl = '';
+
+    if (type === 'naver') {
+        targetUrl = `https://m.map.naver.com/search2/search.naver?query=${encoded}`;
+    } else if (type === 'tmap') {
+        targetUrl = `https://tmap.co.kr/tmap2/mobile/route.jsp?name=${encoded}`;
+    } else if (type === 'kakao') {
+        targetUrl = `https://map.kakao.com/link/search/${encoded}`;
+    }
+
+    if (targetUrl) {
+        window.open(targetUrl, '_blank');
+    }
+}
+
+// --- ImgBB 업로드 & 썸네일 리스트 ---
 async function uploadGalleryImagesToImgBB(event) {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -684,16 +719,13 @@ function renderAdminGalleryList() {
             <button type="button" class="btn-thumb-del" onclick="removeAdminGalleryImg(${idx})" aria-label="삭제">&times;</button>
         `;
 
-        // PC 마우스 드래그 앤 드롭
         item.draggable = true;
         item.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('text/plain', idx);
             item.classList.add('dragging');
         });
 
-        item.addEventListener('dragover', (e) => {
-            e.preventDefault();
-        });
+        item.addEventListener('dragover', (e) => { e.preventDefault(); });
 
         item.addEventListener('drop', (e) => {
             e.preventDefault();
@@ -705,11 +737,8 @@ function renderAdminGalleryList() {
             }
         });
 
-        item.addEventListener('dragend', () => {
-            item.classList.remove('dragging');
-        });
+        item.addEventListener('dragend', () => { item.classList.remove('dragging'); });
 
-        // 모바일 길게 터치(Long Press) 드래그 순서 변경
         let touchTimer = null;
 
         item.addEventListener('touchstart', (e) => {
@@ -762,7 +791,6 @@ function removeAdminGalleryImg(index) {
     renderAdminGalleryList();
 }
 
-// --- 함께 보낸 소중한 날 (D+Day) 계산 ---
 function updateStoryDday(startDateStr) {
     const ddayTextEl = document.getElementById('story-dday-text');
     if (!ddayTextEl) return;
@@ -792,7 +820,6 @@ function updateStoryDday(startDateStr) {
     }
 }
 
-// --- 토스트 알림 ---
 function showToast(message) {
     const toast = document.getElementById('toast-msg');
     if (!toast) return;
@@ -807,7 +834,6 @@ function showToast(message) {
     }, 2200);
 }
 
-// --- 폭죽 애니메이션 ---
 function initFireworks() {
     const canvas = document.getElementById('intro-fireworks-canvas');
     if (!canvas) return;
@@ -1136,6 +1162,15 @@ function applyDataToDOM(data) {
         renderCalendar(year, targetWeddingDate.getMonth(), date);
     }
 
+    // 섹션 7: 오시는 길 데이터 바인딩
+    const venueFullText = `${data.wedding_venue || ''} ${data.wedding_venue_detail || ''}`.trim();
+    document.getElementById('location-venue-text').innerText = venueFullText;
+    document.getElementById('location-address-text').innerText = data.wedding_address || '';
+
+    if (data.map_iframe_url) {
+        document.getElementById('location-map-iframe').src = data.map_iframe_url;
+    }
+
     const gFather = data.groom_father_name || '';
     const gMother = data.groom_mother_name || '';
     const bFather = data.bride_father_name || '';
@@ -1296,22 +1331,13 @@ function updateValWithSlide(element, newVal, key) {
     }
 }
 
-function openContactModal() {
-    openModal('contact-modal');
-}
-
-function closeContactModal(isFromHistory = false) {
-    closeModal('contact-modal', isFromHistory);
-}
-
+function openContactModal() { openModal('contact-modal'); }
+function closeContactModal(isFromHistory = false) { closeModal('contact-modal', isFromHistory); }
 function openAdminAuthModal() {
     document.getElementById('input-auth-pass').value = '';
     openModal('admin-auth-modal');
 }
-
-function closeAdminAuthModal(isFromHistory = false) {
-    closeModal('admin-auth-modal', isFromHistory);
-}
+function closeAdminAuthModal(isFromHistory = false) { closeModal('admin-auth-modal', isFromHistory); }
 
 async function verifyAdminPassword(event) {
     event.preventDefault();
@@ -1362,6 +1388,12 @@ function openAdminModalValues() {
     setVal('input-wedding-datetime', formatForDateTimeLocal(dbData.wedding_datetime));
     setVal('input-wedding-venue', dbData.wedding_venue);
     setVal('input-wedding-venue-detail', dbData.wedding_venue_detail);
+
+    // 오시는 길 관리자 모달 값 로드
+    setVal('input-wedding-address', dbData.wedding_address);
+    setVal('input-map-iframe-url', dbData.map_iframe_url);
+    setVal('input-map-image-url', dbData.map_image_url);
+    setVal('input-map-search-keyword', dbData.map_search_keyword);
 
     setVal('input-groom-baby-img', dbData.groom_baby_img);
     setVal('input-groom-intro-text', dbData.groom_intro_text);
@@ -1419,6 +1451,11 @@ async function saveAdminSettings(event) {
             wedding_datetime: getVal('input-wedding-datetime'),
             wedding_venue: getVal('input-wedding-venue'),
             wedding_venue_detail: getVal('input-wedding-venue-detail'),
+            // 오시는 길 데이터 저장을 위한 신규 항목
+            wedding_address: getVal('input-wedding-address'),
+            map_iframe_url: getVal('input-map-iframe-url'),
+            map_image_url: getVal('input-map-image-url'),
+            map_search_keyword: getVal('input-map-search-keyword'),
             groom_baby_img: getVal('input-groom-baby-img'),
             groom_intro_text: getVal('input-groom-intro-text'),
             bride_baby_img: getVal('input-bride-baby-img'),
@@ -1450,9 +1487,7 @@ async function saveAdminSettings(event) {
 
         const res = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8'
-            },
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload)
         });
 
