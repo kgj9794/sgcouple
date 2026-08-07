@@ -17,6 +17,7 @@ let activeModalStack = [];
 let galleryUrls = [];
 let adminGalleryUrls = [];
 let currentGalleryIndex = 0;
+let isLightboxAnimating = false;
 
 let toastTimeout = null;
 let adminPressTimer = null;
@@ -30,9 +31,13 @@ let hasShownInitialBgmToast = false;
 let currentStoryPage = 1; 
 let heartsInterval = null; 
 
-// 라이트박스 스와이프 관련 변수
+// 라이트박스 터치 스와이프 변수
 let touchStartX = 0;
 let touchEndX = 0;
+
+// 관리자 갤러리 길게 터치(Long Press) 드래그 변수
+let touchDragIndex = null;
+let touchLongPressTimer = null;
 
 let prevValues = {
     days: '',
@@ -92,7 +97,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // 키보드 좌우 화살표로 갤러리 라이트박스 제어
     window.addEventListener('keydown', (e) => {
         const lightboxModal = document.getElementById('gallery-lightbox-modal');
         if (lightboxModal && lightboxModal.style.display === 'flex') {
@@ -253,7 +257,7 @@ function updateBgmBtnUI(isPlaying) {
     }
 }
 
-// --- 5섹션 연애 스토리 이미지 사전 로딩 ---
+// --- 스토리 및 갤러리 이미지 사전 로딩 ---
 function preloadStoryImages(data) {
     if (!data) return;
     const urlsToPreload = [];
@@ -485,38 +489,57 @@ function openLightbox(index) {
     if (!galleryUrls || galleryUrls.length === 0) return;
 
     currentGalleryIndex = index;
-    updateLightboxUI();
-    openModal('gallery-lightbox-modal');
-}
-
-function updateLightboxUI() {
     const imgEl = document.getElementById('lightbox-img');
-    const counterEl = document.getElementById('lightbox-counter');
-
-    if (imgEl && galleryUrls[currentGalleryIndex]) {
-        imgEl.style.opacity = '0.4';
+    if (imgEl) {
+        imgEl.classList.remove('slide-out-left', 'slide-out-right', 'slide-in-left', 'slide-in-right');
         imgEl.src = galleryUrls[currentGalleryIndex];
-        setTimeout(() => {
-            imgEl.style.opacity = '1';
-        }, 50);
     }
-
+    const counterEl = document.getElementById('lightbox-counter');
     if (counterEl) {
         counterEl.innerText = `${currentGalleryIndex + 1} / ${galleryUrls.length}`;
     }
+
+    openModal('gallery-lightbox-modal');
 }
 
+// 라이트박스 부드러운 좌우 슬라이드 기능
 function navigateLightbox(direction) {
-    if (!galleryUrls || galleryUrls.length === 0) return;
+    if (!galleryUrls || galleryUrls.length === 0 || isLightboxAnimating) return;
 
-    currentGalleryIndex += direction;
-    if (currentGalleryIndex < 0) {
-        currentGalleryIndex = galleryUrls.length - 1;
-    } else if (currentGalleryIndex >= galleryUrls.length) {
-        currentGalleryIndex = 0;
-    }
+    const imgEl = document.getElementById('lightbox-img');
+    if (!imgEl) return;
 
-    updateLightboxUI();
+    isLightboxAnimating = true;
+
+    const outClass = direction > 0 ? 'slide-out-left' : 'slide-out-right';
+    const inClass = direction > 0 ? 'slide-in-right' : 'slide-in-left';
+
+    imgEl.classList.remove('slide-out-left', 'slide-out-right', 'slide-in-left', 'slide-in-right');
+    imgEl.classList.add(outClass);
+
+    setTimeout(() => {
+        currentGalleryIndex += direction;
+        if (currentGalleryIndex < 0) {
+            currentGalleryIndex = galleryUrls.length - 1;
+        } else if (currentGalleryIndex >= galleryUrls.length) {
+            currentGalleryIndex = 0;
+        }
+
+        imgEl.src = galleryUrls[currentGalleryIndex];
+        const counterEl = document.getElementById('lightbox-counter');
+        if (counterEl) {
+            counterEl.innerText = `${currentGalleryIndex + 1} / ${galleryUrls.length}`;
+        }
+
+        imgEl.classList.remove(outClass);
+        void imgEl.offsetWidth; // 리플로우 강제
+        imgEl.classList.add(inClass);
+
+        setTimeout(() => {
+            imgEl.classList.remove(inClass);
+            isLightboxAnimating = false;
+        }, 250);
+    }, 200);
 }
 
 function initLightboxTouch() {
@@ -532,14 +555,14 @@ function initLightboxTouch() {
         const diffX = touchEndX - touchStartX;
 
         if (diffX < -40) {
-            navigateLightbox(1); // 다음 사진
+            navigateLightbox(1);  // 다음 사진 (오른쪽에서 좌측으로)
         } else if (diffX > 40) {
-            navigateLightbox(-1); // 이전 사진
+            navigateLightbox(-1); // 이전 사진 (좌측에서 우측으로)
         }
     }, { passive: true });
 }
 
-// --- ImgBB 이미지 업로드 및 관리자 설정 ---
+// --- ImgBB 업로드 & 순서 변경 기능 (순서 기입 필드 + 길게 터치 드래그앤드롭) ---
 async function uploadGalleryImagesToImgBB(event) {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -581,6 +604,20 @@ async function uploadGalleryImagesToImgBB(event) {
     renderAdminGalleryList();
 }
 
+// 순서 직접 입력 변경 함수
+function changeAdminGalleryOrder(fromIdx, newOrderVal) {
+    let targetIdx = parseInt(newOrderVal, 10) - 1;
+    if (isNaN(targetIdx)) return;
+    if (targetIdx < 0) targetIdx = 0;
+    if (targetIdx >= adminGalleryUrls.length) targetIdx = adminGalleryUrls.length - 1;
+
+    if (fromIdx === targetIdx) return;
+
+    const movedItem = adminGalleryUrls.splice(fromIdx, 1)[0];
+    adminGalleryUrls.splice(targetIdx, 0, movedItem);
+    renderAdminGalleryList();
+}
+
 function renderAdminGalleryList() {
     const container = document.getElementById('admin-gallery-list');
     if (!container) return;
@@ -589,11 +626,81 @@ function renderAdminGalleryList() {
     adminGalleryUrls.forEach((url, idx) => {
         const item = document.createElement('div');
         item.className = 'admin-gallery-thumb';
+        item.draggable = true;
+        item.dataset.index = idx;
+
         item.innerHTML = `
-            <img src="${url}" alt="갤러리 썸네일 ${idx + 1}">
-            <span class="thumb-idx">${idx + 1}</span>
-            <button type="button" class="btn-thumb-del" onclick="removeAdminGalleryImg(${idx})">&times;</button>
+            <img src="${url}" alt="갤러리 썸네일 ${idx + 1}" oncontextmenu="return false;">
+            <input type="number" min="1" max="${adminGalleryUrls.length}" value="${idx + 1}" class="thumb-order-input" onchange="changeAdminGalleryOrder(${idx}, this.value)" title="순서 직접 변경">
+            <button type="button" class="btn-thumb-del" onclick="removeAdminGalleryImg(${idx})" aria-label="삭제">&times;</button>
         `;
+
+        // PC 마우스 드래그 앤 드롭 이벤트
+        item.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', idx);
+            item.classList.add('dragging');
+        });
+
+        item.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        item.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const fromIdx = parseInt(e.dataTransfer.getData('text/plain'), 10);
+            if (!isNaN(fromIdx) && fromIdx !== idx) {
+                const moved = adminGalleryUrls.splice(fromIdx, 1)[0];
+                adminGalleryUrls.splice(idx, 0, moved);
+                renderAdminGalleryList();
+            }
+        });
+
+        item.addEventListener('dragend', () => {
+            item.classList.remove('dragging');
+        });
+
+        // 모바일 길게 터치(Long Press) 드래그 앤 드롭 이벤트
+        item.addEventListener('touchstart', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+
+            touchLongPressTimer = setTimeout(() => {
+                touchDragIndex = idx;
+                item.classList.add('dragging');
+                if (navigator.vibrate) navigator.vibrate(40);
+                showToast('사진 이동 준비됨');
+            }, 300);
+        }, { passive: true });
+
+        item.addEventListener('touchmove', (e) => {
+            if (touchLongPressTimer && touchDragIndex === null) {
+                clearTimeout(touchLongPressTimer);
+                touchLongPressTimer = null;
+            }
+        }, { passive: true });
+
+        item.addEventListener('touchend', (e) => {
+            if (touchLongPressTimer) {
+                clearTimeout(touchLongPressTimer);
+                touchLongPressTimer = null;
+            }
+
+            if (touchDragIndex !== null) {
+                const touch = e.changedTouches[0];
+                const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+                const thumbEl = targetEl ? targetEl.closest('.admin-gallery-thumb') : null;
+
+                if (thumbEl && thumbEl.dataset.index !== undefined) {
+                    const toIdx = parseInt(thumbEl.dataset.index, 10);
+                    if (touchDragIndex !== toIdx) {
+                        const moved = adminGalleryUrls.splice(touchDragIndex, 1)[0];
+                        adminGalleryUrls.splice(toIdx, 0, moved);
+                    }
+                }
+                touchDragIndex = null;
+                renderAdminGalleryList();
+            }
+        });
+
         container.appendChild(item);
     });
 }
@@ -783,7 +890,6 @@ function stopFireworks() {
     }
 }
 
-// --- 관리자 버튼 5초 클릭 ---
 function initAdminLongPress() {
     const adminBtn = document.getElementById('admin-lock-btn');
     if (!adminBtn) return;
@@ -818,7 +924,6 @@ function hideIntroOverlay() {
     }
 }
 
-// --- 공통 모달 제어 ---
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
@@ -887,7 +992,6 @@ function handleBackdropClick(event) {
     }
 }
 
-// --- DB 가져오기 ---
 async function fetchDBData() {
     try {
         const res = await fetch(`${APPS_SCRIPT_URL}?action=getData`);
@@ -951,7 +1055,6 @@ function applyDataToDOM(data) {
         if (coverImgEl) coverImgEl.src = data.story_cover_img;
     }
 
-    // 갤러리 그리드 적용
     renderGalleryGrid(data.gallery || []);
 
     if (data.wedding_datetime) {
@@ -1233,7 +1336,6 @@ function openAdminModalValues() {
     setVal('input-bride-mother-name', dbData.bride_mother_name);
     setVal('input-bride-mother-tel', normalizePhoneNumber(dbData.bride_mother_tel));
 
-    // 관리자 모드 갤러리 이미지 주소 복사
     adminGalleryUrls = dbData.gallery ? [...dbData.gallery] : [];
     renderAdminGalleryList();
 }
