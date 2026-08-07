@@ -266,6 +266,34 @@
                 <div class="scroll-arrow"></div>
             </div>
         </section>
+
+        <!-- Section 6: 웨딩 갤러리 섹션 -->
+        <section class="section gallery-section">
+            <span class="gallery-section-tag reveal">GALLERY</span>
+            <h2 class="gallery-section-title reveal">웨딩 갤러리</h2>
+            <div class="gallery-grid reveal" id="gallery-grid">
+                <!-- 자바스크립트 동적 생성 -->
+            </div>
+        </section>
+    </div>
+
+    <!-- 갤러리 풀스크린 라이트박스 모달 -->
+    <div id="gallery-lightbox-modal" class="modal-overlay lightbox-modal" onclick="handleBackdropClick(event)">
+        <div class="lightbox-content">
+            <button type="button" class="lightbox-close-btn" onclick="closeModal('gallery-lightbox-modal')" aria-label="닫기">&times;</button>
+            <div class="lightbox-img-wrapper" id="lightbox-img-wrapper">
+                <img id="lightbox-img" src="" alt="갤러리 원본 사진" oncontextmenu="return false;" ondragstart="return false;">
+            </div>
+            <div class="lightbox-nav-bar">
+                <button type="button" class="lightbox-nav-btn" onclick="navigateLightbox(-1)" aria-label="이전 사진">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <span id="lightbox-counter" class="lightbox-counter">1 / 1</span>
+                <button type="button" class="lightbox-nav-btn" onclick="navigateLightbox(1)" aria-label="다음 사진">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- 축하 연락하기 팝업 모달 -->
@@ -490,6 +518,16 @@
                         <div class="admin-field"><label>페이지 5 제목</label><input type="text" id="input-story-title-5" placeholder="예: 결실을 맺으며"></div>
                     </div>
                     <div class="admin-field"><label>페이지 5 내용</label><input type="text" id="input-story-desc-5"></div>
+
+                    <div class="admin-section-title">웨딩 갤러리 관리 (ImgBB 연동)</div>
+                    <div class="admin-gallery-upload-box">
+                        <label class="admin-file-label">
+                            📸 갤러리 사진 파일 선택 (다중 선택 가능)
+                            <input type="file" id="admin-gallery-file-input" multiple accept="image/*" onchange="uploadGalleryImagesToImgBB(event)">
+                        </label>
+                        <div class="admin-upload-status" id="admin-upload-status"></div>
+                    </div>
+                    <div class="admin-gallery-list" id="admin-gallery-list"></div>
 
                     <div class="admin-section-title">신랑신부 부모님 정보</div>
                     <div class="admin-field-group">
