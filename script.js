@@ -18,6 +18,7 @@ let galleryUrls = [];
 let adminGalleryUrls = [];
 let currentGalleryIndex = 0;
 let isLightboxAnimating = false;
+let isGalleryExpanded = false; // 갤러리 더보기 상태 관리
 
 let toastTimeout = null;
 let adminPressTimer = null;
@@ -256,7 +257,7 @@ function updateBgmBtnUI(isPlaying) {
     }
 }
 
-// --- 필수 필수 스토리 이미지만 사전 로딩 (갤러리는 렌더링 속도 최적화를 위해 제외) ---
+// --- 스토리 이미지 사전 로딩 ---
 function preloadStoryImages(data) {
     if (!data) return;
     const urlsToPreload = [];
@@ -450,24 +451,30 @@ function nextStoryPage() {
     }
 }
 
-// --- 섹션 6: 웨딩 갤러리 렌더링 속도 고도화 ---
+// --- 섹션 6: 웨딩 갤러리 렌더링 & 더보기/접기 토글 ---
 function renderGalleryGrid(urls) {
     const container = document.getElementById('gallery-grid');
+    const btnContainer = document.getElementById('gallery-more-btn-container');
     if (!container) return;
     container.innerHTML = '';
 
     if (!urls || urls.length === 0) {
         container.innerHTML = '<p class="gallery-empty-text">등록된 사진이 없습니다.</p>';
+        if (btnContainer) btnContainer.style.display = 'none';
         return;
     }
 
     galleryUrls = urls;
+    isGalleryExpanded = false; // 초기화 시 접힘 상태
 
     const fragment = document.createDocumentFragment();
 
     urls.forEach((url, idx) => {
         const item = document.createElement('div');
         item.className = 'gallery-item';
+        if (idx >= 6) {
+            item.classList.add('hidden-item'); // 6장(3줄) 초과 사진 초기 숨김
+        }
         item.onclick = () => openLightbox(idx);
 
         const img = document.createElement('img');
@@ -483,6 +490,55 @@ function renderGalleryGrid(urls) {
     });
 
     container.appendChild(fragment);
+
+    // 사진 수가 6개(3줄) 초과 시 "더 보기" 버튼 표시
+    if (btnContainer) {
+        if (urls.length > 6) {
+            btnContainer.style.display = 'flex';
+            updateGalleryMoreBtnUI(false);
+        } else {
+            btnContainer.style.display = 'none';
+        }
+    }
+}
+
+// "더 보기 / 접기" 토글 함수
+function toggleGalleryExpand() {
+    isGalleryExpanded = !isGalleryExpanded;
+
+    const items = document.querySelectorAll('#gallery-grid .gallery-item');
+    items.forEach((item, idx) => {
+        if (idx >= 6) {
+            if (isGalleryExpanded) {
+                item.classList.remove('hidden-item');
+            } else {
+                item.classList.add('hidden-item');
+            }
+        }
+    });
+
+    updateGalleryMoreBtnUI(isGalleryExpanded);
+
+    // "접기" 처리 시 갤러리 섹션 상단으로 자연스럽게 스크롤 이동
+    if (!isGalleryExpanded) {
+        const gallerySec = document.querySelector('.gallery-section');
+        if (gallerySec) {
+            gallerySec.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+}
+
+function updateGalleryMoreBtnUI(expanded) {
+    const icon = document.getElementById('gallery-more-icon');
+    const text = document.getElementById('gallery-more-text');
+
+    if (expanded) {
+        if (icon) icon.innerHTML = '<polyline points="18 15 12 9 6 15"></polyline>'; // 위로 화살표
+        if (text) text.innerText = '접기';
+    } else {
+        if (icon) icon.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>'; // 아래로 화살표
+        if (text) text.innerText = '더 보기';
+    }
 }
 
 function openLightbox(index) {
@@ -670,7 +726,7 @@ function renderAdminGalleryList() {
                 return;
             }
 
-            e.preventDefault(); // 드래그 중 화면 스크롤 방지
+            e.preventDefault();
             const touch = e.touches[0];
             const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
             const thumbEl = targetEl ? targetEl.closest('.admin-gallery-thumb') : null;
