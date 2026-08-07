@@ -938,8 +938,12 @@ body {
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
     transition: transform 0.2s ease;
-    content-visibility: auto; /* 화면 바깥 사진 GPU 대기 속도 향상 */
+    content-visibility: auto;
     contain-intrinsic-size: 200px;
+}
+
+.gallery-item.hidden-item {
+    display: none !important;
 }
 
 .gallery-item:active { transform: scale(0.97); }
@@ -955,6 +959,37 @@ body {
     font-size: 0.9rem;
     color: #888888;
     padding: 30px 0;
+}
+
+/* 갤러리 더보기 / 접기 버튼 스크린샷 디자인 100% 반영 */
+.gallery-more-btn-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.gallery-more-btn {
+    background: none;
+    border: none;
+    color: #777777;
+    font-size: 0.88rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 20px;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.gallery-more-btn:active {
+    transform: scale(0.95);
+    color: #222222;
+}
+
+.gallery-more-btn svg {
+    color: #777777;
 }
 
 /* --- LIGHTBOX MODAL --- */
@@ -1082,7 +1117,6 @@ body {
     font-weight: 700;
 }
 
-/* 관리자 모드 좌우 슬라이드 carousel 트랙 */
 .admin-gallery-list {
     display: flex;
     flex-direction: row;
@@ -1094,7 +1128,7 @@ body {
 }
 
 .admin-gallery-thumb {
-    flex: 0 0 100px; /* 고정 크기 썸네일 */
+    flex: 0 0 100px;
     height: 100px;
     position: relative;
     border-radius: 10px;
@@ -1310,7 +1344,7 @@ body {
     z-index: 9999;
     justify-content: center;
     align-items: center;
-    padding: 0; /* 전체 화면 */
+    padding: 0;
     backdrop-filter: blur(3px);
     animation: fadeIn 0.25s ease-out forwards;
     touch-action: none;
@@ -1325,7 +1359,7 @@ body {
     max-width: 100%;
     max-height: 100%;
     background-color: #ffffff;
-    border-radius: 0; /* 전체 화면 모드 */
+    border-radius: 0;
     overflow: hidden;
     box-shadow: none;
     display: flex;
@@ -1410,9 +1444,7 @@ body {
 
 .modal-divider { height: 1px; background-color: #eee; margin: 20px 0; }
 
-.admin-modal-content {
-    max-width: 100%;
-}
+.admin-modal-content { max-width: 100%; }
 
 .admin-body {
     max-height: none;
