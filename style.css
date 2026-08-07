@@ -38,13 +38,18 @@ html, body {
     overflow-x: hidden;
 }
 
-/* 팝업 오픈 시 배경 스크롤 완전 차단 */
+/* 팝업 오픈 시 배경 스크롤 완전 차단 및 BGM 버튼 자동 숨김 */
 body.no-scroll {
     overflow: hidden !important;
     height: 100vh !important;
     position: fixed;
     width: 100%;
     touch-action: none;
+}
+
+/* 팝업 오픈 시 BGM 노래 버튼 숨김 처리 */
+body.no-scroll .bgm-btn {
+    display: none !important;
 }
 
 /* --- 모바일 프레임 레이아웃 (반응형 최적화) --- */
@@ -961,7 +966,6 @@ body {
     padding: 30px 0;
 }
 
-/* 갤러리 더보기 / 접기 버튼 스크린샷 디자인 100% 반영 */
 .gallery-more-btn-container {
     margin-top: 20px;
     display: flex;
@@ -1087,7 +1091,7 @@ body {
     font-weight: 500;
 }
 
-/* --- 관리자 모드 - 갤러리 업로드 & 좌우 슬라이드 순서 변경 UI --- */
+/* --- 관리자 모드 - 갤러리 업로드 & 좌우 스크롤 순서 변경 UI --- */
 .admin-gallery-upload-box {
     background-color: #faf8f5;
     border: 1px dashed #d8c29d;
@@ -1135,12 +1139,13 @@ body {
     overflow: hidden;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
     background-color: #f4efe6;
-    touch-action: none;
+    touch-action: pan-x; /* 좌우 자유 스와이프 스크롤 허용 */
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     user-select: none;
 }
 
 .admin-gallery-thumb.dragging {
+    touch-action: none;
     opacity: 0.6;
     transform: scale(1.08);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
@@ -1331,7 +1336,7 @@ body {
 
 .dday-heart { color: #ff85a1; font-size: 0.85rem; }
 
-/* --- MODALS (전체 화면 풀스크린 꽉 차게 변경) --- */
+/* --- MODALS (전체 화면 풀스크린) --- */
 .modal-overlay {
     display: none;
     position: fixed;
