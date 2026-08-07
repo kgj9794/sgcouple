@@ -74,11 +74,12 @@ body {
     }
 }
 
-/* --- BGM & ADMIN BUTTONS --- */
+/* --- BGM (좌측 상단) & ADMIN LOCK BUTTON (상단 중앙) --- */
 .admin-lock-btn {
     position: absolute;
     top: 16px;
-    left: 16px;
+    left: 50%;
+    transform: translateX(-50%); /* 상단 가운데 배치 */
     z-index: 100;
     width: 44px;
     height: 44px;
@@ -93,7 +94,8 @@ body {
 .bgm-btn {
     position: fixed;
     top: 16px;
-    right: max(16px, calc(50% - 240px + 16px));
+    left: max(16px, calc(50% - 240px + 16px)); /* 좌측 상단 배치 */
+    right: auto;
     z-index: 10000;
     background: rgba(0, 0, 0, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -888,41 +890,17 @@ body {
     cursor: not-allowed;
 }
 
-@keyframes slideOutLeft {
-    to { transform: translateX(-100%); opacity: 0; }
-}
+@keyframes slideOutLeft { to { transform: translateX(-100%); opacity: 0; } }
+@keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideOutRight { to { transform: translateX(100%); opacity: 0; } }
+@keyframes slideInLeft { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-@keyframes slideInRight {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
+.story-page-card.slide-out-left { animation: slideOutLeft 0.22s forwards cubic-bezier(0.4, 0, 0.2, 1); }
+.story-page-card.slide-in-right { animation: slideInRight 0.25s forwards cubic-bezier(0.215, 0.61, 0.355, 1); }
+.story-page-card.slide-out-right { animation: slideOutRight 0.22s forwards cubic-bezier(0.4, 0, 0.2, 1); }
+.story-page-card.slide-in-left { animation: slideInLeft 0.25s forwards cubic-bezier(0.215, 0.61, 0.355, 1); }
 
-@keyframes slideOutRight {
-    to { transform: translateX(100%); opacity: 0; }
-}
-
-@keyframes slideInLeft {
-    from { transform: translateX(-100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-.story-page-card.slide-out-left {
-    animation: slideOutLeft 0.22s forwards cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.story-page-card.slide-in-right {
-    animation: slideInRight 0.25s forwards cubic-bezier(0.215, 0.61, 0.355, 1);
-}
-
-.story-page-card.slide-out-right {
-    animation: slideOutRight 0.22s forwards cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.story-page-card.slide-in-left {
-    animation: slideInLeft 0.25s forwards cubic-bezier(0.215, 0.61, 0.355, 1);
-}
-
-/* --- SECTION 6: WEDDING GALLERY (사진 1 UI 반영) --- */
+/* --- SECTION 6: WEDDING GALLERY --- */
 .gallery-section {
     background-color: #fcfbfa;
     padding: 60px 20px;
@@ -946,7 +924,6 @@ body {
     letter-spacing: -0.3px;
 }
 
-/* 2열 메이슨리(Masonry) 컬럼 배치 */
 .gallery-grid {
     column-count: 2;
     column-gap: 12px;
@@ -963,9 +940,7 @@ body {
     transition: transform 0.2s ease;
 }
 
-.gallery-item:active {
-    transform: scale(0.97);
-}
+.gallery-item:active { transform: scale(0.97); }
 
 .gallery-item img {
     width: 100%;
@@ -980,9 +955,9 @@ body {
     padding: 30px 0;
 }
 
-/* --- LIGHTBOX MODAL (사진 2 UI 반영) --- */
+/* --- LIGHTBOX MODAL (부드러운 좌우 슬라이드 적용) --- */
 .lightbox-modal {
-    background-color: #ffffff !important; /* 모달 오픈 시 클린 화이트 배경 */
+    background-color: #ffffff !important;
     backdrop-filter: none !important;
     padding: 0 !important;
 }
@@ -1032,9 +1007,14 @@ body {
     max-height: 75vh;
     object-fit: contain;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    transition: opacity 0.15s ease;
     border-radius: 2px;
+    will-change: transform, opacity;
 }
+
+.lightbox-img-wrapper img.slide-out-left { animation: slideOutLeft 0.22s forwards cubic-bezier(0.4, 0, 0.2, 1); }
+.lightbox-img-wrapper img.slide-in-right { animation: slideInRight 0.25s forwards cubic-bezier(0.215, 0.61, 0.355, 1); }
+.lightbox-img-wrapper img.slide-out-right { animation: slideOutRight 0.22s forwards cubic-bezier(0.4, 0, 0.2, 1); }
+.lightbox-img-wrapper img.slide-in-left { animation: slideInLeft 0.25s forwards cubic-bezier(0.215, 0.61, 0.355, 1); }
 
 .lightbox-nav-bar {
     display: flex;
@@ -1070,7 +1050,7 @@ body {
     font-weight: 500;
 }
 
-/* 관리자 설정 - 갤러리 업로드 UI 스타일 */
+/* 관리자 모드 - 갤러리 업로드 & 순서 변경 UI */
 .admin-gallery-upload-box {
     background-color: #faf8f5;
     border: 1px dashed #d8c29d;
@@ -1091,9 +1071,7 @@ body {
     cursor: pointer;
 }
 
-.admin-file-label input {
-    display: none;
-}
+.admin-file-label input { display: none; }
 
 .admin-upload-status {
     font-size: 0.8rem;
@@ -1105,8 +1083,8 @@ body {
 .admin-gallery-list {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    max-height: 220px;
+    gap: 10px;
+    max-height: 240px;
     overflow-y: auto;
     padding: 4px;
 }
@@ -1117,30 +1095,48 @@ body {
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: #f4efe6;
+    touch-action: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-gallery-thumb.dragging {
+    opacity: 0.6;
+    transform: scale(1.06);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    z-index: 10;
 }
 
 .admin-gallery-thumb img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    pointer-events: none;
 }
 
-.admin-gallery-thumb .thumb-idx {
+/* 순서 직접 기입 수치 필드 */
+.thumb-order-input {
     position: absolute;
-    top: 4px;
+    bottom: 4px;
     left: 4px;
-    background-color: rgba(0, 0, 0, 0.6);
-    color: #ffffff;
-    font-size: 0.65rem;
-    padding: 2px 5px;
+    width: 32px;
+    height: 22px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid #cccccc;
     border-radius: 4px;
+    font-size: 0.75rem;
+    text-align: center;
+    font-weight: 700;
+    color: #222222;
+    padding: 0;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 .admin-gallery-thumb .btn-thumb-del {
     position: absolute;
     top: 4px;
     right: 4px;
-    background-color: rgba(217, 83, 79, 0.85);
+    background-color: rgba(217, 83, 79, 0.88);
     color: #ffffff;
     border: none;
     border-radius: 50%;
