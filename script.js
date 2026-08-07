@@ -29,8 +29,11 @@ let prevValues = {
     secs: ''
 };
 
+// 해제용 이벤트 리스트 (클릭, 터치, 스크롤, 휠, 터치이동)
+const UNLOCK_EVENTS = ['click', 'touchstart', 'touchend', 'touchmove', 'scroll', 'wheel', 'pointerdown', 'keydown'];
+
 document.addEventListener('DOMContentLoaded', async () => {
-    // 0. 우클릭 및 드래그 방지
+    // 0. 우클릭, 드래그 및 이미지 보호
     document.addEventListener('contextmenu', (e) => e.preventDefault());
     document.addEventListener('dragstart', (e) => e.preventDefault());
 
@@ -159,7 +162,7 @@ function playNextBgmTrack() {
     }
 }
 
-// --- BGM 초기화 & 모바일 대응 ---
+// --- BGM 초기화 & 모바일 대응 (스크롤, 터치, 클릭 제스처 해제) ---
 function initBgm() {
     bgmAudio = document.getElementById('bgm-player');
     if (!bgmAudio) return;
@@ -185,15 +188,16 @@ function initBgm() {
 
     startAudio();
 
-    window.addEventListener('click', unlockInteraction);
-    window.addEventListener('touchstart', unlockInteraction, { passive: true });
-    window.addEventListener('scroll', unlockInteraction, { passive: true });
+    // 스크롤 및 화면 상호작용 시 자동 재생 등록
+    UNLOCK_EVENTS.forEach(evt => {
+        window.addEventListener(evt, unlockInteraction, { passive: true });
+    });
 }
 
 function removeUnlockListeners() {
-    window.removeEventListener('click', unlockInteraction);
-    window.removeEventListener('touchstart', unlockInteraction);
-    window.removeEventListener('scroll', unlockInteraction);
+    UNLOCK_EVENTS.forEach(evt => {
+        window.removeEventListener(evt, unlockInteraction);
+    });
 }
 
 function unlockInteraction(e) {
@@ -218,7 +222,7 @@ function startAudio() {
             
             if (!hasShownInitialBgmToast) {
                 hasShownInitialBgmToast = true;
-                showToast('🎵 배경음악이 재생됩니다.');
+                showToast('배경음악이 재생됩니다.');
             }
         }).catch(() => {});
     }
@@ -235,7 +239,7 @@ function toggleBgm() {
         bgmAudio.play().then(() => {
             isBgmPlaying = true;
             updateBgmBtnUI(true);
-            showToast('🎵 음악이 켜졌습니다');
+            showToast('음악이 켜졌습니다');
             hasShownInitialBgmToast = true;
         }).catch(err => console.error("음악 재생 실패:", err));
     } else {
@@ -243,7 +247,7 @@ function toggleBgm() {
         bgmAudio.pause();
         isBgmPlaying = false;
         updateBgmBtnUI(false);
-        showToast('🔇 음악이 음소거되었습니다');
+        showToast('음악이 음소거되었습니다');
         hasShownInitialBgmToast = true;
     }
 }
@@ -308,7 +312,6 @@ function renderStoryPage(page) {
     if (titleEl) titleEl.innerText = titleText;
     if (descEl) descEl.innerText = descText;
 
-    // 1페이지에서도 이전 버튼 클릭이 가능하도록 disabled 비활성화
     if (prevBtn) prevBtn.disabled = false;
     if (nextBtn) nextBtn.disabled = (page === 5);
 }
@@ -338,7 +341,6 @@ function animateStorySlide(direction, callback) {
 }
 
 function prevStoryPage() {
-    // 1페이지에서 이전 버튼 클릭 시 연애 스토리 표지 화면으로 이동
     if (currentStoryPage === 1) {
         showStoryCover();
     } else if (currentStoryPage > 1) {
@@ -562,7 +564,7 @@ function initAdminLongPress() {
     const startPress = () => {
         adminPressTimer = setTimeout(() => {
             openAdminAuthModal();
-            showToast('🔒 관리자 인증 모드로 진입합니다');
+            showToast('관리자 인증 모드로 진입합니다');
         }, 5000);
     };
 
