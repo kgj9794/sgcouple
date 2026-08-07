@@ -32,9 +32,10 @@ let hasShownInitialBgmToast = false;
 let currentStoryPage = 1; 
 let heartsInterval = null; 
 
-// 라이트박스 터치 스와이프 변수
+// 라이트박스 터치 드래그 변수
+let isLightboxDragging = false;
 let touchStartX = 0;
-let touchEndX = 0;
+let touchCurrentX = 0;
 
 // 관리자 갤러리 터치 드래그 변수
 let touchDragIndex = null;
@@ -550,6 +551,9 @@ function openLightbox(index) {
     const imgEl = document.getElementById('lightbox-img');
     if (imgEl) {
         imgEl.classList.remove('slide-out-left', 'slide-out-right', 'slide-in-left', 'slide-in-right');
+        imgEl.style.transform = '';
+        imgEl.style.opacity = '';
+        imgEl.style.transition = '';
         imgEl.src = galleryUrls[currentGalleryIndex];
     }
     const counterEl = document.getElementById('lightbox-counter');
@@ -571,6 +575,9 @@ function navigateLightbox(direction) {
     const outClass = direction > 0 ? 'slide-out-left' : 'slide-out-right';
     const inClass = direction > 0 ? 'slide-in-right' : 'slide-in-left';
 
+    imgEl.style.transform = '';
+    imgEl.style.opacity = '';
+    imgEl.style.transition = '';
     imgEl.classList.remove('slide-out-left', 'slide-out-right', 'slide-in-left', 'slide-in-right');
     imgEl.classList.add(outClass);
 
@@ -599,24 +606,94 @@ function navigateLightbox(direction) {
     }, 200);
 }
 
+// --- 실시간 터치 드래그 및 슬라이드 스와이프 이펙트 ---
 function initLightboxTouch() {
     const wrapper = document.getElementById('lightbox-img-wrapper');
-    if (!wrapper) return;
+    const imgEl = document.getElementById('lightbox-img');
+    if (!wrapper || !imgEl) return;
 
     wrapper.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
+        if (isLightboxAnimating || !galleryUrls || galleryUrls.length <= 1) return;
+        touchStartX = e.touches[0].clientX;
+        touchCurrentX = touchStartX;
+        isLightboxDragging = true;
+        imgEl.style.transition = 'none';
     }, { passive: true });
 
-    wrapper.addEventListener('touchend', (e) => {
-        touchEndX = e.changedTouches[0].screenX;
-        const diffX = touchEndX - touchStartX;
+    wrapper.addEventListener('touchmove', (e) => {
+        if (!isLightboxDragging) return;
+        touchCurrentX = e.touches[0].clientX;
+        const diffX = touchCurrentX - touchStartX;
+        const opacity = Math.max(0.3, 1 - Math.abs(diffX) / 400);
+        imgEl.style.transform = `translateX(${diffX}px) scale(${1 - Math.abs(diffX) / 2000})`;
+        imgEl.style.opacity = opacity;
+    }, { passive: true });
 
-        if (diffX < -40) {
-            navigateLightbox(1);
-        } else if (diffX > 40) {
-            navigateLightbox(-1);
+    wrapper.addEventListener('touchend', () => {
+        if (!isLightboxDragging) return;
+        isLightboxDragging = false;
+        const diffX = touchCurrentX - touchStartX;
+
+        imgEl.style.transition = 'transform 0.22s ease, opacity 0.22s ease';
+
+        if (diffX < -50) {
+            // 왼쪽으로 스와이프 -> 다음 이미지
+            imgEl.style.transform = `translateX(-100%)`;
+            imgEl.style.opacity = '0';
+            setTimeout(() => {
+                navigateLightboxAfterSwipe(1);
+            }, 180);
+        } else if (diffX > 50) {
+            // 오른쪽으로 스와이프 -> 이전 이미지
+            imgEl.style.transform = `translateX(100%)`;
+            imgEl.style.opacity = '0';
+            setTimeout(() => {
+                navigateLightboxAfterSwipe(-1);
+            }, 180);
+        } else {
+            // 위치 원복
+            imgEl.style.transform = 'translateX(0) scale(1)';
+            imgEl.style.opacity = '1';
+            setTimeout(() => {
+                imgEl.style.transition = '';
+            }, 220);
         }
-    }, { passive: true });
+    });
+}
+
+function navigateLightboxAfterSwipe(direction) {
+    const imgEl = document.getElementById('lightbox-img');
+    if (!imgEl) return;
+
+    currentGalleryIndex += direction;
+    if (currentGalleryIndex < 0) {
+        currentGalleryIndex = galleryUrls.length - 1;
+    } else if (currentGalleryIndex >= galleryUrls.length) {
+        currentGalleryIndex = 0;
+    }
+
+    imgEl.src = galleryUrls[currentGalleryIndex];
+    const counterEl = document.getElementById('lightbox-counter');
+    if (counterEl) {
+        counterEl.innerText = `${currentGalleryIndex + 1} / ${galleryUrls.length}`;
+    }
+
+    const startPos = direction > 0 ? '100%' : '-100%';
+    imgEl.style.transition = 'none';
+    imgEl.style.transform = `translateX(${startPos})`;
+    imgEl.style.opacity = '0';
+
+    void imgEl.offsetWidth; // 강제 리플로우
+
+    imgEl.style.transition = 'transform 0.25s cubic-bezier(0.215, 0.61, 0.355, 1), opacity 0.25s cubic-bezier(0.215, 0.61, 0.355, 1)';
+    imgEl.style.transform = 'translateX(0)';
+    imgEl.style.opacity = '1';
+
+    setTimeout(() => {
+        imgEl.style.transition = '';
+        imgEl.style.transform = '';
+        imgEl.style.opacity = '';
+    }, 260);
 }
 
 // --- 약도 이미지 모달 및 내비게이션 연결 ---
@@ -1162,7 +1239,6 @@ function applyDataToDOM(data) {
         renderCalendar(year, targetWeddingDate.getMonth(), date);
     }
 
-    // 섹션 7: 오시는 길 데이터 바인딩
     const venueFullText = `${data.wedding_venue || ''} ${data.wedding_venue_detail || ''}`.trim();
     document.getElementById('location-venue-text').innerText = venueFullText;
     document.getElementById('location-address-text').innerText = data.wedding_address || '';
@@ -1389,7 +1465,6 @@ function openAdminModalValues() {
     setVal('input-wedding-venue', dbData.wedding_venue);
     setVal('input-wedding-venue-detail', dbData.wedding_venue_detail);
 
-    // 오시는 길 관리자 모달 값 로드
     setVal('input-wedding-address', dbData.wedding_address);
     setVal('input-map-iframe-url', dbData.map_iframe_url);
     setVal('input-map-image-url', dbData.map_image_url);
@@ -1451,7 +1526,6 @@ async function saveAdminSettings(event) {
             wedding_datetime: getVal('input-wedding-datetime'),
             wedding_venue: getVal('input-wedding-venue'),
             wedding_venue_detail: getVal('input-wedding-venue-detail'),
-            // 오시는 길 데이터 저장을 위한 신규 항목
             wedding_address: getVal('input-wedding-address'),
             map_iframe_url: getVal('input-map-iframe-url'),
             map_image_url: getVal('input-map-image-url'),
