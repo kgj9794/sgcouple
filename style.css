@@ -1134,6 +1134,217 @@ body {
     font-family: sans-serif;
 }
 
+/* SECTION 8: ACCOUNT (마음 전하실 곳) */
+.account-section {
+    background-color: #f7f6f4;
+    padding: 60px 20px 70px;
+    border-top: 1px solid #eee8df;
+}
+
+.account-section-tag {
+    font-size: 0.8rem;
+    letter-spacing: 4px;
+    color: #c98b95;
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 400;
+}
+
+.account-section-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.45rem;
+    font-weight: 400;
+    color: #222222;
+    margin-bottom: 12px;
+    letter-spacing: -0.3px;
+}
+
+.account-subtitle {
+    font-size: 0.88rem;
+    color: #777777;
+    line-height: 1.6;
+    margin-bottom: 28px;
+    word-break: keep-all;
+}
+
+.account-accordion-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.account-accordion-item {
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    border: 1px solid #eae5dc;
+    transition: all 0.3s ease;
+}
+
+.account-accordion-header {
+    width: 100%;
+    padding: 18px 20px;
+    background-color: #ffffff;
+    border: none;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #333333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.account-accordion-header .accordion-arrow {
+    transition: transform 0.3s ease;
+    color: #888888;
+}
+
+.account-accordion-item.open .accordion-arrow {
+    transform: rotate(180deg);
+}
+
+.account-accordion-body {
+    display: none;
+    padding: 16px 14px;
+}
+
+/* 신랑측 개폴더 - 하늘색 배경 */
+#account-accordion-groom .account-accordion-body {
+    background-color: #eaf3fb;
+}
+
+/* 신부측 개폴더 - 연핑크 배경 */
+#account-accordion-bride .account-accordion-body {
+    background-color: #fcebf0;
+}
+
+.account-accordion-item.open .account-accordion-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.account-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 16px 16px 14px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    text-align: left;
+}
+
+.account-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.account-card-header .role {
+    font-size: 0.92rem;
+    color: #333333;
+    font-weight: 500;
+}
+
+.account-card-header .name {
+    font-size: 0.98rem;
+    color: #222222;
+    font-weight: 700;
+}
+
+.account-box {
+    background-color: #f2f2f2;
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.account-info-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.account-info-left .bank-name {
+    font-size: 0.78rem;
+    color: #888888;
+    font-family: sans-serif;
+}
+
+.account-info-left .account-number {
+    font-size: 0.95rem;
+    color: #222222;
+    font-weight: 700;
+    font-family: sans-serif;
+    letter-spacing: 0.3px;
+}
+
+.account-actions-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-account-copy {
+    background: none;
+    border: none;
+    color: #555555;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.btn-account-copy:active {
+    transform: scale(0.9);
+    color: #111111;
+}
+
+.btn-account-pay {
+    background: transparent;
+    border: none;
+    color: #191919;
+    font-size: 0.9rem;
+    font-weight: 900;
+    font-family: sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 6px;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-account-pay:active {
+    transform: scale(0.92);
+    opacity: 0.7;
+}
+
+/* 관리자 모드 - 체크박스 라벨 UI */
+.admin-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: #555555;
+    font-weight: 700;
+    margin-top: 6px;
+    margin-bottom: 4px;
+    cursor: pointer;
+}
+
+.admin-checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
 /* LIGHTBOX & MAP MODAL */
 .lightbox-modal, .map-img-modal {
     background-color: rgba(0, 0, 0, 0.9) !important;
@@ -1157,6 +1368,8 @@ body {
 .map-modal-content {
     background-color: #f7f7f7;
     justify-content: center;
+    position: relative;
+    overflow: hidden;
 }
 
 .lightbox-close-btn {
@@ -1190,10 +1403,14 @@ body {
 }
 
 .map-img-scroll-wrapper {
-    overflow-y: auto;
-    touch-action: auto;
-    padding: 50px 10px 20px;
-    align-items: flex-start;
+    overflow: hidden;
+    touch-action: none;
+    padding: 0 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
 }
 
 .lightbox-img-wrapper img {
@@ -1213,9 +1430,15 @@ body {
 .lightbox-img-wrapper img.slide-in-left { animation: slideInLeft 0.25s forwards cubic-bezier(0.215, 0.61, 0.355, 1); }
 
 .map-img-scroll-wrapper img {
-    max-height: none;
-    width: 100%;
-    max-width: 480px;
+    max-height: 80vh;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    transform-origin: center center;
+    will-change: transform;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .lightbox-nav-bar {
