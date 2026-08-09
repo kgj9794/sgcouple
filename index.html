@@ -481,6 +481,25 @@
                 </div>
             </div>
         </section>
+
+        <!-- Section 9: 방명록 -->
+        <section class="section guestbook-section">
+            <span class="guestbook-section-tag reveal">GUESTBOOK</span>
+            <h2 class="guestbook-section-title reveal">방명록</h2>
+
+            <!-- 방명록 가로 스와이프 카드 트랙 -->
+            <div class="guestbook-slider-container reveal">
+                <div class="guestbook-slider-track" id="guestbook-slider-track">
+                    <!-- JS 동적 생성 영역 -->
+                </div>
+            </div>
+
+            <!-- 하단 작성하기 / 전체보기 버튼 -->
+            <div class="guestbook-actions reveal">
+                <button type="button" class="btn-guestbook-action" onclick="openGuestbookWriteModal()">작성하기</button>
+                <button type="button" class="btn-guestbook-action" onclick="openGuestbookListModal()">전체보기</button>
+            </div>
+        </section>
     </div>
 
     <!-- 약도 이미지 모달 -->
@@ -839,6 +858,84 @@
                     </div>
 
                     <button type="submit" class="admin-save-btn" id="admin-save-btn">저장하기</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 방명록 작성하기 모달 -->
+    <div id="guestbook-write-modal" class="modal-overlay" onclick="handleBackdropClick(event)">
+        <div class="modal-content guestbook-modal-content">
+            <div class="modal-header">
+                <h3>방명록 작성하기</h3>
+                <button type="button" class="modal-close-btn" onclick="closeGuestbookWriteModal()">&times;</button>
+            </div>
+            <div class="modal-body guestbook-write-body">
+                <form id="guestbook-write-form" onsubmit="handleGuestbookSubmit(event)">
+                    <input type="hidden" id="guestbook-edit-id" value="">
+                    <div class="guestbook-field">
+                        <label><span class="req">*</span> 이름</label>
+                        <input type="text" id="guestbook-input-name" required placeholder="이름을 입력해 주세요.">
+                    </div>
+                    <div class="guestbook-field">
+                        <label><span class="req">*</span> 내용</label>
+                        <textarea id="guestbook-input-content" required maxlength="500" placeholder="내용을 작성해 주세요. (최대 500자)"></textarea>
+                    </div>
+                    <div class="guestbook-field">
+                        <label><span class="req">*</span> 비밀번호</label>
+                        <input type="password" id="guestbook-input-pass" required placeholder="비밀번호를 입력해 주세요.">
+                    </div>
+                    <div class="guestbook-btn-wrap">
+                        <button type="submit" class="btn-guestbook-submit" id="guestbook-submit-btn">작성완료</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 방명록 전체보기 모달 -->
+    <div id="guestbook-list-modal" class="modal-overlay" onclick="handleBackdropClick(event)">
+        <div class="modal-content guestbook-modal-content">
+            <div class="modal-header">
+                <h3>방명록 전체보기</h3>
+                <button type="button" class="modal-close-btn" onclick="closeGuestbookListModal()">&times;</button>
+            </div>
+            <div class="modal-body guestbook-list-body" id="guestbook-full-list">
+                <!-- JS 동적 생성 방명록 목록 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 방명록 게시글 옵션 모달 (하단 슬라이드 업) -->
+    <div id="guestbook-option-modal" class="modal-overlay option-bottom-modal" onclick="handleBackdropClick(event)">
+        <div class="modal-content option-modal-content">
+            <div class="modal-header">
+                <h3>방명록 게시글 옵션</h3>
+                <button type="button" class="modal-close-btn" onclick="closeGuestbookOptionModal()">&times;</button>
+            </div>
+            <div class="modal-body option-modal-body">
+                <button type="button" class="btn-option-item btn-danger" onclick="handleGuestbookDeleteClick()">
+                    <span>삭제하기</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 방명록 삭제 비밀번호 검증 모달 -->
+    <div id="guestbook-auth-modal" class="modal-overlay" onclick="handleBackdropClick(event)">
+        <div class="modal-content guestbook-modal-content">
+            <div class="modal-header">
+                <h3 id="guestbook-auth-title">비밀번호 확인</h3>
+                <button type="button" class="modal-close-btn" onclick="closeGuestbookAuthModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="handleGuestbookAuthSubmit(event)">
+                    <div class="guestbook-field">
+                        <label>작성 비밀번호</label>
+                        <input type="password" id="guestbook-auth-pass" required placeholder="작성 시 입력한 비밀번호">
+                    </div>
+                    <button type="submit" class="admin-save-btn" id="guestbook-auth-btn">확인</button>
                 </form>
             </div>
         </div>
