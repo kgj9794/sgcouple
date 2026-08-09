@@ -23,6 +23,11 @@ let isGalleryExpanded = false;
 let guestbookList = [];
 let selectedGuestbookId = null;
 
+// RSVP 상태 변수 (기본 인원 1명, 신랑측/신부측 초기 미선택 null 처리)
+let rsvpStatus = 'yes';
+let rsvpGuestCount = 1;
+let rsvpSide = null;
+
 let toastTimeout = null;
 let adminPressTimer = null;
 let bgmAudio = null;
@@ -920,7 +925,6 @@ function bindAccountCard(prefix, name, bank, account, payLink, showPay) {
 
 // --- SECTION 9: GUESTBOOK (방명록 기능) ---
 
-// 방명록 한국어 순서 변환 헬퍼 (첫번째, 두번째, 세번째...)
 function getOrdinalKorean(num) {
     const ordinals = ["첫번째", "두번째", "세번째", "네번째", "다섯번째", "여섯번째", "일곱번째", "여덟번째", "아홉번째", "열번째"];
     if (num <= 10) return ordinals[num - 1];
@@ -946,8 +950,6 @@ function renderGuestbookSlider() {
     const fragment = document.createDocumentFragment();
 
     guestbookList.forEach((item, index) => {
-        // guestbookList가 최신순(Index 0 = 가장 최근 작성글)으로 들어오므로,
-        // 가장 오래된 게시물이 '첫번째'가 되도록 (전체 개수 - 현재 인덱스)로 계산
         const orderNum = guestbookList.length - index;
 
         const card = document.createElement('div');
@@ -1116,7 +1118,7 @@ async function handleGuestbookSubmit(event) {
         if (result.result === 'success') {
             showToast('방명록이 등록되었습니다.');
             closeGuestbookWriteModal();
-            await fetchDBData(); // 최신 DB 조회 및 렌더링
+            await fetchDBData();
         } else {
             alert(result.message || '방명록 저장에 실패했습니다.');
         }
@@ -1146,7 +1148,7 @@ async function deleteGuestbookItem(id, password) {
 
         if (result.result === 'success') {
             showToast('방명록이 삭제되었습니다.');
-            await fetchDBData(); // 최신 DB 조회 및 렌더링
+            await fetchDBData();
             renderGuestbookFullList();
         } else {
             alert(result.message || '삭제에 실패했습니다.');
@@ -1154,6 +1156,206 @@ async function deleteGuestbookItem(id, password) {
     } catch (err) {
         alert('삭제 요청 중 오류가 발생했습니다.');
         console.error(err);
+    }
+}
+
+// --- SECTION 10: RSVP (참석 의사 전달 기능) ---
+
+function openRsvpModal() {
+    rsvpStatus = 'yes';
+    rsvpGuestCount = 1; // 기본 인원 1명 설정
+    rsvpSide = null;    // 초기 미선택 상태
+
+    setRsvpStatus('yes');
+    resetRsvpSideButtons();
+
+    const countEl = document.getElementById('rsvp-guest-count');
+    if (countEl) countEl.innerText = '1';
+
+    const nameInput = document.getElementById('rsvp-input-name');
+    if (nameInput) nameInput.value = '';
+
+    const telInput = document.getElementById('rsvp-input-tel');
+    if (telInput) telInput.value = '';
+
+    const privacyCheck = document.getElementById('rsvp-privacy-check');
+    if (privacyCheck) privacyCheck.checked = false;
+
+    openModal('rsvp-modal');
+}
+
+function closeRsvpModal(isFromHistory = false) {
+    closeModal('rsvp-modal', isFromHistory);
+}
+
+function setRsvpStatus(status) {
+    rsvpStatus = status;
+    const yesBtn = document.getElementById('rsvp-status-yes');
+    const noBtn = document.getElementById('rsvp-status-no');
+
+    if (!yesBtn || !noBtn) return;
+
+    if (status === 'yes') {
+        yesBtn.classList.add('active');
+        noBtn.classList.remove('active');
+        const yesCheck = yesBtn.querySelector('.check-circle');
+        const noCheck = noBtn.querySelector('.check-circle');
+        if (yesCheck) yesCheck.innerText = '✓';
+        if (noCheck) noCheck.innerText = '';
+    } else {
+        noBtn.classList.add('active');
+        yesBtn.classList.remove('active');
+        const yesCheck = yesBtn.querySelector('.check-circle');
+        const noCheck = noBtn.querySelector('.check-circle');
+        if (yesCheck) yesCheck.innerText = '';
+        if (noCheck) noCheck.innerText = '✓';
+    }
+}
+
+// 신랑측 / 신부측 토글 버튼 클릭 처리
+function setRsvpSide(side) {
+    rsvpSide = side;
+    const groomBtn = document.getElementById('rsvp-side-groom');
+    const brideBtn = document.getElementById('rsvp-side-bride');
+    if (!groomBtn || !brideBtn) return;
+
+    if (side === 'groom') {
+        groomBtn.classList.add('active');
+        brideBtn.classList.remove('active');
+        const groomCheck = groomBtn.querySelector('.check-circle');
+        const brideCheck = brideBtn.querySelector('.check-circle');
+        if (groomCheck) groomCheck.innerText = '✓';
+        if (brideCheck) brideCheck.innerText = '';
+    } else {
+        brideBtn.classList.add('active');
+        groomBtn.classList.remove('active');
+        const groomCheck = groomBtn.querySelector('.check-circle');
+        const brideCheck = brideBtn.querySelector('.check-circle');
+        if (groomCheck) groomCheck.innerText = '';
+        if (brideCheck) brideCheck.innerText = '✓';
+    }
+
+    updateRsvpSideTheme(side);
+}
+
+function resetRsvpSideButtons() {
+    const groomBtn = document.getElementById('rsvp-side-groom');
+    const brideBtn = document.getElementById('rsvp-side-bride');
+    const modalContent = document.getElementById('rsvp-modal-content');
+
+    if (groomBtn) {
+        groomBtn.classList.remove('active');
+        const check = groomBtn.querySelector('.check-circle');
+        if (check) check.innerText = '';
+    }
+    if (brideBtn) {
+        brideBtn.classList.remove('active');
+        const check = brideBtn.querySelector('.check-circle');
+        if (check) check.innerText = '';
+    }
+    if (modalContent) {
+        modalContent.classList.remove('side-groom', 'side-bride');
+    }
+}
+
+// 신랑측/신부측 선택 시 모달 배경 테마 변경
+function updateRsvpSideTheme(side) {
+    const modalContent = document.getElementById('rsvp-modal-content');
+    if (!modalContent) return;
+
+    if (side === 'groom') {
+        modalContent.classList.add('side-groom');
+        modalContent.classList.remove('side-bride');
+    } else if (side === 'bride') {
+        modalContent.classList.add('side-bride');
+        modalContent.classList.remove('side-groom');
+    } else {
+        modalContent.classList.remove('side-groom', 'side-bride');
+    }
+}
+
+// 연락처 입력 시 자동 하이픈 기입 (010-0000-0000)
+function formatTelInput(target) {
+    let val = target.value.replace(/[^0-9]/g, '');
+    let formatted = '';
+
+    if (val.length < 4) {
+        formatted = val;
+    } else if (val.length < 7) {
+        formatted = val.substr(0, 3) + '-' + val.substr(3);
+    } else if (val.length < 11) {
+        formatted = val.substr(0, 3) + '-' + val.substr(3, 3) + '-' + val.substr(6);
+    } else {
+        formatted = val.substr(0, 3) + '-' + val.substr(3, 4) + '-' + val.substr(7, 4);
+    }
+
+    target.value = formatted;
+}
+
+function changeRsvpCount(delta) {
+    rsvpGuestCount = Math.max(1, rsvpGuestCount + delta); // 최소 1명
+    const countEl = document.getElementById('rsvp-guest-count');
+    if (countEl) {
+        countEl.innerText = rsvpGuestCount;
+    }
+}
+
+async function handleRsvpSubmit(event) {
+    event.preventDefault();
+    const submitBtn = document.getElementById('rsvp-submit-btn');
+    const name = document.getElementById('rsvp-input-name').value.trim();
+    const rawTel = document.getElementById('rsvp-input-tel').value.trim();
+    const tel = normalizePhoneNumber(rawTel);
+    const privacyChecked = document.getElementById('rsvp-privacy-check').checked;
+
+    if (!rsvpSide) {
+        showToast('신랑측 또는 신부측을 선택해 주세요.');
+        return;
+    }
+
+    if (!name || !tel) {
+        showToast('성함과 연락처를 입력해 주세요.');
+        return;
+    }
+
+    if (!privacyChecked) {
+        showToast('개인정보 수집 및 이용에 동의해주세요.');
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerText = '전달 중...';
+
+    const payload = {
+        action: "addRsvp",
+        status: rsvpStatus === 'yes' ? '참석가능' : '참석불가',
+        name: name,
+        side: rsvpSide === 'groom' ? '신랑측' : '신부측',
+        tel: tel,
+        extraCount: rsvpGuestCount,
+        date: new Date().toLocaleDateString('ko-KR')
+    };
+
+    try {
+        const res = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        if (result.result === 'success') {
+            showToast('참석 의사가 전달되었습니다. 감사합니다!');
+            closeRsvpModal();
+        } else {
+            alert(result.message || '참석 의사 전달에 실패했습니다.');
+        }
+    } catch (err) {
+        alert('참석 의사 전달 중 오류가 발생했습니다: ' + err.message);
+        console.error(err);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = '신랑 & 신부에게 전달하기';
     }
 }
 
@@ -1708,7 +1910,6 @@ function applyDataToDOM(data) {
     setContactLink('btn-tel-bride-father', 'btn-sms-bride-father', data.bride_father_tel);
     setContactLink('btn-tel-bride-mother', 'btn-sms-bride-mother', data.bride_mother_tel);
 
-    // 마음 전하실 곳 계좌 카드 바인딩
     bindAccountCard('groom', groomName, data.groom_bank, data.groom_account, data.groom_pay_link, data.groom_pay_show);
     bindAccountCard('groom-father', gFather, data.groom_father_bank, data.groom_father_account, data.groom_father_pay_link, data.groom_father_pay_show);
     bindAccountCard('groom-mother', gMother, data.groom_mother_bank, data.groom_mother_account, data.groom_mother_pay_link, data.groom_mother_pay_show);
@@ -1920,7 +2121,6 @@ function openAdminModalValues() {
     setVal('input-map-image-url', dbData.map_image_url);
     setVal('input-map-search-keyword', dbData.map_search_keyword);
 
-    // 계좌 및 카카오페이 관리자 설정 로드
     setVal('input-groom-bank', dbData.groom_bank);
     setVal('input-groom-account', dbData.groom_account);
     setVal('input-groom-pay-link', dbData.groom_pay_link);
@@ -2017,7 +2217,6 @@ async function saveAdminSettings(event) {
             map_image_url: getVal('input-map-image-url'),
             map_search_keyword: getVal('input-map-search-keyword'),
 
-            // 계좌 정보 & 카카오페이 버튼 표시 설정 저장
             groom_bank: getVal('input-groom-bank'),
             groom_account: getVal('input-groom-account'),
             groom_pay_link: getVal('input-groom-pay-link'),
