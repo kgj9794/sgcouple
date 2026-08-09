@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>참석 의사 전달 확인</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Gowun Batang', serif;
+        }
+
+        body {
+            background-color: #f7f6f4;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            min-height: 100vh;
+            background-color: #ffffff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            padding: 24px 20px 40px;
+            position: relative;
+        }
+
+        /* HEADER */
+        .page-header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f0eae1;
+            margin-bottom: 20px;
+        }
+
+        .page-header h1 {
+            font-size: 1.35rem;
+            color: #a86b75;
+            font-weight: 700;
+        }
+
+        /* AUTH BOX */
+        .auth-card {
+            background-color: #faf8f5;
+            border: 1px solid #f0eae1;
+            border-radius: 16px;
+            padding: 30px 20px;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .auth-card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .auth-card p {
+            font-size: 0.85rem;
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        .auth-card input[type="password"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            outline: none;
+            margin-bottom: 14px;
+            text-align: center;
+        }
+
+        .auth-card button {
+            width: 100%;
+            padding: 14px;
+            background-color: #a86b75;
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .auth-card button:active {
+            background-color: #8c5a63;
+        }
+
+        /* DASHBOARD CONTENT */
+        #dashboard-content {
+            display: none;
+        }
+
+        /* STATS SUMMARY */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background-color: #faf8f6;
+            border: 1px solid #f0eae1;
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .stat-box.full {
+            grid-column: span 2;
+            background-color: #fff8f9;
+            border-color: #f7d2d8;
+        }
+
+        .stat-label {
+            font-size: 0.78rem;
+            color: #777;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #222;
+        }
+
+        .stat-box.full .stat-value {
+            color: #a86b75;
+            font-size: 1.45rem;
+        }
+
+        /* FILTER TABS */
+        .filter-wrap {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 16px;
+            scrollbar-width: none;
+        }
+
+        .filter-wrap::-webkit-scrollbar { display: none; }
+
+        .btn-filter {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 1px solid #e0e0e0;
+            background-color: #ffffff;
+            font-size: 0.82rem;
+            color: #666;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .btn-filter.active {
+            background-color: #222222;
+            color: #ffffff;
+            border-color: #222222;
+            font-weight: 700;
+        }
+
+        /* RSVP LIST */
+        .rsvp-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .rsvp-item-card {
+            background-color: #ffffff;
+            border: 1px solid #eee8e0;
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            position: relative;
+        }
+
+        .rsvp-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .rsvp-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #222;
+        }
+
+        .tags-wrap {
+            display: flex;
+            gap: 6px;
+        }
+
+        .tag {
+            font-size: 0.72rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+        }
+
+        .tag.side-groom {
+            background-color: #eaf3fb;
+            color: #2b6cb0;
+        }
+
+        .tag.side-bride {
+            background-color: #fcebf0;
+            color: #c53030;
+        }
+
+        .tag.status-yes {
+            background-color: #e6fffa;
+            color: #234e52;
+        }
+
+        .tag.status-no {
+            background-color: #fff5f5;
+            color: #9b2c2c;
+        }
+
+        .rsvp-details {
+            font-size: 0.88rem;
+            color: #555;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .rsvp-tel a {
+            color: #3182ce;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .rsvp-date {
+            font-size: 0.75rem;
+            color: #aaa;
+            margin-top: 6px;
+            text-align: right;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: #888;
+            padding: 40px 0;
+            font-size: 0.9rem;
+        }
+
+        .btn-refresh {
+            width: 100%;
+            padding: 12px;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            color: #555;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 16px;
+        }
+
+        .btn-refresh:active {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <h1>참석 의사 전달 확인</h1>
+        </header>
+
+        <!-- 비밀번호 인증 폼 -->
+        <div id="auth-section" class="auth-card">
+            <h2>관리자 인증</h2>
+            <p>참석 명단을 확인하시려면 비밀번호를 입력해주세요.</p>
+
+            <form onsubmit="handleAuthSubmit(event)">
+                <input type="password" id="check-pass-input" placeholder="비밀번호 입력" required autocomplete="current-password">
+                <button type="submit" id="check-auth-btn">확인하기</button>
+            </form>
+        </div>
+
+        <!-- 참석 현황 대시보드 (인증 성공 시 노출) -->
+        <div id="dashboard-content">
+            <!-- 요약 통계 -->
+            <div class="stats-grid">
+                <div class="stat-box full">
+                    <span class="stat-label">총 참석 예정 인원 (본인 + 동행인)</span>
+                    <span class="stat-value" id="stat-total-guests">0 명</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">참석 가능</span>
+                    <span class="stat-value" id="stat-status-yes">0 건</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">참석 불가</span>
+                    <span class="stat-value" id="stat-status-no">0 건</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">신랑측 (가능/불가)</span>
+                    <span class="stat-value" id="stat-groom-count">0 / 0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">신부측 (가능/불가)</span>
+                    <span class="stat-value" id="stat-bride-count">0 / 0</span>
+                </div>
+            </div>
+
+            <button type="button" class="btn-refresh" onclick="fetchRsvpData()">🔄 새로고침</button>
+
+            <!-- 필터 탭 -->
+            <div class="filter-wrap">
+                <button type="button" class="btn-filter active" onclick="setFilter('all', this)">전체보기</button>
+                <button type="button" class="btn-filter" onclick="setFilter('groom', this)">신랑측</button>
+                <button type="button" class="btn-filter" onclick="setFilter('bride', this)">신부측</button>
+                <button type="button" class="btn-filter" onclick="setFilter('yes', this)">참석가능</button>
+                <button type="button" class="btn-filter" onclick="setFilter('no', this)">참석불가</button>
+            </div>
+
+            <!-- RSVP 리스트 목록 -->
+            <div class="rsvp-list" id="rsvp-list-container">
+                <!-- JS 동적 생성 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDQCQbrwOX9F_Kx2uf_fg4tBTyslIdWFd_CDIHSS98O79V42Mia94KYT9hpWzTY0K7Fw/exec";
+        
+        let verifiedPassword = "";
+        let rawRsvpList = [];
+        let currentFilter = "all";
+
+        async function handleAuthSubmit(event) {
+            event.preventDefault();
+            const passInput = document.getElementById('check-pass-input').value;
+            const authBtn = document.getElementById('check-auth-btn');
+
+            if (!passInput) return;
+
+            authBtn.disabled = true;
+            authBtn.innerText = "확인 중...";
+
+            try {
+                verifiedPassword = passInput;
+                await fetchRsvpData();
+                
+                document.getElementById('auth-section').style.display = 'none';
+                document.getElementById('dashboard-content').style.display = 'block';
+            } catch (err) {
+                alert("비밀번호가 일치하지 않거나 오류가 발생했습니다.");
+                console.error(err);
+            } finally {
+                authBtn.disabled = false;
+                authBtn.innerText = "확인하기";
+            }
+        }
+
+        async function fetchRsvpData() {
+            const res = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: "getRsvp",
+                    password: verifiedPassword
+                })
+            });
+
+            const result = await res.json();
+
+            if (result.result === 'success') {
+                rawRsvpList = result.data || [];
+                updateStats();
+                renderList();
+            } else {
+                throw new Error(result.message || "조회 실패");
+            }
+        }
+
+        function updateStats() {
+            let totalGuests = 0;
+            let yesCount = 0;
+            let noCount = 0;
+            let groomYes = 0;
+            let groomNo = 0;
+            let brideYes = 0;
+            let brideNo = 0;
+
+            rawRsvpList.forEach(item => {
+                const isYes = item.status === '참석가능';
+                const isGroom = item.side === '신랑측';
+                const count = parseInt(item.extraCount, 10) || 1;
+
+                if (isYes) {
+                    yesCount++;
+                    totalGuests += count;
+                    if (isGroom) groomYes++;
+                    else brideYes++;
+                } else {
+                    noCount++;
+                    if (isGroom) groomNo++;
+                    else brideNo++;
+                }
+            });
+
+            document.getElementById('stat-total-guests').innerText = `${totalGuests} 명`;
+            document.getElementById('stat-status-yes').innerText = `${yesCount} 건`;
+            document.getElementById('stat-status-no').innerText = `${noCount} 건`;
+            document.getElementById('stat-groom-count').innerText = `${groomYes} / ${groomNo}`;
+            document.getElementById('stat-bride-count').innerText = `${brideYes} / ${brideNo}`;
+        }
+
+        function setFilter(filterType, btnEl) {
+            currentFilter = filterType;
+            document.querySelectorAll('.btn-filter').forEach(btn => btn.classList.remove('active'));
+            if (btnEl) btnEl.classList.add('active');
+            renderList();
+        }
+
+        function renderList() {
+            const container = document.getElementById('rsvp-list-container');
+            container.innerHTML = '';
+
+            let filtered = rawRsvpList.filter(item => {
+                if (currentFilter === 'groom') return item.side === '신랑측';
+                if (currentFilter === 'bride') return item.side === '신부측';
+                if (currentFilter === 'yes') return item.status === '참석가능';
+                if (currentFilter === 'no') return item.status === '참석불가';
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="empty-msg">해당 조건의 참석 정보가 없습니다.</div>';
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+
+            filtered.forEach(item => {
+                const isGroom = item.side === '신랑측';
+                const isYes = item.status === '참석가능';
+
+                const card = document.createElement('div');
+                card.className = 'rsvp-item-card';
+                card.innerHTML = `
+                    <div class="rsvp-item-header">
+                        <span class="rsvp-name">${escapeHtml(item.name || '익명')}</span>
+                        <div class="tags-wrap">
+                            <span class="tag ${isGroom ? 'side-groom' : 'side-bride'}">${escapeHtml(item.side || '')}</span>
+                            <span class="tag ${isYes ? 'status-yes' : 'status-no'}">${escapeHtml(item.status || '')}</span>
+                        </div>
+                    </div>
+                    <div class="rsvp-details">
+                        <div class="rsvp-tel">연락처: <a href="tel:${escapeHtml(item.tel)}">${escapeHtml(item.tel || '-')}</a></div>
+                        <div>참석 인원: <strong>${escapeHtml(String(item.extraCount || 1))}명</strong></div>
+                    </div>
+                    <div class="rsvp-date">${escapeHtml(item.date || '')}</div>
+                `;
+                fragment.appendChild(card);
+            });
+
+            container.appendChild(fragment);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>
