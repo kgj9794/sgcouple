@@ -1326,6 +1326,324 @@ body {
     opacity: 0.7;
 }
 
+/* SECTION 9: GUESTBOOK (방명록) */
+.guestbook-section {
+    background-color: #faf8f6;
+    padding: 60px 0 70px;
+    border-top: 1px solid #f0eae1;
+    overflow: hidden;
+}
+
+.guestbook-section-tag {
+    font-size: 0.8rem;
+    letter-spacing: 4px;
+    color: #c98b95;
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 400;
+}
+
+.guestbook-section-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: #a86b75;
+    margin-bottom: 28px;
+    letter-spacing: -0.3px;
+}
+
+.guestbook-slider-container {
+    width: 100%;
+    overflow-x: auto;
+    padding: 10px 20px 24px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.guestbook-slider-container::-webkit-scrollbar {
+    display: none;
+}
+
+.guestbook-slider-track {
+    display: flex;
+    gap: 16px;
+    width: max-content;
+}
+
+.guestbook-card {
+    flex: 0 0 250px;
+    width: 250px;
+    height: 310px;
+    background-color: #fffafb;
+    border: 1px solid #f7eaed;
+    border-radius: 18px;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 6px 18px rgba(220, 150, 165, 0.08);
+    scroll-snap-align: center;
+    position: relative;
+    text-align: center;
+}
+
+.guestbook-card-flower {
+    font-size: 1.2rem;
+    color: #c98b95;
+    margin-bottom: 10px;
+}
+
+.guestbook-card-content {
+    font-size: 0.88rem;
+    color: #444444;
+    line-height: 1.8;
+    word-break: keep-all;
+    white-space: pre-line;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 7;
+    -webkit-box-orient: vertical;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.guestbook-card-author {
+    font-size: 0.9rem;
+    color: #666666;
+    margin-top: 14px;
+    font-weight: 500;
+}
+
+.guestbook-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    margin-top: 10px;
+}
+
+.btn-guestbook-action {
+    background: none;
+    border: none;
+    font-size: 0.95rem;
+    color: #444444;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 8px 12px;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-guestbook-action:active {
+    color: #a86b75;
+    transform: scale(0.95);
+}
+
+/* 방명록 모달 & 폼 UI */
+.guestbook-modal-content {
+    max-width: 100%;
+}
+
+.guestbook-write-body {
+    padding: 24px 20px;
+    text-align: left;
+}
+
+.guestbook-field {
+    margin-bottom: 28px;
+    display: flex;
+    flex-direction: column;
+}
+
+.guestbook-field label {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #222222;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.guestbook-field label .req {
+    color: #e53935;
+}
+
+.guestbook-field input[type="text"],
+.guestbook-field input[type="password"] {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #cccccc;
+    border-radius: 0;
+    padding: 10px 0;
+    font-size: 0.95rem;
+    color: #333333;
+    background: transparent;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.guestbook-field input:focus {
+    border-bottom-color: #333333;
+}
+
+.guestbook-field textarea {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #cccccc;
+    border-radius: 0;
+    padding: 10px 0;
+    font-size: 0.95rem;
+    color: #333333;
+    background: transparent;
+    outline: none;
+    resize: none;
+    height: 120px;
+    line-height: 1.6;
+    transition: border-color 0.2s ease;
+}
+
+.guestbook-field textarea:focus {
+    border-bottom-color: #333333;
+}
+
+.guestbook-btn-wrap {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.btn-guestbook-submit {
+    background-color: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #555555;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-guestbook-submit:active {
+    background-color: #f5f5f5;
+    transform: scale(0.97);
+}
+
+/* 방명록 전체보기 모달 UI */
+.guestbook-list-body {
+    padding: 20px;
+    text-align: left;
+}
+
+.guestbook-list-item {
+    border-bottom: 1px solid #eeeeee;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.guestbook-list-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.guestbook-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.guestbook-item-author {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #222222;
+}
+
+.btn-guestbook-option {
+    background: none;
+    border: none;
+    color: #999999;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+}
+
+.guestbook-item-content {
+    font-size: 0.92rem;
+    color: #444444;
+    line-height: 1.7;
+    word-break: keep-all;
+    white-space: pre-line;
+}
+
+.guestbook-item-date {
+    font-size: 0.75rem;
+    color: #aaaaaa;
+    margin-top: 8px;
+}
+
+/* 게시글 옵션 바텀시트 모달 */
+.option-bottom-modal {
+    align-items: flex-end !important;
+}
+
+.option-modal-content {
+    height: auto !important;
+    max-height: 60vh !important;
+    border-radius: 20px 20px 0 0 !important;
+    animation: slideUpBottom 0.25s ease-out forwards !important;
+}
+
+@keyframes slideUpBottom {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+.option-modal-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn-option-item {
+    width: 100%;
+    padding: 16px;
+    background-color: #fafafa;
+    border: 1px solid #eeeeee;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #333333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-option-item:active {
+    background-color: #f0f0f0;
+}
+
+.btn-option-item.btn-danger {
+    color: #e53935;
+    background-color: #fff5f5;
+    border-color: #ffe0e0;
+}
+
+.btn-option-item.btn-danger:active {
+    background-color: #ffeaea;
+}
+
 /* 관리자 모드 - 체크박스 라벨 UI */
 .admin-checkbox-label {
     display: flex;
