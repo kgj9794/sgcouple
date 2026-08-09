@@ -23,8 +23,8 @@ let isGalleryExpanded = false;
 let guestbookList = [];
 let selectedGuestbookId = null;
 
-// RSVP 상태 변수 (기본 인원 1명, 신랑측/신부측 초기 미선택 null 처리)
-let rsvpStatus = 'yes';
+// RSVP 상태 변수 (가능/불가 및 신랑측/신부측 초기 미선택 null 처리, 기본 인원 1명)
+let rsvpStatus = null;
 let rsvpGuestCount = 1;
 let rsvpSide = null;
 
@@ -986,7 +986,6 @@ function renderGuestbookFullList() {
                 <button type="button" class="btn-guestbook-option" onclick="openGuestbookOptionModal('${item.id}')" aria-label="게시글 옵션">···</button>
             </div>
             <p class="guestbook-item-content">${escapeHtml(item.content || '')}</p>
-            <div class="guestbook-item-date">${escapeHtml(item.date || '')}</div>
         `;
         fragment.appendChild(itemEl);
     });
@@ -1162,12 +1161,15 @@ async function deleteGuestbookItem(id, password) {
 // --- SECTION 10: RSVP (참석 의사 전달 기능) ---
 
 function openRsvpModal() {
-    rsvpStatus = 'yes';
-    rsvpGuestCount = 1; // 기본 인원 1명 설정
-    rsvpSide = null;    // 초기 미선택 상태
+    rsvpStatus = null;   // 가능/불가 초기 미선택 상태
+    rsvpGuestCount = 1;  // 기본 인원 1명 설정
+    rsvpSide = null;     // 신랑측/신부측 초기 미선택 상태
 
-    setRsvpStatus('yes');
+    resetRsvpStatusButtons();
     resetRsvpSideButtons();
+
+    const formBody = document.getElementById('rsvp-form-body');
+    if (formBody) formBody.style.display = 'none';
 
     const countEl = document.getElementById('rsvp-guest-count');
     if (countEl) countEl.innerText = '1';
@@ -1192,6 +1194,7 @@ function setRsvpStatus(status) {
     rsvpStatus = status;
     const yesBtn = document.getElementById('rsvp-status-yes');
     const noBtn = document.getElementById('rsvp-status-no');
+    const formBody = document.getElementById('rsvp-form-body');
 
     if (!yesBtn || !noBtn) return;
 
@@ -1209,6 +1212,25 @@ function setRsvpStatus(status) {
         const noCheck = noBtn.querySelector('.check-circle');
         if (yesCheck) yesCheck.innerText = '';
         if (noCheck) noCheck.innerText = '✓';
+    }
+
+    if (formBody) {
+        formBody.style.display = 'block';
+    }
+}
+
+function resetRsvpStatusButtons() {
+    const yesBtn = document.getElementById('rsvp-status-yes');
+    const noBtn = document.getElementById('rsvp-status-no');
+    if (yesBtn) {
+        yesBtn.classList.remove('active');
+        const yesCheck = yesBtn.querySelector('.check-circle');
+        if (yesCheck) yesCheck.innerText = '';
+    }
+    if (noBtn) {
+        noBtn.classList.remove('active');
+        const noCheck = noBtn.querySelector('.check-circle');
+        if (noCheck) noCheck.innerText = '';
     }
 }
 
@@ -1307,6 +1329,11 @@ async function handleRsvpSubmit(event) {
     const rawTel = document.getElementById('rsvp-input-tel').value.trim();
     const tel = normalizePhoneNumber(rawTel);
     const privacyChecked = document.getElementById('rsvp-privacy-check').checked;
+
+    if (!rsvpStatus) {
+        showToast('참석 여부(가능/불가)를 선택해 주세요.');
+        return;
+    }
 
     if (!rsvpSide) {
         showToast('신랑측 또는 신부측을 선택해 주세요.');
