@@ -20,6 +20,9 @@ let currentGalleryIndex = 0;
 let isLightboxAnimating = false;
 let isGalleryExpanded = false;
 
+let guestbookList = [];
+let selectedGuestbookId = null;
+
 let toastTimeout = null;
 let adminPressTimer = null;
 let bgmAudio = null;
@@ -915,6 +918,255 @@ function bindAccountCard(prefix, name, bank, account, payLink, showPay) {
     }
 }
 
+// --- SECTION 9: GUESTBOOK (방명록 기능) ---
+
+// 방명록 한국어 순서 변환 헬퍼 (첫번째, 두번째, 세번째...)
+function getOrdinalKorean(num) {
+    const ordinals = ["첫번째", "두번째", "세번째", "네번째", "다섯번째", "여섯번째", "일곱번째", "여덟번째", "아홉번째", "열번째"];
+    if (num <= 10) return ordinals[num - 1];
+    return `${num}번째`;
+}
+
+function renderGuestbookSlider() {
+    const track = document.getElementById('guestbook-slider-track');
+    if (!track) return;
+    track.innerHTML = '';
+
+    if (!guestbookList || guestbookList.length === 0) {
+        track.innerHTML = `
+            <div class="guestbook-card">
+                <div class="guestbook-card-flower">🌸 첫번째</div>
+                <div class="guestbook-card-content">아직 작성된 방명록이 없습니다.<br>첫 축하글을 남겨주세요!</div>
+                <div class="guestbook-card-author">- 축하의 한마디 -</div>
+            </div>
+        `;
+        return;
+    }
+
+    const fragment = document.createDocumentFragment();
+
+    guestbookList.forEach((item, index) => {
+        // guestbookList가 최신순(Index 0 = 가장 최근 작성글)으로 들어오므로,
+        // 가장 오래된 게시물이 '첫번째'가 되도록 (전체 개수 - 현재 인덱스)로 계산
+        const orderNum = guestbookList.length - index;
+
+        const card = document.createElement('div');
+        card.className = 'guestbook-card';
+        card.innerHTML = `
+            <div class="guestbook-card-flower">🌸 ${getOrdinalKorean(orderNum)}</div>
+            <div class="guestbook-card-content">${escapeHtml(item.content || '')}</div>
+            <div class="guestbook-card-author">- ${escapeHtml(item.name || '익명')} -</div>
+        `;
+        fragment.appendChild(card);
+    });
+
+    track.appendChild(fragment);
+}
+
+function renderGuestbookFullList() {
+    const listContainer = document.getElementById('guestbook-full-list');
+    if (!listContainer) return;
+    listContainer.innerHTML = '';
+
+    if (!guestbookList || guestbookList.length === 0) {
+        listContainer.innerHTML = '<p style="text-align:center; color:#888; padding:30px 0;">작성된 방명록이 없습니다.</p>';
+        return;
+    }
+
+    const fragment = document.createDocumentFragment();
+
+    guestbookList.forEach((item) => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'guestbook-list-item';
+        itemEl.innerHTML = `
+            <div class="guestbook-item-header">
+                <span class="guestbook-item-author">${escapeHtml(item.name || '익명')}</span>
+                <button type="button" class="btn-guestbook-option" onclick="openGuestbookOptionModal('${item.id}')" aria-label="게시글 옵션">···</button>
+            </div>
+            <p class="guestbook-item-content">${escapeHtml(item.content || '')}</p>
+            <div class="guestbook-item-date">${escapeHtml(item.date || '')}</div>
+        `;
+        fragment.appendChild(itemEl);
+    });
+
+    listContainer.appendChild(fragment);
+}
+
+function openGuestbookWriteModal() {
+    const editIdEl = document.getElementById('guestbook-edit-id');
+    const nameInput = document.getElementById('guestbook-input-name');
+    const contentInput = document.getElementById('guestbook-input-content');
+    const passInput = document.getElementById('guestbook-input-pass');
+    const submitBtn = document.getElementById('guestbook-submit-btn');
+
+    if (editIdEl) editIdEl.value = '';
+    if (nameInput) nameInput.value = '';
+    if (contentInput) contentInput.value = '';
+    if (passInput) passInput.value = '';
+    if (submitBtn) submitBtn.innerText = '작성완료';
+
+    openModal('guestbook-write-modal');
+}
+
+function closeGuestbookWriteModal(isFromHistory = false) {
+    closeModal('guestbook-write-modal', isFromHistory);
+}
+
+function openGuestbookListModal() {
+    renderGuestbookFullList();
+    openModal('guestbook-list-modal');
+}
+
+function closeGuestbookListModal(isFromHistory = false) {
+    closeModal('guestbook-list-modal', isFromHistory);
+}
+
+function openGuestbookOptionModal(id) {
+    selectedGuestbookId = id;
+    openModal('guestbook-option-modal');
+}
+
+function closeGuestbookOptionModal(isFromHistory = false) {
+    closeModal('guestbook-option-modal', isFromHistory);
+}
+
+function handleGuestbookDeleteClick() {
+    switchModal('guestbook-option-modal', 'guestbook-auth-modal');
+    const passInput = document.getElementById('guestbook-auth-pass');
+    const titleEl = document.getElementById('guestbook-auth-title');
+    if (passInput) passInput.value = '';
+    if (titleEl) titleEl.innerText = '삭제용 비밀번호 확인';
+}
+
+function closeGuestbookAuthModal(isFromHistory = false) {
+    closeModal('guestbook-auth-modal', isFromHistory);
+}
+
+async function handleGuestbookAuthSubmit(event) {
+    event.preventDefault();
+    const inputPass = document.getElementById('guestbook-auth-pass').value;
+    const authBtn = document.getElementById('guestbook-auth-btn');
+
+    const targetItem = guestbookList.find(item => String(item.id) === String(selectedGuestbookId));
+
+    if (!targetItem) {
+        showToast('해당 방명록 글을 찾을 수 없습니다.');
+        closeGuestbookAuthModal();
+        return;
+    }
+
+    authBtn.disabled = true;
+    authBtn.innerText = '확인 중...';
+
+    try {
+        if (String(inputPass) === String(targetItem.password)) {
+            closeGuestbookAuthModal();
+            if (confirm('방명록 게시글을 삭제하시겠습니까?')) {
+                await deleteGuestbookItem(selectedGuestbookId, inputPass);
+            }
+        } else {
+            alert('비밀번호가 일치하지 않습니다.');
+        }
+    } catch (err) {
+        alert('인증 중 오류가 발생했습니다.');
+        console.error(err);
+    } finally {
+        authBtn.disabled = false;
+        authBtn.innerText = '확인';
+    }
+}
+
+async function handleGuestbookSubmit(event) {
+    event.preventDefault();
+    const submitBtn = document.getElementById('guestbook-submit-btn');
+    const name = document.getElementById('guestbook-input-name').value.trim();
+    const content = document.getElementById('guestbook-input-content').value.trim();
+    const password = document.getElementById('guestbook-input-pass').value.trim();
+
+    if (!name || !content || !password) {
+        showToast('모든 필수 항목을 입력해주세요.');
+        return;
+    }
+
+    if (content.length > 500) {
+        showToast('내용은 최대 500자까지 작성할 수 있습니다.');
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerText = '저장 중...';
+
+    const payload = {
+        action: "addGuestbook",
+        id: Date.now().toString(),
+        name: name,
+        content: content,
+        password: password,
+        date: new Date().toLocaleDateString('ko-KR')
+    };
+
+    try {
+        const res = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        if (result.result === 'success') {
+            showToast('방명록이 등록되었습니다.');
+            closeGuestbookWriteModal();
+            await fetchDBData(); // 최신 DB 조회 및 렌더링
+        } else {
+            alert(result.message || '방명록 저장에 실패했습니다.');
+        }
+    } catch (err) {
+        alert('방명록 저장 중 오류가 발생했습니다: ' + err.message);
+        console.error(err);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = '작성완료';
+    }
+}
+
+async function deleteGuestbookItem(id, password) {
+    try {
+        const payload = {
+            action: "deleteGuestbook",
+            id: id,
+            password: password
+        };
+
+        const res = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        if (result.result === 'success') {
+            showToast('방명록이 삭제되었습니다.');
+            await fetchDBData(); // 최신 DB 조회 및 렌더링
+            renderGuestbookFullList();
+        } else {
+            alert(result.message || '삭제에 실패했습니다.');
+        }
+    } catch (err) {
+        alert('삭제 요청 중 오류가 발생했습니다.');
+        console.error(err);
+    }
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 // --- ImgBB 업로드 & 썸네일 리스트 ---
 async function uploadGalleryImagesToImgBB(event) {
     const files = event.target.files;
@@ -1334,6 +1586,7 @@ async function fetchDBData() {
         const res = await fetch(`${APPS_SCRIPT_URL}?action=getData`);
         const data = await res.json();
         dbData = data;
+        guestbookList = data.guestbook || [];
         preloadStoryImages(data);
         applyDataToDOM(data);
     } catch (err) {
@@ -1393,6 +1646,7 @@ function applyDataToDOM(data) {
     }
 
     renderGalleryGrid(data.gallery || []);
+    renderGuestbookSlider();
 
     if (data.wedding_datetime) {
         targetWeddingDate = new Date(data.wedding_datetime);
@@ -1814,7 +2068,7 @@ async function saveAdminSettings(event) {
         for (let i = 1; i <= 5; i++) {
             payloadData[`story_img_${i}`] = getVal(`input-story-img-${i}`);
             payloadData[`story_title_${i}`] = getVal(`input-story-title-${i}`);
-            payloadData[`story_desc_${i}`] = getVal(`input-story-desc_${i}`);
+            payloadData[`story_desc_${i}`] = getVal(`input-story-desc-${i}`);
         }
 
         const payload = {
