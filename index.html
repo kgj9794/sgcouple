@@ -104,7 +104,7 @@
                 </div>
                 <div class="family-row">
                     <span class="parents" id="bride-parents-display"></span>
-                    <span class="relation">의 딸</span>
+                    <span class="relation">의 딸&nbsp;&nbsp;</span>
                     <strong class="name" id="bride-name-display"></strong>
                 </div>
             </div>
@@ -973,12 +973,12 @@
                 <form id="rsvp-form" onsubmit="handleRsvpSubmit(event)">
                     <!-- 참석 여부 선택 버튼 (가능 / 불가) -->
                     <div class="rsvp-status-toggle">
-                        <button type="button" class="btn-rsvp-status active" id="rsvp-status-yes" onclick="setRsvpStatus('yes')">
+                        <button type="button" class="btn-rsvp-status" id="rsvp-status-yes" onclick="setRsvpStatus('yes')">
                             <span class="status-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M23.6645 2.66834C25.5815 2.66769 27.0072 4.44066 26.5955 6.31287L24.5681 15.5297C24.4267 16.1724 24.1208 16.7439 23.7016 17.2054C23.71 17.2384 23.7173 17.272 23.7224 17.3064L25.1736 27.0284C25.2551 27.5746 24.8786 28.0835 24.3324 28.1651C23.7863 28.2466 23.2773 27.8701 23.1957 27.3239L21.8494 18.3044C21.5716 18.3716 21.2827 18.4086 20.9867 18.4086H19.4041L18.296 28.445C18.2352 28.9938 17.7406 29.3897 17.1918 29.3291C16.643 29.2684 16.2471 28.7738 16.3077 28.225L17.3923 18.4086H9.63778L7.89559 28.5049C7.80161 29.049 7.2841 29.4145 6.73999 29.3207C6.19588 29.2268 5.83053 28.7092 5.92424 28.1651L7.60848 18.4086H6.56616C6.014 18.4086 5.56636 17.9607 5.56616 17.4086C5.56616 16.8563 6.01388 16.4086 6.56616 16.4086H10.6742L13.0642 5.54985C13.4341 3.86914 14.9227 2.67154 16.6436 2.67094L23.6645 2.66834ZM16.6443 4.67094C15.8621 4.67124 15.1854 5.2156 15.0173 5.97953L12.7224 16.4086H20.9867C21.7691 16.4086 22.4468 15.864 22.615 15.1L24.6423 5.88318C24.7795 5.25916 24.3041 4.66812 23.6651 4.66834L16.6443 4.67094Z" fill="currentColor"></path></svg>
                             </span>
                             <span class="status-label">가능</span>
-                            <span class="check-circle">✓</span>
+                            <span class="check-circle"></span>
                         </button>
                         <button type="button" class="btn-rsvp-status" id="rsvp-status-no" onclick="setRsvpStatus('no')">
                             <span class="status-icon">
@@ -989,60 +989,63 @@
                         </button>
                     </div>
 
-                    <!-- 신랑측 / 신부측 토글 버튼 -->
-                    <div class="rsvp-side-toggle">
-                        <button type="button" class="btn-rsvp-side" id="rsvp-side-groom" onclick="setRsvpSide('groom')">
-                            <span class="side-icon">🤵</span>
-                            <span class="side-label">신랑측</span>
-                            <span class="check-circle"></span>
-                        </button>
-                        <button type="button" class="btn-rsvp-side" id="rsvp-side-bride" onclick="setRsvpSide('bride')">
-                            <span class="side-icon">👰</span>
-                            <span class="side-label">신부측</span>
-                            <span class="check-circle"></span>
-                        </button>
-                    </div>
-
-                    <!-- 성함 입력란 -->
-                    <div class="rsvp-field">
-                        <label class="rsvp-label">성함</label>
-                        <input type="text" id="rsvp-input-name" required placeholder="성함을 입력해 주세요.">
-                    </div>
-
-                    <!-- 연락처 입력란 -->
-                    <div class="rsvp-field">
-                        <label class="rsvp-label">연락처</label>
-                        <input type="tel" id="rsvp-input-tel" required maxlength="13" placeholder="참석자 대표 연락처를 입력해 주세요." oninput="formatTelInput(this)">
-                    </div>
-
-                    <!-- 추가인원 카운터 (기본 1명) -->
-                    <div class="rsvp-field rsvp-counter-row">
-                        <label class="rsvp-label"><span class="req">*</span> 참석인원</label>
-                        <div class="rsvp-counter-wrap">
-                            <button type="button" class="btn-counter" onclick="changeRsvpCount(-1)">−</button>
-                            <span class="counter-num" id="rsvp-guest-count">1</span>
-                            <button type="button" class="btn-counter" onclick="changeRsvpCount(1)">+</button>
+                    <!-- 가능/불가 선택 후 보여질 하위 폼 래퍼 -->
+                    <div id="rsvp-form-body" style="display: none;">
+                        <!-- 신랑측 / 신부측 토글 버튼 -->
+                        <div class="rsvp-side-toggle">
+                            <button type="button" class="btn-rsvp-side" id="rsvp-side-groom" onclick="setRsvpSide('groom')">
+                                <span class="side-icon">🤵</span>
+                                <span class="side-label">신랑측</span>
+                                <span class="check-circle"></span>
+                            </button>
+                            <button type="button" class="btn-rsvp-side" id="rsvp-side-bride" onclick="setRsvpSide('bride')">
+                                <span class="side-icon">👰</span>
+                                <span class="side-label">신부측</span>
+                                <span class="check-circle"></span>
+                            </button>
                         </div>
-                    </div>
 
-                    <!-- 개인정보 동의 박스 -->
-                    <div class="rsvp-privacy-box">
-                        <label class="privacy-checkbox-label">
-                            <input type="checkbox" id="rsvp-privacy-check">
-                            <span class="checkbox-custom"></span>
-                            <strong class="privacy-title">동의합니다.</strong>
-                        </label>
-                        <p class="privacy-desc">
-                            참석여부 전달을 위한 개인정보 수집 및 이용에 동의해주세요.<br>
-                            항목: 성함,연락처,동행인 성함 · 보유기간: 청첩장 이용 종료시까지
-                        </p>
-                    </div>
+                        <!-- 성함 입력란 -->
+                        <div class="rsvp-field">
+                            <label class="rsvp-label">성함</label>
+                            <input type="text" id="rsvp-input-name" placeholder="성함을 입력해 주세요.">
+                        </div>
 
-                    <!-- 제출 버튼 -->
-                    <div class="rsvp-submit-wrap">
-                        <button type="submit" class="btn-rsvp-submit" id="rsvp-submit-btn">
-                            신랑 & 신부에게 전달하기
-                        </button>
+                        <!-- 연락처 입력란 -->
+                        <div class="rsvp-field">
+                            <label class="rsvp-label">연락처</label>
+                            <input type="tel" id="rsvp-input-tel" maxlength="13" placeholder="참석자 대표 연락처를 입력해 주세요." oninput="formatTelInput(this)">
+                        </div>
+
+                        <!-- 추가인원 카운터 (기본 1명) -->
+                        <div class="rsvp-field rsvp-counter-row">
+                            <label class="rsvp-label"><span class="req">*</span> 참석인원</label>
+                            <div class="rsvp-counter-wrap">
+                                <button type="button" class="btn-counter" onclick="changeRsvpCount(-1)">−</button>
+                                <span class="counter-num" id="rsvp-guest-count">1</span>
+                                <button type="button" class="btn-counter" onclick="changeRsvpCount(1)">+</button>
+                            </div>
+                        </div>
+
+                        <!-- 개인정보 동의 박스 -->
+                        <div class="rsvp-privacy-box">
+                            <label class="privacy-checkbox-label">
+                                <input type="checkbox" id="rsvp-privacy-check">
+                                <span class="checkbox-custom"></span>
+                                <strong class="privacy-title">동의합니다.</strong>
+                            </label>
+                            <p class="privacy-desc">
+                                참석여부 전달을 위한 개인정보 수집 및 이용에 동의해주세요.<br>
+                               · 항목: 성함,연락처,인원 수<br>· 보유기간: 청첩장 이용 종료시까지
+                            </p>
+                        </div>
+
+                        <!-- 제출 버튼 -->
+                        <div class="rsvp-submit-wrap">
+                            <button type="submit" class="btn-rsvp-submit" id="rsvp-submit-btn">
+                                신랑 & 신부에게 전달하기
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
