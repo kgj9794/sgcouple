@@ -40,6 +40,19 @@ let touchCurrentX = 0;
 // 관리자 갤러리 터치 드래그 변수
 let touchDragIndex = null;
 
+// 약도 모달 핀치 투 줌 및 이동 변수
+let mapZoomScale = 1;
+let mapZoomStartDist = 0;
+let mapStartScale = 1;
+let mapPanX = 0;
+let mapPanY = 0;
+let mapStartPanX = 0;
+let mapStartPanY = 0;
+let mapTouchStartX = 0;
+let mapTouchStartY = 0;
+let isMapPinching = false;
+let isMapPanning = false;
+
 let prevValues = {
     days: '',
     hours: '',
@@ -59,6 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initAdminLongPress();
     initSakura();
     initLightboxTouch();
+    initMapPinchZoom();
 
     const minIntroDelay = new Promise(resolve => setTimeout(resolve, 3000));
 
@@ -637,21 +651,18 @@ function initLightboxTouch() {
         imgEl.style.transition = 'transform 0.22s ease, opacity 0.22s ease';
 
         if (diffX < -50) {
-            // 왼쪽으로 스와이프 -> 다음 이미지
             imgEl.style.transform = `translateX(-100%)`;
             imgEl.style.opacity = '0';
             setTimeout(() => {
                 navigateLightboxAfterSwipe(1);
             }, 180);
         } else if (diffX > 50) {
-            // 오른쪽으로 스와이프 -> 이전 이미지
             imgEl.style.transform = `translateX(100%)`;
             imgEl.style.opacity = '0';
             setTimeout(() => {
                 navigateLightboxAfterSwipe(-1);
             }, 180);
         } else {
-            // 위치 원복
             imgEl.style.transform = 'translateX(0) scale(1)';
             imgEl.style.opacity = '1';
             setTimeout(() => {
@@ -683,7 +694,7 @@ function navigateLightboxAfterSwipe(direction) {
     imgEl.style.transform = `translateX(${startPos})`;
     imgEl.style.opacity = '0';
 
-    void imgEl.offsetWidth; // 강제 리플로우
+    void imgEl.offsetWidth;
 
     imgEl.style.transition = 'transform 0.25s cubic-bezier(0.215, 0.61, 0.355, 1), opacity 0.25s cubic-bezier(0.215, 0.61, 0.355, 1)';
     imgEl.style.transform = 'translateX(0)';
@@ -707,7 +718,82 @@ function openMapImageModal() {
         }
         imgEl.src = url;
     }
+    resetMapZoom();
     openModal('map-image-modal');
+}
+
+// 약도 핀치 투 줌 및 팬 제어
+function initMapPinchZoom() {
+    const wrapper = document.querySelector('.map-img-scroll-wrapper');
+    const imgEl = document.getElementById('map-modal-img');
+    if (!wrapper || !imgEl) return;
+
+    wrapper.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+            isMapPinching = true;
+            isMapPanning = false;
+            mapZoomStartDist = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            mapStartScale = mapZoomScale;
+        } else if (e.touches.length === 1 && mapZoomScale > 1) {
+            isMapPanning = true;
+            isMapPinching = false;
+            mapTouchStartX = e.touches[0].clientX;
+            mapTouchStartY = e.touches[0].clientY;
+            mapStartPanX = mapPanX;
+            mapStartPanY = mapPanY;
+        }
+    }, { passive: false });
+
+    wrapper.addEventListener('touchmove', (e) => {
+        if (isMapPinching && e.touches.length === 2) {
+            e.preventDefault();
+            const dist = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            if (mapZoomStartDist > 0) {
+                mapZoomScale = Math.min(Math.max(1, mapStartScale * (dist / mapZoomStartDist)), 4);
+                if (mapZoomScale === 1) {
+                    mapPanX = 0;
+                    mapPanY = 0;
+                }
+                applyMapTransform();
+            }
+        } else if (isMapPanning && e.touches.length === 1 && mapZoomScale > 1) {
+            e.preventDefault();
+            const dx = e.touches[0].clientX - mapTouchStartX;
+            const dy = e.touches[0].clientY - mapTouchStartY;
+            mapPanX = mapStartPanX + dx;
+            mapPanY = mapStartPanY + dy;
+            applyMapTransform();
+        }
+    }, { passive: false });
+
+    wrapper.addEventListener('touchend', (e) => {
+        if (e.touches.length < 2) isMapPinching = false;
+        if (e.touches.length === 0) isMapPanning = false;
+        if (mapZoomScale <= 1) {
+            resetMapZoom();
+        }
+    });
+}
+
+function applyMapTransform() {
+    const imgEl = document.getElementById('map-modal-img');
+    if (imgEl) {
+        imgEl.style.transform = `translate(${mapPanX}px, ${mapPanY}px) scale(${mapZoomScale})`;
+        imgEl.style.transition = (isMapPinching || isMapPanning) ? 'none' : 'transform 0.2s ease-out';
+    }
+}
+
+function resetMapZoom() {
+    mapZoomScale = 1;
+    mapPanX = 0;
+    mapPanY = 0;
+    applyMapTransform();
 }
 
 function openNavApp(type) {
@@ -730,6 +816,102 @@ function openNavApp(type) {
 
     if (targetUrl) {
         window.open(targetUrl, '_blank');
+    }
+}
+
+// --- 마음 전하실 곳 (아코디언 토글 & 화면 중앙 정렬, 계좌 복사 & 카카오페이) ---
+function toggleAccountAccordion(side) {
+    const groomAccordion = document.getElementById('account-accordion-groom');
+    const brideAccordion = document.getElementById('account-accordion-bride');
+    const target = side === 'groom' ? groomAccordion : brideAccordion;
+
+    if (!target) return;
+
+    const isOpening = !target.classList.contains('open');
+    target.classList.toggle('open');
+
+    if (isOpening) {
+        setTimeout(() => {
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 120);
+    }
+}
+
+function copyAccountText(bank, account) {
+    if (!account) {
+        showToast('등록된 계좌번호가 없습니다.');
+        return;
+    }
+    const fullText = `${bank ? bank + ' ' : ''}${account}`.trim();
+    
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(fullText).then(() => {
+            showToast('계좌번호가 복사되었습니다.');
+        }).catch(() => {
+            fallbackCopyText(fullText);
+        });
+    } else {
+        fallbackCopyText(fullText);
+    }
+}
+
+function fallbackCopyText(text) {
+    const tempInput = document.createElement('input');
+    tempInput.value = text;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    try {
+        document.execCommand('copy');
+        showToast('계좌번호가 복사되었습니다.');
+    } catch (e) {
+        showToast('복사에 실패했습니다.');
+    }
+    document.body.removeChild(tempInput);
+}
+
+function openKakaoPayLink(payUrl, bank, account) {
+    if (payUrl && payUrl.trim().length > 0) {
+        window.open(payUrl.trim(), '_blank');
+    } else if (account) {
+        copyAccountText(bank, account);
+        showToast('카카오페이 링크가 없어 계좌번호가 복사되었습니다.');
+    } else {
+        showToast('등록된 계좌 정보가 없습니다.');
+    }
+}
+
+function bindAccountCard(prefix, name, bank, account, payLink, showPay) {
+    const cardEl = document.getElementById(`card-${prefix}-account`);
+    const nameEl = document.getElementById(`account-${prefix}-name`);
+    const bankEl = document.getElementById(`account-${prefix}-bank`);
+    const numEl = document.getElementById(`account-${prefix}-num`);
+    const copyBtn = document.getElementById(`btn-copy-${prefix}`);
+    const payBtn = document.getElementById(`btn-pay-${prefix}`);
+
+    if (!cardEl) return;
+
+    if (!bank && !account) {
+        cardEl.style.display = 'none';
+        return;
+    }
+
+    cardEl.style.display = 'block';
+    if (nameEl) nameEl.innerText = name || '';
+    if (bankEl) bankEl.innerText = bank || '';
+    if (numEl) numEl.innerText = account || '';
+
+    if (copyBtn) {
+        copyBtn.onclick = () => copyAccountText(bank, account);
+    }
+
+    if (payBtn) {
+        const isPayVisible = (showPay === undefined || showPay === '' || showPay === 'true' || showPay === true);
+        if (isPayVisible) {
+            payBtn.style.display = 'flex';
+            payBtn.onclick = () => openKakaoPayLink(payLink, bank, account);
+        } else {
+            payBtn.style.display = 'none';
+        }
     }
 }
 
@@ -1272,6 +1454,15 @@ function applyDataToDOM(data) {
     setContactLink('btn-tel-bride-father', 'btn-sms-bride-father', data.bride_father_tel);
     setContactLink('btn-tel-bride-mother', 'btn-sms-bride-mother', data.bride_mother_tel);
 
+    // 마음 전하실 곳 계좌 카드 바인딩
+    bindAccountCard('groom', groomName, data.groom_bank, data.groom_account, data.groom_pay_link, data.groom_pay_show);
+    bindAccountCard('groom-father', gFather, data.groom_father_bank, data.groom_father_account, data.groom_father_pay_link, data.groom_father_pay_show);
+    bindAccountCard('groom-mother', gMother, data.groom_mother_bank, data.groom_mother_account, data.groom_mother_pay_link, data.groom_mother_pay_show);
+
+    bindAccountCard('bride', brideName, data.bride_bank, data.bride_account, data.bride_pay_link, data.bride_pay_show);
+    bindAccountCard('bride-father', bFather, data.bride_father_bank, data.bride_father_account, data.bride_father_pay_link, data.bride_father_pay_show);
+    bindAccountCard('bride-mother', bMother, data.bride_mother_bank, data.bride_mother_account, data.bride_mother_pay_link, data.bride_mother_pay_show);
+
     updateCountdown();
 }
 
@@ -1455,6 +1646,11 @@ function openAdminModalValues() {
         if (el) el.value = val || '';
     };
 
+    const setCheck = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.checked = (val === undefined || val === '' || val === 'true' || val === true);
+    };
+
     setVal('input-groom-name', dbData.groom_name);
     setVal('input-groom-tel', normalizePhoneNumber(dbData.groom_tel));
     setVal('input-bride-name', dbData.bride_name);
@@ -1469,6 +1665,37 @@ function openAdminModalValues() {
     setVal('input-map-iframe-url', dbData.map_iframe_url);
     setVal('input-map-image-url', dbData.map_image_url);
     setVal('input-map-search-keyword', dbData.map_search_keyword);
+
+    // 계좌 및 카카오페이 관리자 설정 로드
+    setVal('input-groom-bank', dbData.groom_bank);
+    setVal('input-groom-account', dbData.groom_account);
+    setVal('input-groom-pay-link', dbData.groom_pay_link);
+    setCheck('input-groom-pay-show', dbData.groom_pay_show);
+
+    setVal('input-groom-father-bank', dbData.groom_father_bank);
+    setVal('input-groom-father-account', dbData.groom_father_account);
+    setVal('input-groom-father-pay-link', dbData.groom_father_pay_link);
+    setCheck('input-groom-father-pay-show', dbData.groom_father_pay_show);
+
+    setVal('input-groom-mother-bank', dbData.groom_mother_bank);
+    setVal('input-groom-mother-account', dbData.groom_mother_account);
+    setVal('input-groom-mother-pay-link', dbData.groom_mother_pay_link);
+    setCheck('input-groom-mother-pay-show', dbData.groom_mother_pay_show);
+
+    setVal('input-bride-bank', dbData.bride_bank);
+    setVal('input-bride-account', dbData.bride_account);
+    setVal('input-bride-pay-link', dbData.bride_pay_link);
+    setCheck('input-bride-pay-show', dbData.bride_pay_show);
+
+    setVal('input-bride-father-bank', dbData.bride_father_bank);
+    setVal('input-bride-father-account', dbData.bride_father_account);
+    setVal('input-bride-father-pay-link', dbData.bride_father_pay_link);
+    setCheck('input-bride-father-pay-show', dbData.bride_father_pay_show);
+
+    setVal('input-bride-mother-bank', dbData.bride_mother_bank);
+    setVal('input-bride-mother-account', dbData.bride_mother_account);
+    setVal('input-bride-mother-pay-link', dbData.bride_mother_pay_link);
+    setCheck('input-bride-mother-pay-show', dbData.bride_mother_pay_show);
 
     setVal('input-groom-baby-img', dbData.groom_baby_img);
     setVal('input-groom-intro-text', dbData.groom_intro_text);
@@ -1517,6 +1744,11 @@ async function saveAdminSettings(event) {
             return el ? el.value : '';
         };
 
+        const getCheck = (id) => {
+            const el = document.getElementById(id);
+            return el ? (el.checked ? 'true' : 'false') : 'true';
+        };
+
         const payloadData = {
             groom_name: getVal('input-groom-name'),
             groom_tel: normalizePhoneNumber(getVal('input-groom-tel')),
@@ -1530,6 +1762,38 @@ async function saveAdminSettings(event) {
             map_iframe_url: getVal('input-map-iframe-url'),
             map_image_url: getVal('input-map-image-url'),
             map_search_keyword: getVal('input-map-search-keyword'),
+
+            // 계좌 정보 & 카카오페이 버튼 표시 설정 저장
+            groom_bank: getVal('input-groom-bank'),
+            groom_account: getVal('input-groom-account'),
+            groom_pay_link: getVal('input-groom-pay-link'),
+            groom_pay_show: getCheck('input-groom-pay-show'),
+
+            groom_father_bank: getVal('input-groom-father-bank'),
+            groom_father_account: getVal('input-groom-father-account'),
+            groom_father_pay_link: getVal('input-groom-father-pay-link'),
+            groom_father_pay_show: getCheck('input-groom-father-pay-show'),
+
+            groom_mother_bank: getVal('input-groom-mother-bank'),
+            groom_mother_account: getVal('input-groom-mother-account'),
+            groom_mother_pay_link: getVal('input-groom-mother-pay-link'),
+            groom_mother_pay_show: getCheck('input-groom-mother-pay-show'),
+
+            bride_bank: getVal('input-bride-bank'),
+            bride_account: getVal('input-bride-account'),
+            bride_pay_link: getVal('input-bride-pay-link'),
+            bride_pay_show: getCheck('input-bride-pay-show'),
+
+            bride_father_bank: getVal('input-bride-father-bank'),
+            bride_father_account: getVal('input-bride-father-account'),
+            bride_father_pay_link: getVal('input-bride-father-pay-link'),
+            bride_father_pay_show: getCheck('input-bride-father-pay-show'),
+
+            bride_mother_bank: getVal('input-bride-mother-bank'),
+            bride_mother_account: getVal('input-bride-mother-account'),
+            bride_mother_pay_link: getVal('input-bride-mother-pay-link'),
+            bride_mother_pay_show: getCheck('input-bride-mother-pay-show'),
+
             groom_baby_img: getVal('input-groom-baby-img'),
             groom_intro_text: getVal('input-groom-intro-text'),
             bride_baby_img: getVal('input-bride-baby-img'),
@@ -1550,7 +1814,7 @@ async function saveAdminSettings(event) {
         for (let i = 1; i <= 5; i++) {
             payloadData[`story_img_${i}`] = getVal(`input-story-img-${i}`);
             payloadData[`story_title_${i}`] = getVal(`input-story-title-${i}`);
-            payloadData[`story_desc_${i}`] = getVal(`input-story-desc-${i}`);
+            payloadData[`story_desc_${i}`] = getVal(`input-story-desc_${i}`);
         }
 
         const payload = {
