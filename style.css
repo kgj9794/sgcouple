@@ -10,6 +10,29 @@
     -webkit-touch-callout: none;
 }
 
+/* 브라우저 우측 스크롤바 (핑크 테마) */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: #fff0f3;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #ff85a1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #e66a85;
+}
+
+html {
+    scrollbar-width: thin;
+    scrollbar-color: #ff85a1 #fff0f3;
+}
+
 img {
     -webkit-touch-callout: none !important;
     -webkit-user-select: none !important;
@@ -1399,7 +1422,8 @@ body {
     font-size: 0.88rem;
     color: #444444;
     line-height: 1.8;
-    word-break: keep-all;
+    word-break: break-all;
+    word-wrap: break-word;
     white-space: pre-line;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1579,7 +1603,8 @@ body {
     font-size: 0.92rem;
     color: #444444;
     line-height: 1.7;
-    word-break: keep-all;
+    word-break: break-all;
+    word-wrap: break-word;
     white-space: pre-line;
 }
 
@@ -1661,6 +1686,412 @@ body {
     width: 16px;
     height: 16px;
     cursor: pointer;
+}
+
+/* SECTION 10: RSVP (참석 의사 전달) */
+.rsvp-section {
+    background-color: #fcfbfa;
+    padding: 70px 24px;
+    border-top: 1px solid #f0eae1;
+    text-align: center;
+}
+
+.rsvp-section-tag {
+    font-size: 0.8rem;
+    letter-spacing: 4px;
+    color: #c98b95;
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 400;
+}
+
+.rsvp-section-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    color: #8c5a63;
+    margin-bottom: 22px;
+    letter-spacing: -0.3px;
+}
+
+.rsvp-section-desc {
+    font-size: 0.95rem;
+    color: #666666;
+    line-height: 1.8;
+    margin-bottom: 32px;
+    word-break: keep-all;
+}
+
+.rsvp-btn-wrap {
+    display: flex;
+    justify-content: center;
+}
+
+.btn-rsvp-open {
+    background-color: #ffffff;
+    border: 1px solid #f0dbe0;
+    border-radius: 16px;
+    padding: 16px 36px;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: #a86b75;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(168, 107, 117, 0.08);
+    transition: all 0.2s ease;
+}
+
+.btn-rsvp-open .chair-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-rsvp-open .chair-icon svg {
+    width: 22px;
+    height: 22px;
+    fill: currentColor;
+    display: block;
+}
+
+.btn-rsvp-open:active {
+    transform: scale(0.97);
+    background-color: #fff8f9;
+}
+
+/* RSVP MODAL UI */
+.rsvp-modal-content {
+    max-width: 100%;
+    background-color: #ffffff;
+    transition: background-color 0.3s ease;
+}
+
+/* 신랑측 선택 시 하늘색 배경 */
+.rsvp-modal-content.side-groom {
+    background-color: #f2f7fc;
+}
+
+/* 신부측 선택 시 연핑크 배경 */
+.rsvp-modal-content.side-bride {
+    background-color: #fcf2f5;
+}
+
+.rsvp-modal-header {
+    border-bottom: none;
+    padding: 22px 20px 10px;
+    background: transparent;
+}
+
+.rsvp-modal-header h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #222222;
+    text-align: center;
+    width: 100%;
+}
+
+.rsvp-modal-body {
+    padding: 10px 24px 30px;
+    text-align: left;
+}
+
+.rsvp-notice-text {
+    text-align: center;
+    font-size: 0.88rem;
+    color: #555555;
+    line-height: 1.6;
+    margin-bottom: 28px;
+    word-break: keep-all;
+}
+
+/* 가능 / 불가 토글 버튼 */
+.rsvp-status-toggle {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.btn-rsvp-status {
+    flex: 1;
+    padding: 16px 14px;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-rsvp-status .status-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 6px;
+}
+
+.btn-rsvp-status .status-icon svg {
+    width: 22px;
+    height: 22px;
+    fill: #333333;
+    display: block;
+}
+
+.btn-rsvp-status .status-label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #333333;
+    flex: 1;
+    text-align: left;
+}
+
+.btn-rsvp-status .check-circle {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid #cccccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: transparent;
+    transition: all 0.2s ease;
+}
+
+.btn-rsvp-status.active {
+    border: 1.5px solid #222222;
+    background-color: #ffffff;
+}
+
+.btn-rsvp-status.active .check-circle {
+    background-color: #222222;
+    border-color: #222222;
+    color: #ffffff;
+}
+
+/* 신랑측 / 신부측 토글 버튼 (가능/불가 버튼과 동일한 카드 스타일) */
+.rsvp-side-toggle {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+
+.btn-rsvp-side {
+    flex: 1;
+    padding: 16px 14px;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-rsvp-side .side-icon {
+    font-size: 1.1rem;
+    margin-right: 6px;
+}
+
+.btn-rsvp-side .side-label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #333333;
+    flex: 1;
+    text-align: left;
+}
+
+.btn-rsvp-side .check-circle {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid #cccccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: transparent;
+    transition: all 0.2s ease;
+}
+
+.btn-rsvp-side.active {
+    border: 1.5px solid #222222;
+    background-color: #ffffff;
+}
+
+.btn-rsvp-side.active .check-circle {
+    background-color: #222222;
+    border-color: #222222;
+    color: #ffffff;
+}
+
+/* 필드 UI */
+.rsvp-field {
+    margin-bottom: 28px;
+    display: flex;
+    flex-direction: column;
+}
+
+.rsvp-label {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #222222;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.rsvp-label .req {
+    color: #e53935;
+    margin-right: 2px;
+}
+
+.rsvp-field input[type="text"],
+.rsvp-field input[type="tel"] {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #cccccc;
+    border-radius: 0;
+    padding: 10px 0;
+    font-size: 0.95rem;
+    color: #333333;
+    background: transparent;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.rsvp-field input:focus {
+    border-bottom-color: #222222;
+}
+
+/* 추가인원 카운터 UI */
+.rsvp-counter-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.rsvp-counter-wrap {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.btn-counter {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid #cccccc;
+    background-color: #ffffff;
+    color: #555555;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.btn-counter:active {
+    background-color: #f0f0f0;
+    transform: scale(0.92);
+}
+
+.counter-num {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #222222;
+    min-width: 18px;
+    text-align: center;
+}
+
+/* 개인정보 동의 박스 */
+.rsvp-privacy-box {
+    background-color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.privacy-checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    margin-bottom: 8px;
+}
+
+.privacy-checkbox-label input[type="checkbox"] {
+    display: none;
+}
+
+.checkbox-custom {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1.5px solid #cccccc;
+    background-color: #ffffff;
+    display: inline-block;
+    position: relative;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.privacy-checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
+    background-color: #222222;
+    border-color: #222222;
+}
+
+.privacy-checkbox-label input[type="checkbox"]:checked + .checkbox-custom::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 900;
+}
+
+.privacy-title {
+    font-size: 0.9rem;
+    color: #222222;
+}
+
+.privacy-desc {
+    font-size: 0.78rem;
+    color: #666666;
+    line-height: 1.55;
+    word-break: keep-all;
+}
+
+/* 참석 전달 제출 버튼 */
+.rsvp-submit-wrap {
+    margin-top: 10px;
+}
+
+.btn-rsvp-submit {
+    width: 100%;
+    padding: 16px;
+    background-color: #ffffff;
+    border: 1px solid #dcdcdc;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #555555;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    transition: all 0.2s ease;
+}
+
+.btn-rsvp-submit:active {
+    background-color: #f7f7f7;
+    transform: scale(0.99);
 }
 
 /* LIGHTBOX & MAP MODAL */
