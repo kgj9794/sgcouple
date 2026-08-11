@@ -1240,12 +1240,10 @@ body {
     padding: 16px 14px;
 }
 
-/* 신랑측 개폴더 - 하늘색 배경 */
 #account-accordion-groom .account-accordion-body {
     background-color: #eaf3fb;
 }
 
-/* 신부측 개폴더 - 연핑크 배경 */
 #account-accordion-bride .account-accordion-body {
     background-color: #fcebf0;
 }
@@ -1774,12 +1772,10 @@ body {
     transition: background-color 0.3s ease;
 }
 
-/* 신랑측 선택 시 하늘색 배경 */
 .rsvp-modal-content.side-groom {
     background-color: #f2f7fc;
 }
 
-/* 신부측 선택 시 연핑크 배경 */
 .rsvp-modal-content.side-bride {
     background-color: #fcf2f5;
 }
@@ -1812,7 +1808,6 @@ body {
     word-break: keep-all;
 }
 
-/* 가능 / 불가 토글 버튼 */
 .rsvp-status-toggle {
     display: flex;
     gap: 12px;
@@ -1878,7 +1873,6 @@ body {
     color: #ffffff;
 }
 
-/* 신랑측 / 신부측 토글 버튼 */
 .rsvp-side-toggle {
     display: flex;
     gap: 12px;
@@ -1935,7 +1929,6 @@ body {
     color: #ffffff;
 }
 
-/* 필드 UI */
 .rsvp-field {
     margin-bottom: 28px;
     display: flex;
@@ -1973,7 +1966,6 @@ body {
     border-bottom-color: #222222;
 }
 
-/* 추가인원 카운터 UI */
 .rsvp-counter-row {
     flex-direction: row;
     align-items: center;
@@ -2015,7 +2007,6 @@ body {
     text-align: center;
 }
 
-/* 개인정보 동의 박스 */
 .rsvp-privacy-box {
     background-color: rgba(255, 255, 255, 0.7);
     border: 1px solid rgba(0, 0, 0, 0.08);
@@ -2076,7 +2067,6 @@ body {
     word-break: keep-all;
 }
 
-/* 참석 전달 제출 버튼 */
 .rsvp-submit-wrap {
     margin-top: 10px;
 }
@@ -2100,7 +2090,7 @@ body {
     transform: scale(0.99);
 }
 
-/* SECTION 11: 마음껏 축하해주기 (CONGRATS & FIREWORKS) */
+/* SECTION 11: 마음껏 축하해주기 (레이아웃 여백 & 항목 크기 슬림화) */
 .congrats-section {
     width: 100%;
     min-height: 100vh;
@@ -2111,7 +2101,7 @@ body {
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding: 50px 20px;
+    padding: 35px 20px 65px; /* 상단 여백을 살짝 올려 전체 문구 상승 */
     box-sizing: border-box;
     overflow: hidden;
     background-color: #0b0c10;
@@ -2157,53 +2147,52 @@ body {
     letter-spacing: 4px;
     color: #ff9ebb;
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-weight: 700;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
 .congrats-section-title {
     font-family: 'Gowun Batang', serif;
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: #ffffff;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     letter-spacing: -0.3px;
     text-shadow: 0 2px 12px rgba(255, 158, 187, 0.4);
 }
 
 .congrats-section-desc {
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     color: #e0e0e0;
-    line-height: 1.7;
-    margin-bottom: 30px;
+    line-height: 1.65;
+    margin-bottom: 20px; /* 문구 간격 축소로 상단 이동 효과 */
     word-break: keep-all;
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
 }
 
+/* 항목 슬림화 (컴팩트하게 크기 축소) */
 .congrats-count-box {
     background: rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 20px;
-    padding: 18px 32px;
-    margin-bottom: 32px;
+    border-radius: 18px;
+    padding: 12px 24px; /* 패딩 축소 */
+    margin-bottom: 42px; /* 하단 버튼과의 여백 확보로 버튼을 밑으로 이동 */
     display: inline-flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
     transition: transform 0.15s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     will-change: transform;
 }
 
-/* 타격감 흔들림 애니메이션 */
 .congrats-count-box.hit-shake {
     animation: hitShake 0.25s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
-/* N00번째 하이라이트 효과 */
 .congrats-count-box.highlight-n00 {
     border-color: #ffd700;
     background: rgba(255, 215, 0, 0.22);
@@ -2212,7 +2201,7 @@ body {
 }
 
 .congrats-label {
-    font-size: 0.82rem;
+    font-size: 0.78rem; /* 라벨 글자 크기 축소 */
     color: #ffccd5;
     letter-spacing: 1px;
     font-weight: 700;
@@ -2226,7 +2215,7 @@ body {
 
 .congrats-number {
     font-family: 'Gowun Batang', serif;
-    font-size: 2.5rem;
+    font-size: 2.1rem; /* 숫자 크기 축소 (2.5rem -> 2.1rem) */
     font-weight: 700;
     color: #ffffff;
     line-height: 1;
@@ -2239,7 +2228,7 @@ body {
 }
 
 .congrats-unit {
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: #e0e0e0;
     font-weight: 700;
 }
@@ -2250,6 +2239,7 @@ body {
     width: 100%;
 }
 
+/* 버튼 위치를 살짝 아래로 내림 */
 .btn-congrats-firework {
     background: linear-gradient(135deg, #ff758f 0%, #ff4d6d 50%, #c9184a 100%);
     border: none;
@@ -2279,10 +2269,10 @@ body {
 
 @keyframes hitShake {
     0% { transform: translate(0, 0) scale(1); }
-    20% { transform: translate(-4px, 3px) scale(1.08); }
-    40% { transform: translate(4px, -3px) scale(1.05); }
-    60% { transform: translate(-3px, -2px) scale(1.03); }
-    80% { transform: translate(2px, 1px) scale(1.01); }
+    20% { transform: translate(-3px, 2px) scale(1.03); }
+    40% { transform: translate(3px, -2px) scale(1.02); }
+    60% { transform: translate(-2px, -1px) scale(1.01); }
+    80% { transform: translate(1px, 1px) scale(1); }
     100% { transform: translate(0, 0) scale(1); }
 }
 
@@ -2292,7 +2282,7 @@ body {
         box-shadow: 0 0 25px rgba(255, 215, 0, 0.7), inset 0 0 15px rgba(255, 215, 0, 0.4);
     }
     to {
-        transform: scale(1.05);
+        transform: scale(1.04);
         box-shadow: 0 0 40px rgba(255, 215, 0, 1), inset 0 0 25px rgba(255, 215, 0, 0.7);
     }
 }
