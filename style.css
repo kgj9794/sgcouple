@@ -1878,7 +1878,7 @@ body {
     color: #ffffff;
 }
 
-/* 신랑측 / 신부측 토글 버튼 (가능/불가 버튼과 동일한 카드 스타일) */
+/* 신랑측 / 신부측 토글 버튼 */
 .rsvp-side-toggle {
     display: flex;
     gap: 12px;
@@ -2098,6 +2098,203 @@ body {
 .btn-rsvp-submit:active {
     background-color: #f7f7f7;
     transform: scale(0.99);
+}
+
+/* SECTION 11: 마음껏 축하해주기 (CONGRATS & FIREWORKS) */
+.congrats-section {
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 50px 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+    background-color: #0b0c10;
+    background-size: cover;
+    background-position: center;
+    transition: background-image 0.8s ease-in-out;
+}
+
+.congrats-bg-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(10, 12, 24, 0.75) 0%, rgba(5, 6, 15, 0.88) 100%);
+    z-index: 1;
+    pointer-events: none;
+}
+
+#congrats-fireworks-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.congrats-content {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #ffffff;
+}
+
+.congrats-section-tag {
+    font-size: 0.8rem;
+    letter-spacing: 4px;
+    color: #ff9ebb;
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.congrats-section-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 12px;
+    letter-spacing: -0.3px;
+    text-shadow: 0 2px 12px rgba(255, 158, 187, 0.4);
+}
+
+.congrats-section-desc {
+    font-size: 0.88rem;
+    color: #e0e0e0;
+    line-height: 1.7;
+    margin-bottom: 30px;
+    word-break: keep-all;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+}
+
+.congrats-count-box {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 20px;
+    padding: 18px 32px;
+    margin-bottom: 32px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+    transition: transform 0.15s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    will-change: transform;
+}
+
+/* 타격감 흔들림 애니메이션 */
+.congrats-count-box.hit-shake {
+    animation: hitShake 0.25s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* N00번째 하이라이트 효과 */
+.congrats-count-box.highlight-n00 {
+    border-color: #ffd700;
+    background: rgba(255, 215, 0, 0.22);
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.85), inset 0 0 20px rgba(255, 215, 0, 0.5);
+    animation: n00Glow 1.2s infinite alternate ease-in-out;
+}
+
+.congrats-label {
+    font-size: 0.82rem;
+    color: #ffccd5;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.congrats-num-wrapper {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.congrats-number {
+    font-family: 'Gowun Batang', serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.congrats-count-box.highlight-n00 .congrats-number {
+    color: #fffbdf;
+    text-shadow: 0 0 12px #ffd700;
+}
+
+.congrats-unit {
+    font-size: 1rem;
+    color: #e0e0e0;
+    font-weight: 700;
+}
+
+.congrats-btn-wrap {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.btn-congrats-firework {
+    background: linear-gradient(135deg, #ff758f 0%, #ff4d6d 50%, #c9184a 100%);
+    border: none;
+    color: #ffffff;
+    padding: 16px 36px;
+    border-radius: 30px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 22px rgba(255, 77, 109, 0.45);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+.btn-congrats-firework:active {
+    transform: scale(0.92);
+    box-shadow: 0 2px 10px rgba(255, 77, 109, 0.3);
+}
+
+.firework-icon {
+    font-size: 1.25rem;
+}
+
+@keyframes hitShake {
+    0% { transform: translate(0, 0) scale(1); }
+    20% { transform: translate(-4px, 3px) scale(1.08); }
+    40% { transform: translate(4px, -3px) scale(1.05); }
+    60% { transform: translate(-3px, -2px) scale(1.03); }
+    80% { transform: translate(2px, 1px) scale(1.01); }
+    100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes n00Glow {
+    from {
+        transform: scale(1);
+        box-shadow: 0 0 25px rgba(255, 215, 0, 0.7), inset 0 0 15px rgba(255, 215, 0, 0.4);
+    }
+    to {
+        transform: scale(1.05);
+        box-shadow: 0 0 40px rgba(255, 215, 0, 1), inset 0 0 25px rgba(255, 215, 0, 0.7);
+    }
 }
 
 /* LIGHTBOX & MAP MODAL */
