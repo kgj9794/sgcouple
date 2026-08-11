@@ -121,8 +121,8 @@
 
         .stat-box.full {
             grid-column: span 2;
-            background-color: #fff8f9;
-            border-color: #f7d2d8;
+            background-color: #faf8f6;
+            border-color: #f0eae1;
         }
 
         .stat-label {
@@ -139,8 +139,8 @@
         }
 
         .stat-box.full .stat-value {
-            color: #a86b75;
-            font-size: 1.45rem;
+            color: #222;
+            font-size: 1.25rem;
         }
 
         /* FILTER TABS */
@@ -308,12 +308,17 @@
                     <span class="stat-value" id="stat-total-guests">0 명</span>
                 </div>
                 <div class="stat-box">
-                    <span class="stat-label">참석 가능</span>
-                    <span class="stat-value" id="stat-status-yes">0 건</span>
+                    <span class="stat-label">신랑측 참석 인원</span>
+                    <span class="stat-value" id="stat-groom-guests">0 명</span>
                 </div>
                 <div class="stat-box">
-                    <span class="stat-label">참석 불가</span>
-                    <span class="stat-value" id="stat-status-no">0 건</span>
+                    <span class="stat-label">신부측 참석 인원</span>
+                    <span class="stat-value" id="stat-bride-guests">0 명</span>
+                </div>
+                <!-- 전체 응답 현황 -->
+                <div class="stat-box full">
+                    <span class="stat-label">전체 응답 현황 (참석 가능 / 참석 불가)</span>
+                    <span class="stat-value" id="stat-status-combined">참석 가능 0건 / 참석 불가 0건</span>
                 </div>
                 <div class="stat-box">
                     <span class="stat-label">신랑측 (가능/불가)</span>
@@ -402,8 +407,10 @@
             let noCount = 0;
             let groomYes = 0;
             let groomNo = 0;
+            let groomGuests = 0;
             let brideYes = 0;
             let brideNo = 0;
+            let brideGuests = 0;
 
             rawRsvpList.forEach(item => {
                 const isYes = item.status === '참석가능';
@@ -413,8 +420,13 @@
                 if (isYes) {
                     yesCount++;
                     totalGuests += count;
-                    if (isGroom) groomYes++;
-                    else brideYes++;
+                    if (isGroom) {
+                        groomYes++;
+                        groomGuests += count;
+                    } else {
+                        brideYes++;
+                        brideGuests += count;
+                    }
                 } else {
                     noCount++;
                     if (isGroom) groomNo++;
@@ -423,8 +435,9 @@
             });
 
             document.getElementById('stat-total-guests').innerText = `${totalGuests} 명`;
-            document.getElementById('stat-status-yes').innerText = `${yesCount} 건`;
-            document.getElementById('stat-status-no').innerText = `${noCount} 건`;
+            document.getElementById('stat-groom-guests').innerText = `${groomGuests} 명`;
+            document.getElementById('stat-bride-guests').innerText = `${brideGuests} 명`;
+            document.getElementById('stat-status-combined').innerText = `참석 가능 ${yesCount}건 / 참석 불가 ${noCount}건`;
             document.getElementById('stat-groom-count').innerText = `${groomYes} / ${groomNo}`;
             document.getElementById('stat-bride-count').innerText = `${brideYes} / ${brideNo}`;
         }
