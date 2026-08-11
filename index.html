@@ -513,6 +513,37 @@
                 </button>
             </div>
         </section>
+
+        <!-- Section 11: 마음껏 축하해주기 (야경 배경 & 7종 특수 폭죽 연출) -->
+        <section class="section congrats-section" id="congrats-section">
+            <div id="congrats-bg-overlay" class="congrats-bg-overlay"></div>
+            <canvas id="congrats-fireworks-canvas"></canvas>
+
+            <div class="congrats-content">
+                <span class="congrats-section-tag reveal">CELEBRATION</span>
+                <h2 class="congrats-section-title reveal">마음껏 축하해주세요!</h2>
+                <p class="congrats-section-desc reveal">
+                    아래 버튼을 누르면 아름다운 불꽃이 피어납니다.<br>
+                    건주와  수아의 앞날을 축하하는 마음을 전해주세요
+                </p>
+
+                <div class="congrats-count-box reveal" id="congrats-count-box">
+                    <span class="congrats-label">누적 축하 폭죽</span>
+                    <div class="congrats-num-wrapper">
+                        <span class="congrats-number" id="congrats-count-num">0</span>
+                        <span class="congrats-unit">번째 축하</span>
+                    </div>
+                </div>
+
+                <div class="congrats-btn-wrap reveal">
+                    <button type="button" class="btn-congrats-firework" id="btn-congrats-firework" onclick="handleCongratsClick()">
+                        <span class="firework-icon"></span>
+                        <span>축하 폭죽 터뜨리기</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
     </div>
 
     <!-- 약도 이미지 모달 -->
