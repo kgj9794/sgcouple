@@ -1,7 +1,5 @@
-// ⚠️ 배포한 Google Apps Script Web App URL을 여기에 넣으세요.
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDQCQbrwOX9F_Kx2uf_fg4tBTyslIdWFd_CDIHSS98O79V42Mia94KYT9hpWzTY0K7Fw/exec";
 
-// ImgBB API Key
 const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
 // BGM 음원 목록
@@ -1417,7 +1415,7 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
-// --- SECTION 11: 마음껏 축하해주기 (FadeIn/FadeOut 배경 + 숫자 타격감 상승 + 섹션11 하이라이트) ---
+// --- SECTION 11: 마음껏 축하해주기 (1회 터치 1발 단일 발사 + 배경 FadeIn/Out + 은은한 숫자 상승 모션) ---
 
 const FIREWORK_TYPES = ['peony', 'chrysanthemum', 'willow', 'palm', 'crossette', 'ring', 'katamono'];
 
@@ -1432,7 +1430,6 @@ function updateCongratsBgImage(isInitial = false) {
         return;
     }
 
-    // Fade Out 후 이미지 교체 및 Fade In
     sec.style.transition = 'opacity 0.35s ease-out';
     sec.style.opacity = '0.2';
 
@@ -1457,7 +1454,6 @@ function initCongratsFireworks() {
     window.addEventListener('resize', resizeCanvas);
     updateCongratsBgImage(true);
 
-    // 캔버스 물리 렌더링 루프
     class CongratsRocket {
         constructor(startX, startY, targetX, targetY, type) {
             this.x = startX;
@@ -1466,7 +1462,7 @@ function initCongratsFireworks() {
             this.targetY = targetY;
             this.type = type;
 
-            const steps = 42; // 포물선 곡선 비행 프레임 수
+            const steps = 42;
             this.vx = (targetX - startX) / steps;
             this.gravity = 0.22;
             this.vy = (targetY - startY - 0.5 * this.gravity * Math.pow(steps, 2)) / steps;
@@ -1540,7 +1536,6 @@ function initCongratsFireworks() {
             this.vy += this.gravity;
             this.alpha -= this.decay;
 
-            // 크로셋(Crossette): 비행 중 십자가(+) 형태로 갈라짐
             if (this.canSplit && !this.hasSplit && this.alpha < 0.72) {
                 this.hasSplit = true;
                 const splitSpeeds = 3.5;
@@ -1560,7 +1555,6 @@ function initCongratsFireworks() {
             ctx.save();
             ctx.globalAlpha = this.sparkle && Math.random() > 0.35 ? this.alpha * 0.35 : Math.max(this.alpha, 0);
 
-            // 국화/수양버들 스파크 꼬리 연출
             if (this.trail.length > 1) {
                 ctx.beginPath();
                 for (let i = 0; i < this.trail.length; i++) {
@@ -1585,7 +1579,6 @@ function initCongratsFireworks() {
         const particles = [];
 
         if (type === 'peony') {
-            // 1. 작약 (Peony)
             for (let i = 0; i < 75; i++) {
                 const angle = Math.random() * Math.PI * 2;
                 const speed = Math.random() * 6.5 + 2;
@@ -1595,7 +1588,6 @@ function initCongratsFireworks() {
                 ));
             }
         } else if (type === 'chrysanthemum') {
-            // 2. 국화 (Chrysanthemum)
             for (let i = 0; i < 85; i++) {
                 const angle = Math.random() * Math.PI * 2;
                 const speed = Math.random() * 7 + 2.5;
@@ -1605,7 +1597,6 @@ function initCongratsFireworks() {
                 ));
             }
         } else if (type === 'willow') {
-            // 3. 수양버들 (Willow)
             const goldColor = '#ffd700';
             for (let i = 0; i < 90; i++) {
                 const angle = Math.random() * Math.PI * 2;
@@ -1616,7 +1607,6 @@ function initCongratsFireworks() {
                 ));
             }
         } else if (type === 'palm') {
-            // 4. 야자수 (Palm)
             const branches = 8;
             for (let b = 0; b < branches; b++) {
                 const baseAngle = (b / branches) * Math.PI * 2;
@@ -1630,7 +1620,6 @@ function initCongratsFireworks() {
                 }
             }
         } else if (type === 'crossette') {
-            // 5. 크로셋 (Crossette)
             for (let i = 0; i < 16; i++) {
                 const angle = (i / 16) * Math.PI * 2;
                 const speed = 5.5;
@@ -1640,7 +1629,6 @@ function initCongratsFireworks() {
                 ));
             }
         } else if (type === 'ring') {
-            // 6. 링 쉘 (Ring Shell)
             const count = 45;
             for (let i = 0; i < count; i++) {
                 const angle = (i / count) * Math.PI * 2;
@@ -1651,7 +1639,6 @@ function initCongratsFireworks() {
                 ));
             }
         } else if (type === 'katamono') {
-            // 7. 가타모노 (Katamono)
             const shapes = ['heart', 'star', 'smile'];
             const chosenShape = shapes[Math.floor(Math.random() * shapes.length)];
 
@@ -1673,7 +1660,7 @@ function initCongratsFireworks() {
                         { decay: 0.012, friction: 0.95, gravity: 0.03, radius: 2.5 }
                     ));
                 }
-            } else { // smile
+            } else {
                 for (let i = 0; i < 30; i++) {
                     const a = (i / 30) * Math.PI * 2;
                     particles.push(new CongratsParticle(x, y, Math.cos(a) * 5, Math.sin(a) * 5, '#ffd166', { decay: 0.012, friction: 0.95, gravity: 0.03, radius: 2.2 }));
@@ -1696,7 +1683,6 @@ function initCongratsFireworks() {
 
         congratsCtx.clearRect(0, 0, w, h);
 
-        // 로켓 업데이트 & 그리기
         for (let i = congratsRockets.length - 1; i >= 0; i--) {
             const r = congratsRockets[i];
             r.update();
@@ -1709,7 +1695,6 @@ function initCongratsFireworks() {
             }
         }
 
-        // 불꽃 입자 업데이트 & 그리기
         const nextParticles = [];
         for (let i = congratsParticles.length - 1; i >= 0; i--) {
             const p = congratsParticles[i];
@@ -1736,17 +1721,14 @@ function getRandomFireworkColor() {
     return colors[Math.floor(Math.random() * colors.length)];
 }
 
-// 폭죽 발사 제어 함수 (포물선 발사)
 function launchCongratsFirework(isUserClick = false) {
     if (!congratsCanvas) return;
     const w = congratsCanvas.width;
     const h = congratsCanvas.height;
 
-    // 포물선 발사 시작점 (하단)
     const startX = Math.random() * (w * 0.4) + (w * 0.3);
     const startY = h + 10;
 
-    // 하늘 목표점
     const targetX = Math.random() * (w * 0.8) + (w * 0.1);
     const targetY = Math.random() * (h * 0.35) + (h * 0.12);
 
@@ -1794,7 +1776,7 @@ function launchCongratsFirework(isUserClick = false) {
     congratsRockets.push(new RocketConstructor(startX, startY, targetX, targetY, type));
 }
 
-// 축하 버튼 클릭 핸들러 (숫자 타격감 바운스 + 섹션11 주변 글로우 하이라이트)
+// 축하 버튼 클릭 핸들러 (한 번 터치 시 딱 1발의 폭죽만 발사)
 function handleCongratsClick() {
     // 1. 화면 꽉 차게 섹션으로 스무스 이동
     const section = document.getElementById('congrats-section');
@@ -1802,9 +1784,8 @@ function handleCongratsClick() {
         section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // 2. 폭죽 연속 1~2발 포물선 발사
+    // 2. 폭죽 단 1발만 포물선 발사
     launchCongratsFirework(true);
-    setTimeout(() => launchCongratsFirework(true), 180);
 
     // 3. 로컬 카운트 즉시 반영
     congratsCount++;
@@ -1813,23 +1794,22 @@ function handleCongratsClick() {
     const numEl = document.getElementById('congrats-count-num');
     const boxEl = document.getElementById('congrats-count-box');
 
-    // 숫자 자체의 타격감 폭발 모션 (Scale Pop + Random Shake)
+    // 부드럽고 우아한 숫자 상승 모션 (Smooth Scale & Subtle Lift)
     if (numEl) {
         numEl.innerText = congratsCount.toLocaleString();
 
-        const randomDegree = (Math.random() * 12 - 6).toFixed(1);
         numEl.style.display = 'inline-block';
-        numEl.style.transition = 'transform 0.08s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.08s ease';
-        numEl.style.transform = `scale(1.42) rotate(${randomDegree}deg)`;
-        numEl.style.color = '#fffbdf';
+        numEl.style.transition = 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), color 0.22s ease';
+        numEl.style.transform = 'scale(1.12) translateY(-2px)';
+        numEl.style.color = '#fff3b0';
 
         setTimeout(() => {
-            numEl.style.transform = 'scale(1) rotate(0deg)';
+            numEl.style.transform = 'scale(1) translateY(0)';
             numEl.style.color = '';
-        }, 110);
+        }, 220);
     }
 
-    // 4. 박스 전체 타격감 흔들림
+    // 4. 박스 전체 부드러운 타격감 미세 흔들림
     if (boxEl) {
         boxEl.classList.remove('hit-shake');
         void boxEl.offsetWidth;
@@ -1843,7 +1823,6 @@ function handleCongratsClick() {
             navigator.vibrate([100, 50, 100, 50, 200]);
         }
 
-        // 섹션 11 주변 전체 하이라이트 (내부/외부 골드 빛 글로우)
         if (section) {
             section.classList.add('highlight-n00');
             section.style.transition = 'box-shadow 0.6s ease, border-color 0.6s ease';
@@ -1860,10 +1839,9 @@ function handleCongratsClick() {
             setTimeout(() => boxEl.classList.remove('highlight-n00'), 3500);
         }
 
-        // 배경 이미지 FadeOut/FadeIn 전환
         currentNightBgIndex++;
         updateCongratsBgImage(false);
-        showToast(`🎉 축하 폭죽 ${congratsCount}발 달성! 야경이 변경되었습니다.`);
+        showToast(`🎉 축하 폭죽 ${congratsCount}발 달성!`);
     }
 
     // 6. DB 서버 동기화 디바운싱 (0.6초 후 최종 전송)
@@ -1878,7 +1856,7 @@ async function syncCongratsToDB() {
     if (pendingCongratsIncrement <= 0) return;
 
     const countToSend = pendingCongratsIncrement;
-    pendingCongratsIncrement = 0; // 버퍼 비우기
+    pendingCongratsIncrement = 0;
 
     try {
         const res = await fetch(APPS_SCRIPT_URL, {
@@ -1898,7 +1876,7 @@ async function syncCongratsToDB() {
         }
     } catch (err) {
         console.error("축하 폭죽 카운트 연동 오류:", err);
-        pendingCongratsIncrement += countToSend; // 실패 시 다시 버퍼 복구
+        pendingCongratsIncrement += countToSend;
     }
 }
 
@@ -2384,7 +2362,6 @@ function applyDataToDOM(data) {
     renderGalleryGrid(data.gallery || []);
     renderGuestbookSlider();
 
-    // 축하 폭죽 누적 카운트 DOM 적용
     const congratsNumEl = document.getElementById('congrats-count-num');
     if (congratsNumEl) {
         congratsNumEl.innerText = congratsCount.toLocaleString();
