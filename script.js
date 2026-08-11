@@ -9,6 +9,15 @@ const BGM_PLAYLIST = [
     "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/%E1%84%8B%E1%85%A6%E1%84%8B%E1%85%AE%E1%84%85%E1%85%A6%E1%86%AF.mp3"
 ];
 
+// 섹션 11 야경 배경 이미지 목록
+const NIGHT_SKY_BGS = [
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwBiO05V5GXZZN-_vIbjWiqgbQ2BsGZScXNzEcO7uURFAzlku7NqyhqtQ&s=10",
+    "https://images.unsplash.com/photo-1611416370495-50fac9e1b382?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fCVFQyU5NSVCQyVFQSVCMiVCRCUyMCVFQiU4RiU4NCVFQyU4QiU5Q3xlbnwwfHwwfHx8MA%3D%3D",
+    "https://img.magnific.com/premium-photo/high-angle-view-illuminated-city-night_1599761-785.jpg?semt=ais_test_b&w=740&q=80",
+    "https://image.utoimage.com/preview/cp932674/2021/12/202112026451_500.jpg",
+    "https://img.magnific.com/free-photo/high-angle-buildings-with-lights-landscape_23-2149444955.jpg"
+];
+
 let dbData = {};
 let targetWeddingDate = null;
 let verifiedAdminPassword = "";
@@ -23,7 +32,7 @@ let isGalleryExpanded = false;
 let guestbookList = [];
 let selectedGuestbookId = null;
 
-// RSVP 상태 변수 (가능/불가 및 신랑측/신부측 초기 미선택 null 처리, 기본 인원 1명)
+// RSVP 상태 변수
 let rsvpStatus = null;
 let rsvpGuestCount = 1;
 let rsvpSide = null;
@@ -61,6 +70,18 @@ let mapTouchStartY = 0;
 let isMapPinching = false;
 let isMapPanning = false;
 
+// 섹션 11 축하 폭죽 관련 변수
+let congratsCount = 0;
+let pendingCongratsIncrement = 0; // 클릭 버퍼 누적
+let congratsSyncDebounceTimer = null; // 디바운스 타이머
+let currentNightBgIndex = 0;
+let congratsCanvas = null;
+let congratsCtx = null;
+let congratsRockets = [];
+let congratsParticles = [];
+let congratsAnimationId = null;
+let congratsAutoTimer = null;
+
 let prevValues = {
     days: '',
     hours: '',
@@ -81,6 +102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initSakura();
     initLightboxTouch();
     initMapPinchZoom();
+    initCongratsFireworks();
 
     const minIntroDelay = new Promise(resolve => setTimeout(resolve, 3000));
 
@@ -130,6 +152,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     setInterval(updateCountdown, 1000);
+
+    // 5초에 한번씩 카운트 증가 없는 자동 폭죽 발사
+    congratsAutoTimer = setInterval(() => {
+        launchCongratsFirework(false);
+    }, 5000);
 });
 
 // --- 인트로 타이핑 애니메이션 ---
@@ -730,7 +757,6 @@ function openMapImageModal() {
     openModal('map-image-modal');
 }
 
-// 약도 핀치 투 줌 및 팬 제어
 function initMapPinchZoom() {
     const wrapper = document.querySelector('.map-img-scroll-wrapper');
     const imgEl = document.getElementById('map-modal-img');
@@ -827,7 +853,7 @@ function openNavApp(type) {
     }
 }
 
-// --- 마음 전하실 곳 (아코디언 토글 & 화면 중앙 정렬, 계좌 복사 & 카카오페이) ---
+// --- 마음 전하실 곳 ---
 function toggleAccountAccordion(side) {
     const groomAccordion = document.getElementById('account-accordion-groom');
     const brideAccordion = document.getElementById('account-accordion-bride');
@@ -923,8 +949,7 @@ function bindAccountCard(prefix, name, bank, account, payLink, showPay) {
     }
 }
 
-// --- SECTION 9: GUESTBOOK (방명록 기능) ---
-
+// --- SECTION 9: GUESTBOOK ---
 function getOrdinalKorean(num) {
     const ordinals = ["첫번째", "두번째", "세번째", "네번째", "다섯번째", "여섯번째", "일곱번째", "여덟번째", "아홉번째", "열번째"];
     if (num <= 10) return ordinals[num - 1];
@@ -1158,12 +1183,11 @@ async function deleteGuestbookItem(id, password) {
     }
 }
 
-// --- SECTION 10: RSVP (참석 의사 전달 기능) ---
-
+// --- SECTION 10: RSVP ---
 function openRsvpModal() {
-    rsvpStatus = null;   // 가능/불가 초기 미선택 상태
-    rsvpGuestCount = 1;  // 기본 인원 1명 설정
-    rsvpSide = null;     // 신랑측/신부측 초기 미선택 상태
+    rsvpStatus = null;
+    rsvpGuestCount = 1;
+    rsvpSide = null;
 
     resetRsvpStatusButtons();
     resetRsvpSideButtons();
@@ -1234,7 +1258,6 @@ function resetRsvpStatusButtons() {
     }
 }
 
-// 신랑측 / 신부측 토글 버튼 클릭 처리
 function setRsvpSide(side) {
     rsvpSide = side;
     const groomBtn = document.getElementById('rsvp-side-groom');
@@ -1280,7 +1303,6 @@ function resetRsvpSideButtons() {
     }
 }
 
-// 신랑측/신부측 선택 시 모달 배경 테마 변경
 function updateRsvpSideTheme(side) {
     const modalContent = document.getElementById('rsvp-modal-content');
     if (!modalContent) return;
@@ -1296,7 +1318,6 @@ function updateRsvpSideTheme(side) {
     }
 }
 
-// 연락처 입력 시 자동 하이픈 기입 (010-0000-0000)
 function formatTelInput(target) {
     let val = target.value.replace(/[^0-9]/g, '');
     let formatted = '';
@@ -1315,7 +1336,7 @@ function formatTelInput(target) {
 }
 
 function changeRsvpCount(delta) {
-    rsvpGuestCount = Math.max(1, rsvpGuestCount + delta); // 최소 1명
+    rsvpGuestCount = Math.max(1, rsvpGuestCount + delta);
     const countEl = document.getElementById('rsvp-guest-count');
     if (countEl) {
         countEl.innerText = rsvpGuestCount;
@@ -1394,6 +1415,491 @@ function escapeHtml(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+}
+
+// --- SECTION 11: 마음껏 축하해주기 (FadeIn/FadeOut 배경 + 숫자 타격감 상승 + 섹션11 하이라이트) ---
+
+const FIREWORK_TYPES = ['peony', 'chrysanthemum', 'willow', 'palm', 'crossette', 'ring', 'katamono'];
+
+// 배경 사진 변경 시 FadeIn / FadeOut 트랜지션 처리
+function updateCongratsBgImage(isInitial = false) {
+    const sec = document.getElementById('congrats-section');
+    if (!sec) return;
+    const url = NIGHT_SKY_BGS[currentNightBgIndex % NIGHT_SKY_BGS.length];
+
+    if (isInitial) {
+        sec.style.backgroundImage = `url('${url}')`;
+        return;
+    }
+
+    // Fade Out 후 이미지 교체 및 Fade In
+    sec.style.transition = 'opacity 0.35s ease-out';
+    sec.style.opacity = '0.2';
+
+    setTimeout(() => {
+        sec.style.backgroundImage = `url('${url}')`;
+        sec.style.opacity = '1';
+    }, 350);
+}
+
+function initCongratsFireworks() {
+    congratsCanvas = document.getElementById('congrats-fireworks-canvas');
+    if (!congratsCanvas) return;
+    congratsCtx = congratsCanvas.getContext('2d');
+
+    const resizeCanvas = () => {
+        if (!congratsCanvas || !congratsCanvas.parentElement) return;
+        congratsCanvas.width = congratsCanvas.parentElement.clientWidth;
+        congratsCanvas.height = congratsCanvas.parentElement.clientHeight;
+    };
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    updateCongratsBgImage(true);
+
+    // 캔버스 물리 렌더링 루프
+    class CongratsRocket {
+        constructor(startX, startY, targetX, targetY, type) {
+            this.x = startX;
+            this.y = startY;
+            this.targetX = targetX;
+            this.targetY = targetY;
+            this.type = type;
+
+            const steps = 42; // 포물선 곡선 비행 프레임 수
+            this.vx = (targetX - startX) / steps;
+            this.gravity = 0.22;
+            this.vy = (targetY - startY - 0.5 * this.gravity * Math.pow(steps, 2)) / steps;
+
+            this.stepCount = 0;
+            this.maxSteps = steps;
+            this.exploded = false;
+            this.trail = [];
+            this.color = getRandomFireworkColor();
+        }
+
+        update() {
+            this.trail.push({ x: this.x, y: this.y });
+            if (this.trail.length > 6) this.trail.shift();
+
+            this.x += this.vx;
+            this.y += this.vy;
+            this.vy += this.gravity;
+            this.stepCount++;
+
+            if (this.stepCount >= this.maxSteps || this.vy >= 0) {
+                this.exploded = true;
+            }
+        }
+
+        draw(ctx) {
+            ctx.save();
+            ctx.beginPath();
+            for (let i = 0; i < this.trail.length; i++) {
+                ctx.lineTo(this.trail[i].x, this.trail[i].y);
+            }
+            ctx.strokeStyle = this.color;
+            ctx.lineWidth = 2.8;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 3.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    class CongratsParticle {
+        constructor(x, y, vx, vy, color, options = {}) {
+            this.x = x;
+            this.y = y;
+            this.vx = vx;
+            this.vy = vy;
+            this.color = color;
+            this.alpha = 1;
+            this.decay = options.decay || (Math.random() * 0.015 + 0.01);
+            this.friction = options.friction || 0.96;
+            this.gravity = options.gravity || 0.05;
+            this.radius = options.radius || (Math.random() * 2.5 + 1.8);
+            this.sparkle = options.sparkle || false;
+            this.isCrossetteChild = options.isCrossetteChild || false;
+            this.canSplit = options.canSplit || false;
+            this.hasSplit = false;
+            this.trail = [];
+        }
+
+        update(newParticles) {
+            this.trail.push({ x: this.x, y: this.y });
+            if (this.trail.length > 4) this.trail.shift();
+
+            this.vx *= this.friction;
+            this.vy *= this.friction;
+            this.x += this.vx;
+            this.y += this.vy;
+            this.vy += this.gravity;
+            this.alpha -= this.decay;
+
+            // 크로셋(Crossette): 비행 중 십자가(+) 형태로 갈라짐
+            if (this.canSplit && !this.hasSplit && this.alpha < 0.72) {
+                this.hasSplit = true;
+                const splitSpeeds = 3.5;
+                const angles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
+                angles.forEach(a => {
+                    newParticles.push(new CongratsParticle(
+                        this.x, this.y,
+                        Math.cos(a) * splitSpeeds, Math.sin(a) * splitSpeeds,
+                        this.color,
+                        { decay: 0.025, friction: 0.94, gravity: 0.06, radius: 1.8 }
+                    ));
+                });
+            }
+        }
+
+        draw(ctx) {
+            ctx.save();
+            ctx.globalAlpha = this.sparkle && Math.random() > 0.35 ? this.alpha * 0.35 : Math.max(this.alpha, 0);
+
+            // 국화/수양버들 스파크 꼬리 연출
+            if (this.trail.length > 1) {
+                ctx.beginPath();
+                for (let i = 0; i < this.trail.length; i++) {
+                    ctx.lineTo(this.trail[i].x, this.trail[i].y);
+                }
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = this.radius * 0.8;
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = this.color;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    function createExplosion(x, y, color, type) {
+        const particles = [];
+
+        if (type === 'peony') {
+            // 1. 작약 (Peony)
+            for (let i = 0; i < 75; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 6.5 + 2;
+                particles.push(new CongratsParticle(
+                    x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, color,
+                    { decay: 0.018, friction: 0.95, gravity: 0.05, radius: 2.2 }
+                ));
+            }
+        } else if (type === 'chrysanthemum') {
+            // 2. 국화 (Chrysanthemum)
+            for (let i = 0; i < 85; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 7 + 2.5;
+                particles.push(new CongratsParticle(
+                    x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, color,
+                    { decay: 0.009, friction: 0.975, gravity: 0.04, radius: 2.5, sparkle: true }
+                ));
+            }
+        } else if (type === 'willow') {
+            // 3. 수양버들 (Willow)
+            const goldColor = '#ffd700';
+            for (let i = 0; i < 90; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 1.5;
+                particles.push(new CongratsParticle(
+                    x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, goldColor,
+                    { decay: 0.006, friction: 0.98, gravity: 0.085, radius: 2.0, sparkle: true }
+                ));
+            }
+        } else if (type === 'palm') {
+            // 4. 야자수 (Palm)
+            const branches = 8;
+            for (let b = 0; b < branches; b++) {
+                const baseAngle = (b / branches) * Math.PI * 2;
+                for (let i = 0; i < 12; i++) {
+                    const angle = baseAngle + (Math.random() * 0.18 - 0.09);
+                    const speed = Math.random() * 8 + 3;
+                    particles.push(new CongratsParticle(
+                        x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, color,
+                        { decay: 0.012, friction: 0.96, gravity: 0.06, radius: 3.5 }
+                    ));
+                }
+            }
+        } else if (type === 'crossette') {
+            // 5. 크로셋 (Crossette)
+            for (let i = 0; i < 16; i++) {
+                const angle = (i / 16) * Math.PI * 2;
+                const speed = 5.5;
+                particles.push(new CongratsParticle(
+                    x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, color,
+                    { decay: 0.01, friction: 0.97, gravity: 0.04, radius: 2.8, canSplit: true }
+                ));
+            }
+        } else if (type === 'ring') {
+            // 6. 링 쉘 (Ring Shell)
+            const count = 45;
+            for (let i = 0; i < count; i++) {
+                const angle = (i / count) * Math.PI * 2;
+                const speed = 5.2 + (Math.random() * 0.3 - 0.15);
+                particles.push(new CongratsParticle(
+                    x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, color,
+                    { decay: 0.014, friction: 0.965, gravity: 0.04, radius: 2.4 }
+                ));
+            }
+        } else if (type === 'katamono') {
+            // 7. 가타모노 (Katamono)
+            const shapes = ['heart', 'star', 'smile'];
+            const chosenShape = shapes[Math.floor(Math.random() * shapes.length)];
+
+            if (chosenShape === 'heart') {
+                for (let t = 0; t < Math.PI * 2; t += 0.1) {
+                    const hx = 16 * Math.pow(Math.sin(t), 3);
+                    const hy = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+                    particles.push(new CongratsParticle(
+                        x, y, hx * 0.35, hy * 0.35, '#ff4d6d',
+                        { decay: 0.012, friction: 0.95, gravity: 0.03, radius: 2.5 }
+                    ));
+                }
+            } else if (chosenShape === 'star') {
+                for (let i = 0; i < 50; i++) {
+                    const angle = (i / 50) * Math.PI * 2;
+                    const r = (i % 2 === 0) ? 6 : 2.8;
+                    particles.push(new CongratsParticle(
+                        x, y, Math.cos(angle) * r, Math.sin(angle) * r, '#ffd166',
+                        { decay: 0.012, friction: 0.95, gravity: 0.03, radius: 2.5 }
+                    ));
+                }
+            } else { // smile
+                for (let i = 0; i < 30; i++) {
+                    const a = (i / 30) * Math.PI * 2;
+                    particles.push(new CongratsParticle(x, y, Math.cos(a) * 5, Math.sin(a) * 5, '#ffd166', { decay: 0.012, friction: 0.95, gravity: 0.03, radius: 2.2 }));
+                }
+                particles.push(new CongratsParticle(x, y, -1.8, -2, '#ffffff', { decay: 0.012, friction: 0.95, gravity: 0.03, radius: 3 }));
+                particles.push(new CongratsParticle(x, y, 1.8, -2, '#ffffff', { decay: 0.012, friction: 0.95, gravity: 0.03, radius: 3 }));
+                for (let a = 0.2; a < Math.PI - 0.2; a += 0.3) {
+                    particles.push(new CongratsParticle(x, y, Math.cos(a) * 3, Math.sin(a) * 3 + 1, '#ffffff', { decay: 0.012, friction: 0.95, gravity: 0.03, radius: 2.2 }));
+                }
+            }
+        }
+
+        return particles;
+    }
+
+    function renderCongrats() {
+        if (!congratsCanvas || !congratsCtx) return;
+        const w = congratsCanvas.width;
+        const h = congratsCanvas.height;
+
+        congratsCtx.clearRect(0, 0, w, h);
+
+        // 로켓 업데이트 & 그리기
+        for (let i = congratsRockets.length - 1; i >= 0; i--) {
+            const r = congratsRockets[i];
+            r.update();
+            r.draw(congratsCtx);
+
+            if (r.exploded) {
+                const newParts = createExplosion(r.x, r.y, r.color, r.type);
+                congratsParticles.push(...newParts);
+                congratsRockets.splice(i, 1);
+            }
+        }
+
+        // 불꽃 입자 업데이트 & 그리기
+        const nextParticles = [];
+        for (let i = congratsParticles.length - 1; i >= 0; i--) {
+            const p = congratsParticles[i];
+            p.update(nextParticles);
+            p.draw(congratsCtx);
+
+            if (p.alpha <= 0) {
+                congratsParticles.splice(i, 1);
+            }
+        }
+
+        if (nextParticles.length > 0) {
+            congratsParticles.push(...nextParticles);
+        }
+
+        congratsAnimationId = requestAnimationFrame(renderCongrats);
+    }
+
+    renderCongrats();
+}
+
+function getRandomFireworkColor() {
+    const colors = ['#ffffff', '#ffccd5', '#ff758f', '#ff4d6d', '#ffb703', '#ffd166', '#e7c6ff', '#b5179e', '#7209b7', '#4cc9f0', '#06d6a0'];
+    return colors[Math.floor(Math.random() * colors.length)];
+}
+
+// 폭죽 발사 제어 함수 (포물선 발사)
+function launchCongratsFirework(isUserClick = false) {
+    if (!congratsCanvas) return;
+    const w = congratsCanvas.width;
+    const h = congratsCanvas.height;
+
+    // 포물선 발사 시작점 (하단)
+    const startX = Math.random() * (w * 0.4) + (w * 0.3);
+    const startY = h + 10;
+
+    // 하늘 목표점
+    const targetX = Math.random() * (w * 0.8) + (w * 0.1);
+    const targetY = Math.random() * (h * 0.35) + (h * 0.12);
+
+    const type = FIREWORK_TYPES[Math.floor(Math.random() * FIREWORK_TYPES.length)];
+
+    const RocketConstructor = function(sX, sY, tX, tY, t) {
+        this.x = sX;
+        this.y = sY;
+        this.targetX = tX;
+        this.targetY = tY;
+        this.type = t;
+        const steps = 42;
+        this.vx = (tX - sX) / steps;
+        this.gravity = 0.22;
+        this.vy = (tY - sY - 0.5 * this.gravity * Math.pow(steps, 2)) / steps;
+        this.stepCount = 0;
+        this.maxSteps = steps;
+        this.exploded = false;
+        this.trail = [];
+        this.color = getRandomFireworkColor();
+    };
+    RocketConstructor.prototype.update = function() {
+        this.trail.push({ x: this.x, y: this.y });
+        if (this.trail.length > 6) this.trail.shift();
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += this.gravity;
+        this.stepCount++;
+        if (this.stepCount >= this.maxSteps || this.vy >= 0) this.exploded = true;
+    };
+    RocketConstructor.prototype.draw = function(ctx) {
+        ctx.save();
+        ctx.beginPath();
+        for (let i = 0; i < this.trail.length; i++) ctx.lineTo(this.trail[i].x, this.trail[i].y);
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 2.8;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.restore();
+    };
+
+    congratsRockets.push(new RocketConstructor(startX, startY, targetX, targetY, type));
+}
+
+// 축하 버튼 클릭 핸들러 (숫자 타격감 바운스 + 섹션11 주변 글로우 하이라이트)
+function handleCongratsClick() {
+    // 1. 화면 꽉 차게 섹션으로 스무스 이동
+    const section = document.getElementById('congrats-section');
+    if (section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // 2. 폭죽 연속 1~2발 포물선 발사
+    launchCongratsFirework(true);
+    setTimeout(() => launchCongratsFirework(true), 180);
+
+    // 3. 로컬 카운트 즉시 반영
+    congratsCount++;
+    pendingCongratsIncrement++;
+
+    const numEl = document.getElementById('congrats-count-num');
+    const boxEl = document.getElementById('congrats-count-box');
+
+    // 숫자 자체의 타격감 폭발 모션 (Scale Pop + Random Shake)
+    if (numEl) {
+        numEl.innerText = congratsCount.toLocaleString();
+
+        const randomDegree = (Math.random() * 12 - 6).toFixed(1);
+        numEl.style.display = 'inline-block';
+        numEl.style.transition = 'transform 0.08s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.08s ease';
+        numEl.style.transform = `scale(1.42) rotate(${randomDegree}deg)`;
+        numEl.style.color = '#fffbdf';
+
+        setTimeout(() => {
+            numEl.style.transform = 'scale(1) rotate(0deg)';
+            numEl.style.color = '';
+        }, 110);
+    }
+
+    // 4. 박스 전체 타격감 흔들림
+    if (boxEl) {
+        boxEl.classList.remove('hit-shake');
+        void boxEl.offsetWidth;
+        boxEl.classList.add('hit-shake');
+        setTimeout(() => boxEl.classList.remove('hit-shake'), 260);
+    }
+
+    // 5. N00번째 (100, 200, 300...) 달성 시 진동, 섹션 11 주변 전체 글로우 하이라이트 & 야경 배경 FadeIn/FadeOut 전환
+    if (congratsCount > 0 && congratsCount % 100 === 0) {
+        if (navigator.vibrate) {
+            navigator.vibrate([100, 50, 100, 50, 200]);
+        }
+
+        // 섹션 11 주변 전체 하이라이트 (내부/외부 골드 빛 글로우)
+        if (section) {
+            section.classList.add('highlight-n00');
+            section.style.transition = 'box-shadow 0.6s ease, border-color 0.6s ease';
+            section.style.boxShadow = 'inset 0 0 80px rgba(255, 215, 0, 0.85), 0 0 60px rgba(255, 215, 0, 0.75)';
+
+            setTimeout(() => {
+                section.classList.remove('highlight-n00');
+                section.style.boxShadow = '';
+            }, 3500);
+        }
+
+        if (boxEl) {
+            boxEl.classList.add('highlight-n00');
+            setTimeout(() => boxEl.classList.remove('highlight-n00'), 3500);
+        }
+
+        // 배경 이미지 FadeOut/FadeIn 전환
+        currentNightBgIndex++;
+        updateCongratsBgImage(false);
+        showToast(`🎉 축하 폭죽 ${congratsCount}발 달성! 야경이 변경되었습니다.`);
+    }
+
+    // 6. DB 서버 동기화 디바운싱 (0.6초 후 최종 전송)
+    if (congratsSyncDebounceTimer) {
+        clearTimeout(congratsSyncDebounceTimer);
+    }
+    congratsSyncDebounceTimer = setTimeout(syncCongratsToDB, 600);
+}
+
+// 누적된 클릭 수를 DB에 한 번에 연동하는 함수
+async function syncCongratsToDB() {
+    if (pendingCongratsIncrement <= 0) return;
+
+    const countToSend = pendingCongratsIncrement;
+    pendingCongratsIncrement = 0; // 버퍼 비우기
+
+    try {
+        const res = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+                action: "incrementCongrats",
+                count: countToSend
+            })
+        });
+        const result = await res.json();
+        if (result.result === 'success' && result.congrats_count) {
+            const serverCount = parseInt(result.congrats_count, 10);
+            congratsCount = Math.max(congratsCount, serverCount + pendingCongratsIncrement);
+            const numEl = document.getElementById('congrats-count-num');
+            if (numEl) numEl.innerText = congratsCount.toLocaleString();
+        }
+    } catch (err) {
+        console.error("축하 폭죽 카운트 연동 오류:", err);
+        pendingCongratsIncrement += countToSend; // 실패 시 다시 버퍼 복구
+    }
 }
 
 // --- ImgBB 업로드 & 썸네일 리스트 ---
@@ -1816,6 +2322,7 @@ async function fetchDBData() {
         const data = await res.json();
         dbData = data;
         guestbookList = data.guestbook || [];
+        congratsCount = parseInt(data.congrats_count, 10) || 0;
         preloadStoryImages(data);
         applyDataToDOM(data);
     } catch (err) {
@@ -1876,6 +2383,12 @@ function applyDataToDOM(data) {
 
     renderGalleryGrid(data.gallery || []);
     renderGuestbookSlider();
+
+    // 축하 폭죽 누적 카운트 DOM 적용
+    const congratsNumEl = document.getElementById('congrats-count-num');
+    if (congratsNumEl) {
+        congratsNumEl.innerText = congratsCount.toLocaleString();
+    }
 
     if (data.wedding_datetime) {
         targetWeddingDate = new Date(data.wedding_datetime);
