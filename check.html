@@ -98,6 +98,11 @@
             background-color: #8c5a63;
         }
 
+        .auth-card button:disabled {
+            background-color: #d1b8bc;
+            cursor: not-allowed;
+        }
+
         /* DASHBOARD CONTENT */
         #dashboard-content {
             display: none;
@@ -304,7 +309,7 @@
             <!-- 요약 통계 -->
             <div class="stats-grid">
                 <div class="stat-box full">
-                    <span class="stat-label">총 참석 예정 인원 (본인 + 동행인)</span>
+                    <span class="stat-label">총 참석 예정 인원</span>
                     <span class="stat-value" id="stat-total-guests">0 명</span>
                 </div>
                 <div class="stat-box">
@@ -317,8 +322,8 @@
                 </div>
                 <!-- 전체 응답 현황 -->
                 <div class="stat-box full">
-                    <span class="stat-label">전체 응답 현황 (참석 가능 / 참석 불가)</span>
-                    <span class="stat-value" id="stat-status-combined">참석 가능 0건 / 참석 불가 0건</span>
+                    <span class="stat-label">전체 응답 현황<br>(참석 가능 / 참석 불가)</span>
+                    <span class="stat-value" id="stat-status-combined">0건 / 0건</span>
                 </div>
                 <div class="stat-box">
                     <span class="stat-label">신랑측 (가능/불가)</span>
@@ -351,9 +356,50 @@
     <script>
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDQCQbrwOX9F_Kx2uf_fg4tBTyslIdWFd_CDIHSS98O79V42Mia94KYT9hpWzTY0K7Fw/exec";
         
+        // 로컬스토리지 저장 키 및 기간 설정 (1주일 = 7일 * 24시간 * 60분 * 60초 * 1000밀리초)
+        const AUTH_STORAGE_KEY = 'rsvp_admin_auth';
+        const EXPIRATION_TIME = 7 * 24 * 60 * 60 * 1000;
+
         let verifiedPassword = "";
         let rawRsvpList = [];
         let currentFilter = "all";
+
+        // 페이지 로드 시 로컬 스토리지 확인 및 자동 로그인 시도
+        document.addEventListener('DOMContentLoaded', async () => {
+            const storedAuth = localStorage.getItem(AUTH_STORAGE_KEY);
+            
+            if (storedAuth) {
+                try {
+                    const parsedAuth = JSON.parse(storedAuth);
+                    const currentTime = new Date().getTime();
+                    
+                    // 만료 기간(1주일)이 지나지 않았는지 확인
+                    if (currentTime < parsedAuth.expires) {
+                        verifiedPassword = parsedAuth.password;
+                        
+                        const authBtn = document.getElementById('check-auth-btn');
+                        authBtn.disabled = true;
+                        authBtn.innerText = "자동 로그인 중...";
+                        
+                        try {
+                            await fetchRsvpData();
+                            document.getElementById('auth-section').style.display = 'none';
+                            document.getElementById('dashboard-content').style.display = 'block';
+                        } catch (err) {
+                            // 비번이 바뀌는 등 오류가 발생하면 초기화
+                            localStorage.removeItem(AUTH_STORAGE_KEY);
+                            authBtn.disabled = false;
+                            authBtn.innerText = "확인하기";
+                        }
+                    } else {
+                        // 만료 시 로컬 스토리지 삭제
+                        localStorage.removeItem(AUTH_STORAGE_KEY);
+                    }
+                } catch (e) {
+                    localStorage.removeItem(AUTH_STORAGE_KEY);
+                }
+            }
+        });
 
         async function handleAuthSubmit(event) {
             event.preventDefault();
@@ -368,6 +414,13 @@
             try {
                 verifiedPassword = passInput;
                 await fetchRsvpData();
+                
+                // 로그인 성공 시 로컬 스토리지에 비밀번호와 만료일(1주일 후) 저장
+                const expireDate = new Date().getTime() + EXPIRATION_TIME;
+                localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
+                    password: verifiedPassword,
+                    expires: expireDate
+                }));
                 
                 document.getElementById('auth-section').style.display = 'none';
                 document.getElementById('dashboard-content').style.display = 'block';
@@ -437,7 +490,7 @@
             document.getElementById('stat-total-guests').innerText = `${totalGuests} 명`;
             document.getElementById('stat-groom-guests').innerText = `${groomGuests} 명`;
             document.getElementById('stat-bride-guests').innerText = `${brideGuests} 명`;
-            document.getElementById('stat-status-combined').innerText = `참석 가능 ${yesCount}건 / 참석 불가 ${noCount}건`;
+            document.getElementById('stat-status-combined').innerText = `${yesCount}건 / ${noCount}건`;
             document.getElementById('stat-groom-count').innerText = `${groomYes} / ${groomNo}`;
             document.getElementById('stat-bride-count').innerText = `${brideYes} / ${brideNo}`;
         }
