@@ -1841,7 +1841,7 @@ function handleCongratsClick() {
 
         currentNightBgIndex++;
         updateCongratsBgImage(false);
-        showToast(`🎉 축하 폭죽 ${congratsCount}발 달성!`);
+        showToast(`🎉 축하 폭죽 ${congratsCount}번째 달성!`);
     }
 
     // 6. DB 서버 동기화 디바운싱 (0.6초 후 최종 전송)
