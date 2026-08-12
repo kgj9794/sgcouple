@@ -4,7 +4,10 @@ const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
 // BGM 음원 목록
 const BGM_PLAYLIST = [
-    "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/%E1%84%8B%E1%85%A6%E1%84%8B%E1%85%AE%E1%84%85%E1%85%A6%E1%86%AF.mp3"
+    "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/%E1%84%8B%E1%85%A6%E1%84%8B%E1%85%AE%E1%84%85%E1%85%A6%E1%86%AF.mp3",
+"https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/4.mp3",
+"https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/22.mp3",
+  "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/30.mp3"
 ];
 
 // 섹션 11 야경 배경 이미지 목록
