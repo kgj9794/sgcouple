@@ -5,15 +5,15 @@ const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 // BGM 음원 목록
 const BGM_PLAYLIST = [
     "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/%E1%84%8B%E1%85%A6%E1%84%8B%E1%85%AE%E1%84%85%E1%85%A6%E1%86%AF.mp3",
-"https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/4.mp3",
-"https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/22.mp3",
-  "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/30.mp3"
+    "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/4.mp3",
+    "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/22.mp3",
+    "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/30.mp3"
 ];
 
 // 섹션 11 야경 배경 이미지 목록
 const NIGHT_SKY_BGS = [
     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwBiO05V5GXZZN-_vIbjWiqgbQ2BsGZScXNzEcO7uURFAzlku7NqyhqtQ&s=10",
-    "https://images.unsplash.com/photo-1611416370495-50fac9e1b382?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fCVFQyU5NSVCQyVFQSVCMiVCRCUyMCVFQiU4RiU4NCVFQyU4QiU5Q3xlbnwwfHwwfHx8MA%3D%3D",
+    "https://images.unsplash.com/photo-1611416370495-50fac9e1b382?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fCVFQyU5NSVCQyVFQSVCMiVCRCUyMCVFQiU8RiU4NCVFQyU8QiU9Q3xlbnwwfHwwfHx8MA%3D%3D",
     "https://img.magnific.com/premium-photo/high-angle-view-illuminated-city-night_1599761-785.jpg?semt=ais_test_b&w=740&q=80",
     "https://image.utoimage.com/preview/cp932674/2021/12/202112026451_500.jpg",
     "https://img.magnific.com/free-photo/high-angle-buildings-with-lights-landscape_23-2149444955.jpg"
@@ -1884,6 +1884,33 @@ async function syncCongratsToDB() {
     }
 }
 
+// --- SECTION 13: 청첩장 공유하기 (카카오톡 전하기 & 주소 복사하기) ---
+function shareKakao() {
+    const url = dbData.share_url || window.location.href;
+    if (navigator.share) {
+        navigator.share({
+            title: document.title || '모바일 청첩장',
+            text: '소중한 분들을 초대합니다.',
+            url: url
+        }).catch(() => {});
+    } else {
+        copyShareUrl();
+    }
+}
+
+function copyShareUrl() {
+    const url = dbData.share_url || window.location.href;
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(url).then(() => {
+            showToast('청첩장 주소가 복사되었습니다.');
+        }).catch(() => {
+            fallbackCopyText(url);
+        });
+    } else {
+        fallbackCopyText(url);
+    }
+}
+
 // --- ImgBB 업로드 & 썸네일 리스트 ---
 async function uploadGalleryImagesToImgBB(event) {
     const files = event.target.files;
@@ -2707,6 +2734,8 @@ function openAdminModalValues() {
     setVal('input-ending-quote', dbData.ending_quote);
     setVal('input-ending-source', dbData.ending_source);
 
+    setVal('input-share-url', dbData.share_url);
+
     setVal('input-groom-father-name', dbData.groom_father_name);
     setVal('input-groom-father-tel', normalizePhoneNumber(dbData.groom_father_tel));
     setVal('input-groom-mother-name', dbData.groom_mother_name);
@@ -2799,6 +2828,8 @@ async function saveAdminSettings(event) {
             ending_img: getVal('input-ending-img'),
             ending_quote: getVal('input-ending-quote'),
             ending_source: getVal('input-ending-source'),
+
+            share_url: getVal('input-share-url'),
 
             groom_father_name: getVal('input-groom-father-name'),
             groom_father_tel: normalizePhoneNumber(getVal('input-groom-father-tel')),
