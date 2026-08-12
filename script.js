@@ -102,7 +102,6 @@ function initViewportHeight() {
 
     let lastWidth = window.innerWidth;
     window.addEventListener('resize', () => {
-        // 화면 가로 너비가 변경될 때(기기 회전 등)만 실행 (주소창 숨김/노출 높이 변경 무시)
         if (window.innerWidth !== lastWidth) {
             lastWidth = window.innerWidth;
             setVh();
@@ -125,9 +124,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     initCongratsFireworks();
 
     const minIntroDelay = new Promise(resolve => setTimeout(resolve, 3000));
+    const maxSafetyTimeout = new Promise(resolve => setTimeout(resolve, 6000)); // 최대 6초 안전 타임아웃
 
     try {
-        await Promise.all([fetchDBData(), minIntroDelay, typingPromise]);
+        await Promise.race([
+            Promise.all([fetchDBData(), minIntroDelay, typingPromise]),
+            maxSafetyTimeout
+        ]);
     } catch (err) {
         console.error("초기 데이터 로딩 중 오류 발생:", err);
     } finally {
@@ -2291,7 +2294,12 @@ function hideIntroOverlay() {
     const introOverlay = document.getElementById('intro-overlay');
     if (introOverlay && !introOverlay.classList.contains('zoom-into-heart')) {
         introOverlay.classList.add('zoom-into-heart');
-        setTimeout(stopFireworks, 900);
+        setTimeout(() => {
+            stopFireworks();
+            document.body.classList.remove('no-scroll'); // 인트로 종료 시 스크롤 락 해제
+        }, 900);
+    } else {
+        document.body.classList.remove('no-scroll');
     }
 }
 
@@ -2364,8 +2372,12 @@ function handleBackdropClick(event) {
 }
 
 async function fetchDBData() {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5초 타임아웃 제한
+
     try {
-        const res = await fetch(`${APPS_SCRIPT_URL}?action=getData`);
+        const res = await fetch(`${APPS_SCRIPT_URL}?action=getData`, { signal: controller.signal });
+        clearTimeout(timeoutId);
         const data = await res.json();
         dbData = data;
         guestbookList = data.guestbook || [];
@@ -2373,6 +2385,7 @@ async function fetchDBData() {
         preloadStoryImages(data);
         applyDataToDOM(data);
     } catch (err) {
+        clearTimeout(timeoutId);
         console.error("DB 데이터 연동 실패:", err);
     }
 }
