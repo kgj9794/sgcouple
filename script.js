@@ -315,6 +315,7 @@ function preloadStoryImages(data) {
 
     if (data.story_cover_img) urlsToPreload.push(data.story_cover_img);
     if (data.hero_img) urlsToPreload.push(data.hero_img);
+    if (data.ending_img) urlsToPreload.push(data.ending_img);
 
     for (let i = 1; i <= 5; i++) {
         if (data[`story_img_${i}`]) {
@@ -2370,6 +2371,22 @@ function applyDataToDOM(data) {
         congratsNumEl.innerText = congratsCount.toLocaleString();
     }
 
+    // 섹션 12: 마무리 커플 컷 & 명언 적용
+    if (data.ending_img) {
+        const endingImgEl = document.getElementById('ending-img-element');
+        if (endingImgEl) endingImgEl.src = data.ending_img;
+    }
+
+    const endingQuoteEl = document.getElementById('ending-quote-text');
+    if (endingQuoteEl) {
+        endingQuoteEl.innerText = data.ending_quote || '"당신은 내가 더 좋은 사람이고 싶게 만들어요."';
+    }
+
+    const endingSourceEl = document.getElementById('ending-source-text');
+    if (endingSourceEl) {
+        endingSourceEl.innerText = data.ending_source || "- 영화 '이보다 더 좋을 순 없다' 중";
+    }
+
     if (data.wedding_datetime) {
         targetWeddingDate = new Date(data.wedding_datetime);
         
@@ -2686,6 +2703,10 @@ function openAdminModalValues() {
         setVal(`input-story-desc-${i}`, dbData[`story_desc_${i}`]);
     }
 
+    setVal('input-ending-img', dbData.ending_img);
+    setVal('input-ending-quote', dbData.ending_quote);
+    setVal('input-ending-source', dbData.ending_source);
+
     setVal('input-groom-father-name', dbData.groom_father_name);
     setVal('input-groom-father-tel', normalizePhoneNumber(dbData.groom_father_tel));
     setVal('input-groom-mother-name', dbData.groom_mother_name);
@@ -2774,6 +2795,11 @@ async function saveAdminSettings(event) {
             story_intro_text: getVal('input-story-intro-text'),
             relationship_start_date: getVal('input-relationship-start-date'),
             story_cover_img: getVal('input-story-cover-img'),
+
+            ending_img: getVal('input-ending-img'),
+            ending_quote: getVal('input-ending-quote'),
+            ending_source: getVal('input-ending-source'),
+
             groom_father_name: getVal('input-groom-father-name'),
             groom_father_tel: normalizePhoneNumber(getVal('input-groom-father-tel')),
             groom_mother_name: getVal('input-groom-mother-name'),
