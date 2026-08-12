@@ -61,6 +61,7 @@ html, body {
 body.no-scroll {
     overflow: hidden !important;
     height: 100vh !important;
+    height: calc(var(--vh, 1vh) * 100) !important;
     position: fixed;
     width: 100%;
     touch-action: none;
@@ -80,7 +81,7 @@ body {
     width: 100%;
     max-width: 480px;
     min-height: 100vh;
-    min-height: 100dvh;
+    min-height: calc(var(--vh, 1vh) * 100);
     background-color: #ffffff;
     position: relative;
     box-shadow: 0 0 25px rgba(0, 0, 0, 0.08);
@@ -167,7 +168,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    height: 100dvh;
+    height: calc(var(--vh, 1vh) * 100);
     background-color: #ffccd5;
     display: flex;
     justify-content: center;
@@ -274,7 +275,7 @@ body {
     position: relative;
     width: 100%;
     height: 100vh;
-    height: 100dvh;
+    height: calc(var(--vh, 1vh) * 100);
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -589,7 +590,7 @@ body {
 .story-section {
     width: 100%;
     min-height: 100vh;
-    min-height: 100dvh;
+    min-height: calc(var(--vh, 1vh) * 100);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -2094,7 +2095,7 @@ body {
 .congrats-section {
     width: 100%;
     min-height: 100vh;
-    min-height: 100dvh;
+    min-height: calc(var(--vh, 1vh) * 100);
     position: relative;
     display: flex;
     flex-direction: column;
@@ -2290,7 +2291,7 @@ body {
     position: relative;
     width: 100%;
     height: 100vh;
-    height: 100dvh;
+    height: calc(var(--vh, 1vh) * 100);
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -2463,7 +2464,7 @@ body {
 .lightbox-content {
     width: 100vw;
     height: 100vh;
-    height: 100dvh;
+    height: calc(var(--vh, 1vh) * 100);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -2678,7 +2679,7 @@ body {
 .date-section {
     width: 100%;
     min-height: 100vh;
-    min-height: 100dvh;
+    min-height: calc(var(--vh, 1vh) * 100);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -2829,7 +2830,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    height: 100dvh;
+    height: calc(var(--vh, 1vh) * 100);
     background-color: rgba(0, 0, 0, 0.6);
     z-index: 9999;
     justify-content: center;
@@ -2845,7 +2846,7 @@ body {
 .modal-content {
     width: 100vw;
     height: 100vh;
-    height: 100dvh;
+    height: calc(var(--vh, 1vh) * 100);
     max-width: 100%;
     max-height: 100%;
     background-color: #ffffff;
