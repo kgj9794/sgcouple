@@ -13,7 +13,7 @@ const BGM_PLAYLIST = [
 // 섹션 11 야경 배경 이미지 목록
 const NIGHT_SKY_BGS = [
     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwBiO05V5GXZZN-_vIbjWiqgbQ2BsGZScXNzEcO7uURFAzlku7NqyhqtQ&s=10",
-    "https://images.unsplash.com/photo-1611416370495-50fac9e1b382?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fCVFQyU5NSVCQyVFQSVCMiVCRCUyMCVFQiU8RiU4NCVFQyU8QiU9Q3xlbnwwfHwwfHx8MA%3D%3D",
+    "https://images.unsplash.com/photo-1611416370495-50fac9e1b382?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fCVFQyU5NSVCQyVFQSVCMiVCRCUyMCVFQiU8RiU8NCVFQyU8QiU9Q3xlbnwwfHwwfHx8MA%3D%3D",
     "https://img.magnific.com/premium-photo/high-angle-view-illuminated-city-night_1599761-785.jpg?semt=ais_test_b&w=740&q=80",
     "https://image.utoimage.com/preview/cp932674/2021/12/202112026451_500.jpg",
     "https://img.magnific.com/free-photo/high-angle-buildings-with-lights-landscape_23-2149444955.jpg"
@@ -92,10 +92,29 @@ let prevValues = {
 
 const UNLOCK_EVENTS = ['click', 'touchstart', 'touchend', 'touchmove', 'scroll', 'wheel', 'pointerdown', 'keydown'];
 
+// 모달/주소창으로 인한 높이 변동 튐 방지용 고정 vh 설정
+function initViewportHeight() {
+    const setVh = () => {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    setVh();
+
+    let lastWidth = window.innerWidth;
+    window.addEventListener('resize', () => {
+        // 화면 가로 너비가 변경될 때(기기 회전 등)만 실행 (주소창 숨김/노출 높이 변경 무시)
+        if (window.innerWidth !== lastWidth) {
+            lastWidth = window.innerWidth;
+            setVh();
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('contextmenu', (e) => e.preventDefault());
     document.addEventListener('dragstart', (e) => e.preventDefault());
 
+    initViewportHeight();
     initBgm();
     initFireworks();
     const typingPromise = startTypingAnimation();
@@ -1455,7 +1474,14 @@ function initCongratsFireworks() {
     };
 
     resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    let lastWidth = window.innerWidth;
+    window.addEventListener('resize', () => {
+        if (window.innerWidth !== lastWidth) {
+            lastWidth = window.innerWidth;
+            resizeCanvas();
+        }
+    });
+
     updateCongratsBgImage(true);
 
     class CongratsRocket {
@@ -1478,14 +1504,14 @@ function initCongratsFireworks() {
             this.color = getRandomFireworkColor();
         }
 
-        update() {
+        update(delta = 1) {
             this.trail.push({ x: this.x, y: this.y });
             if (this.trail.length > 6) this.trail.shift();
 
-            this.x += this.vx;
-            this.y += this.vy;
-            this.vy += this.gravity;
-            this.stepCount++;
+            this.x += this.vx * delta;
+            this.y += this.vy * delta;
+            this.vy += this.gravity * delta;
+            this.stepCount += delta;
 
             if (this.stepCount >= this.maxSteps || this.vy >= 0) {
                 this.exploded = true;
@@ -1529,16 +1555,16 @@ function initCongratsFireworks() {
             this.trail = [];
         }
 
-        update(newParticles) {
+        update(newParticles, delta = 1) {
             this.trail.push({ x: this.x, y: this.y });
             if (this.trail.length > 4) this.trail.shift();
 
-            this.vx *= this.friction;
-            this.vy *= this.friction;
-            this.x += this.vx;
-            this.y += this.vy;
-            this.vy += this.gravity;
-            this.alpha -= this.decay;
+            this.vx *= Math.pow(this.friction, delta);
+            this.vy *= Math.pow(this.friction, delta);
+            this.x += this.vx * delta;
+            this.y += this.vy * delta;
+            this.vy += this.gravity * delta;
+            this.alpha -= this.decay * delta;
 
             if (this.canSplit && !this.hasSplit && this.alpha < 0.72) {
                 this.hasSplit = true;
@@ -1680,8 +1706,12 @@ function initCongratsFireworks() {
         return particles;
     }
 
-    function renderCongrats() {
+    let lastTime = performance.now();
+    function renderCongrats(now) {
         if (!congratsCanvas || !congratsCtx) return;
+        const delta = Math.min((now - lastTime) / 16.6667, 2.0) || 1;
+        lastTime = now;
+
         const w = congratsCanvas.width;
         const h = congratsCanvas.height;
 
@@ -1689,7 +1719,7 @@ function initCongratsFireworks() {
 
         for (let i = congratsRockets.length - 1; i >= 0; i--) {
             const r = congratsRockets[i];
-            r.update();
+            r.update(delta);
             r.draw(congratsCtx);
 
             if (r.exploded) {
@@ -1702,7 +1732,7 @@ function initCongratsFireworks() {
         const nextParticles = [];
         for (let i = congratsParticles.length - 1; i >= 0; i--) {
             const p = congratsParticles[i];
-            p.update(nextParticles);
+            p.update(nextParticles, delta);
             p.draw(congratsCtx);
 
             if (p.alpha <= 0) {
@@ -1717,7 +1747,7 @@ function initCongratsFireworks() {
         congratsAnimationId = requestAnimationFrame(renderCongrats);
     }
 
-    renderCongrats();
+    requestAnimationFrame(renderCongrats);
 }
 
 function getRandomFireworkColor() {
@@ -1754,13 +1784,13 @@ function launchCongratsFirework(isUserClick = false) {
         this.trail = [];
         this.color = getRandomFireworkColor();
     };
-    RocketConstructor.prototype.update = function() {
+    RocketConstructor.prototype.update = function(delta = 1) {
         this.trail.push({ x: this.x, y: this.y });
         if (this.trail.length > 6) this.trail.shift();
-        this.x += this.vx;
-        this.y += this.vy;
-        this.vy += this.gravity;
-        this.stepCount++;
+        this.x += this.vx * delta;
+        this.y += this.vy * delta;
+        this.vy += this.gravity * delta;
+        this.stepCount += delta;
         if (this.stepCount >= this.maxSteps || this.vy >= 0) this.exploded = true;
     };
     RocketConstructor.prototype.draw = function(ctx) {
@@ -2097,10 +2127,14 @@ function initFireworks() {
     let width = canvas.width = canvas.parentElement.clientWidth;
     let height = canvas.height = canvas.parentElement.clientHeight;
 
+    let lastWidth = window.innerWidth;
     window.addEventListener('resize', () => {
-        if (!canvas.parentElement) return;
-        width = canvas.width = canvas.parentElement.clientWidth;
-        height = canvas.height = canvas.parentElement.clientHeight;
+        if (window.innerWidth !== lastWidth) {
+            lastWidth = window.innerWidth;
+            if (!canvas.parentElement) return;
+            width = canvas.width = canvas.parentElement.clientWidth;
+            height = canvas.height = canvas.parentElement.clientHeight;
+        }
     });
 
     const rockets = [];
@@ -2118,10 +2152,10 @@ function initFireworks() {
             this.trail = [];
         }
 
-        update() {
+        update(delta = 1) {
             this.trail.push({ x: this.x, y: this.y });
             if (this.trail.length > 5) this.trail.shift();
-            this.y -= this.speed;
+            this.y -= this.speed * delta;
             if (this.y <= this.targetY) this.exploded = true;
         }
 
@@ -2159,13 +2193,13 @@ function initFireworks() {
             this.sparkle = Math.random() > 0.4;
         }
 
-        update() {
-            this.vx *= this.friction;
-            this.vy *= this.friction;
-            this.x += this.vx;
-            this.y += this.vy;
-            this.vy += 0.045;
-            this.alpha -= this.decay;
+        update(delta = 1) {
+            this.vx *= Math.pow(this.friction, delta);
+            this.vy *= Math.pow(this.friction, delta);
+            this.x += this.vx * delta;
+            this.y += this.vy * delta;
+            this.vy += 0.045 * delta;
+            this.alpha -= this.decay * delta;
         }
 
         draw() {
@@ -2188,7 +2222,11 @@ function initFireworks() {
     }
 
     let frameCount = 0;
-    function render() {
+    let lastTime = performance.now();
+    function render(now) {
+        const delta = Math.min((now - lastTime) / 16.6667, 2.0) || 1;
+        lastTime = now;
+
         ctx.clearRect(0, 0, width, height);
 
         if (frameCount % 16 === 0) rockets.push(new Rocket());
@@ -2196,7 +2234,7 @@ function initFireworks() {
 
         for (let i = rockets.length - 1; i >= 0; i--) {
             const r = rockets[i];
-            r.update();
+            r.update(delta);
             r.draw();
             if (r.exploded) {
                 createExplosion(r.x, r.y, r.color);
@@ -2206,14 +2244,14 @@ function initFireworks() {
 
         for (let i = particles.length - 1; i >= 0; i--) {
             const p = particles[i];
-            p.update();
+            p.update(delta);
             p.draw();
             if (p.alpha <= 0) particles.splice(i, 1);
         }
 
         fireworksAnimationId = requestAnimationFrame(render);
     }
-    render();
+    requestAnimationFrame(render);
 }
 
 function stopFireworks() {
@@ -2895,9 +2933,13 @@ function initSakura() {
     let width = canvas.width = canvas.parentElement.clientWidth;
     let height = canvas.height = canvas.parentElement.clientHeight;
 
+    let lastWidth = window.innerWidth;
     window.addEventListener('resize', () => {
-        width = canvas.width = canvas.parentElement.clientWidth;
-        height = canvas.height = canvas.parentElement.clientHeight;
+        if (window.innerWidth !== lastWidth) {
+            lastWidth = window.innerWidth;
+            width = canvas.width = canvas.parentElement.clientWidth;
+            height = canvas.height = canvas.parentElement.clientHeight;
+        }
     });
 
     const petalColors = ['rgba(255, 204, 213, 0.9)', 'rgba(255, 226, 232, 0.85)', 'rgba(255, 182, 193, 0.8)', 'rgba(255, 240, 243, 0.95)'];
@@ -2919,11 +2961,11 @@ function initSakura() {
             this.flipSpeed = Math.random() * 0.03 + 0.01;
             this.oscillation = Math.random() * 0.02 + 0.01;
         }
-        update() {
-            this.y += this.speedY;
-            this.x += Math.sin(this.y * this.oscillation) * 1.2 + this.speedX;
-            this.angle += this.angularVelocity;
-            this.flip += this.flipSpeed;
+        update(delta = 1) {
+            this.y += this.speedY * delta;
+            this.x += (Math.sin(this.y * this.oscillation) * 1.2 + this.speedX) * delta;
+            this.angle += this.angularVelocity * delta;
+            this.flip += this.flipSpeed * delta;
             if (this.y > height + 20) { this.reset(); this.y = -10; }
         }
         draw() {
@@ -2944,10 +2986,13 @@ function initSakura() {
 
     for (let i = 0; i < totalPetals; i++) petals.push(new Petal());
 
-    function render() {
+    let lastTime = performance.now();
+    function render(now) {
+        const delta = Math.min((now - lastTime) / 16.6667, 2.0) || 1;
+        lastTime = now;
         ctx.clearRect(0, 0, width, height);
-        petals.forEach(p => { p.update(); p.draw(); });
+        petals.forEach(p => { p.update(delta); p.draw(); });
         requestAnimationFrame(render);
     }
-    render();
+    requestAnimationFrame(render);
 }
