@@ -556,6 +556,24 @@
             </div>
         </section>
 
+        <!-- Section 13: 청첩장 공유하기 -->
+        <section class="section share-section" id="share-section">
+            <div class="share-btn-wrap reveal">
+                <button type="button" class="btn-share-kakao" onclick="shareKakao()">
+                    <span>카카오톡으로 청첩장 전하기</span>
+                    <svg class="share-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+                </button>
+                <button type="button" class="btn-share-link" onclick="copyShareUrl()">
+                    <span>청첩장 주소 복사하기</span>
+                    <svg class="share-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                </button>
+            </div>
+            <div class="share-footer reveal">
+                <p class="powered-by">powered by kgj</p>
+                <div class="footer-emoji">😊</div>
+            </div>
+        </section>
+
     </div>
 
     <!-- 약도 이미지 모달 -->
@@ -882,6 +900,12 @@
                     <div class="admin-field">
                         <label>출처 / 서브 멘트</label>
                         <input type="text" id="input-ending-source" placeholder="예: - 영화 '이보다 더 좋을 순 없다' 중">
+                    </div>
+
+                    <div class="admin-section-title">청첩장 공유 설정 (섹션 13)</div>
+                    <div class="admin-field">
+                        <label>공유 및 복사용 청첩장 URL (share_url)</label>
+                        <input type="url" id="input-share-url" placeholder="https://...">
                     </div>
 
                     <div class="admin-section-title">신랑신부 부모님 정보</div>
