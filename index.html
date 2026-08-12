@@ -8,6 +8,13 @@
     <!-- Favicon 설정 -->
     <link rel="icon" type="image/png" href="Image.png">
 
+    <!-- 네트워크 도메인 사전 연결 (데이터 및 이미지 로딩 속도 최적화) -->
+    <link rel="preconnect" href="https://script.google.com">
+    <link rel="preconnect" href="https://script.googleusercontent.com">
+    <link rel="preconnect" href="https://i.ibb.co">
+    <link rel="preconnect" href="https://api.imgbb.com">
+    <link rel="dns-prefetch" href="https://script.google.com">
+
     <!-- 상단 바 색상 설정 -->
     <meta name="theme-color" content="#ffccd5">
     <meta name="apple-mobile-web-app-status-bar-style" content="#ffccd5">
@@ -24,7 +31,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Gowun+Batang:wght@400;700&family=Yeon+Sung&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body oncontextmenu="return false;" onselectstart="return false;" ondragstart="return false;">
+
+<!-- 인트로 화면 활성화 상태 시 터치/스크롤 방지를 위해 기본 클래스 no-scroll 적용 -->
+<body class="no-scroll" oncontextmenu="return false;" onselectstart="return false;" ondragstart="return false;">
     <!-- 배경음악 플레이어 -->
     <audio id="bgm-player" preload="auto"></audio>
 
@@ -560,11 +569,11 @@
         <section class="section share-section" id="share-section">
             <div class="share-btn-wrap reveal">
                 <button type="button" class="btn-share-kakao" onclick="shareKakao()">
-                    <span>건주수아 청첩장 공유하기</span>
+                    <span>카카오톡으로 청첩장 전하기</span>
                     <svg class="share-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
                 </button>
                 <button type="button" class="btn-share-link" onclick="copyShareUrl()">
-                    <span>건주수아 청첩장 주소 복사하기</span>
+                    <span>청첩장 주소 복사하기</span>
                     <svg class="share-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                 </button>
             </div>
