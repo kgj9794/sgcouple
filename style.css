@@ -2101,7 +2101,7 @@ body {
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding: 35px 20px 65px; /* 상단 여백을 살짝 올려 전체 문구 상승 */
+    padding: 35px 20px 65px;
     box-sizing: border-box;
     overflow: hidden;
     background-color: #0b0c10;
@@ -2166,20 +2166,19 @@ body {
     font-size: 0.85rem;
     color: #e0e0e0;
     line-height: 1.65;
-    margin-bottom: 20px; /* 문구 간격 축소로 상단 이동 효과 */
+    margin-bottom: 20px;
     word-break: keep-all;
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
 }
 
-/* 항목 슬림화 (컴팩트하게 크기 축소) */
 .congrats-count-box {
     background: rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 18px;
-    padding: 12px 24px; /* 패딩 축소 */
-    margin-bottom: 100px; /* 하단 버튼과의 여백 확보로 버튼을 밑으로 이동 */
+    padding: 12px 24px;
+    margin-bottom: 100px;
     display: inline-flex;
     flex-direction: column;
     align-items: center;
@@ -2201,7 +2200,7 @@ body {
 }
 
 .congrats-label {
-    font-size: 0.78rem; /* 라벨 글자 크기 축소 */
+    font-size: 0.78rem;
     color: #ffccd5;
     letter-spacing: 1px;
     font-weight: 700;
@@ -2215,7 +2214,7 @@ body {
 
 .congrats-number {
     font-family: 'Gowun Batang', serif;
-    font-size: 2.1rem; /* 숫자 크기 축소 (2.5rem -> 2.1rem) */
+    font-size: 2.1rem;
     font-weight: 700;
     color: #ffffff;
     line-height: 1;
@@ -2239,7 +2238,6 @@ body {
     width: 100%;
 }
 
-/* 버튼 위치를 살짝 아래로 내림 */
 .btn-congrats-firework {
     background: linear-gradient(135deg, #ff758f 0%, #ff4d6d 50%, #c9184a 100%);
     border: none;
@@ -2285,6 +2283,83 @@ body {
         transform: scale(1.04);
         box-shadow: 0 0 40px rgba(255, 215, 0, 1), inset 0 0 25px rgba(255, 215, 0, 0.7);
     }
+}
+
+/* SECTION 12: ENDING (마무리 커플 컷 & 명언) */
+.ending-section {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 24px 90px;
+    text-align: center;
+    overflow: hidden;
+    box-sizing: border-box;
+    background-color: #9b814d;
+}
+
+.ending-bg-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.ending-bg-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.ending-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        180deg, 
+        rgba(0, 0, 0, 0) 25%, 
+        rgba(145, 120, 70, 0.75) 65%, 
+        rgba(135, 110, 60, 0.98) 100%
+    );
+    z-index: 2;
+}
+
+.ending-content {
+    position: relative;
+    z-index: 3;
+    color: #ffffff;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.ending-quote {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #ffffff;
+    letter-spacing: -0.2px;
+    word-break: keep-all;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.ending-source {
+    font-family: 'Gowun Batang', serif;
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.88);
+    letter-spacing: -0.2px;
+    font-weight: 400;
 }
 
 /* LIGHTBOX & MAP MODAL */
