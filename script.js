@@ -2034,6 +2034,7 @@ function shareKakao() {
     }
 
     const venueStr = `${dbData.wedding_venue || ''} ${dbData.wedding_venue_detail || ''}`.trim();
+    const venueDat = `${dbData.wedding_datetime || ''}`.trim();
 
     // 3. 로컬 파일(file://) 환경 검증
     if (window.location.protocol === 'file:') {
@@ -2052,7 +2053,7 @@ function shareKakao() {
                 objectType: 'feed',
                 content: {
                     title: `${groom} ♥ ${bride} 결혼합니다`,
-                    description: venueStr ? `예식 장소: ${venueStr}\n소중한 분들을 초대합니다.` : '소중한 분들을 초대합니다.',
+                    description: venueStr ? `예식 장소: ${venueStr}\n예식 날짜: ${venueDat}\n소중한 분들을 초대합니다.` : '소중한 분들을 초대합니다.',
                     imageUrl: heroImg,
                     link: {
                         mobileWebUrl: shareUrl,
