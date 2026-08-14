@@ -2,11 +2,8 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDQCQbrwOX9F_K
 
 const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
-// 카카오 디벨로퍼스에서 발급받은 [JavaScript 키]를 입력해주세요.
+// 카카오 디벨로퍼스에서 발급받은 JavaScript 키를 입력해주세요.
 const KAKAO_JAVASCRIPT_KEY = "45a0a2cc0df0c3e8aac2e81b7082362a";
-
-// 카카오톡 공유 시 연결될 최종 목적지 도메인 고정
-const TARGET_SHARE_DOMAIN = "https://sgcouple.o-r.kr";
 
 // BGM 음원 목록
 const BGM_PLAYLIST = [
@@ -115,23 +112,11 @@ function initViewportHeight() {
     });
 }
 
-// 카카오 SDK 초기화 및 상태 검증
+// 카카오 SDK 초기화
 function initKakaoSDK() {
-    if (!window.Kakao) {
-        console.warn("Kakao SDK가 index.html에 로드되지 않았습니다.");
-        return;
-    }
-
-    if (!window.Kakao.isInitialized()) {
+    if (window.Kakao && !window.Kakao.isInitialized()) {
         if (KAKAO_JAVASCRIPT_KEY && KAKAO_JAVASCRIPT_KEY !== "YOUR_KAKAO_JAVASCRIPT_KEY") {
-            try {
-                window.Kakao.init(KAKAO_JAVASCRIPT_KEY);
-                console.log("Kakao SDK 초기화 성공 여부:", window.Kakao.isInitialized());
-            } catch (err) {
-                console.error("Kakao SDK 초기화 오류:", err);
-            }
-        } else {
-            console.warn("카카오 JavaScript 키가 설정되지 않았습니다.");
+            window.Kakao.init(KAKAO_JAVASCRIPT_KEY);
         }
     }
 }
@@ -2022,49 +2007,52 @@ async function syncCongratsToDB() {
     }
 }
 
-// --- SECTION 13: 청첩장 공유하기 (URL Scheme 우회 방식) ---
+// --- SECTION 13: 청첩장 공유하기 (카카오톡 앱 연동 피드형 메시지) ---
 function shareKakao() {
-    let finalShareUrl = "https://sgcouple.o-r.kr";
-    if (dbData.share_url && typeof dbData.share_url === 'string' && dbData.share_url.startsWith('http')) {
-        finalShareUrl = dbData.share_url.trim();
-    } else if (window.location.protocol.startsWith('http')) {
-        finalShareUrl = window.location.href.split('?')[0].split('#')[0];
-    }
+    const shareUrl = dbData.share_url || window.location.href;
+    const groom = dbData.groom_name || '신랑';
+    const bride = dbData.bride_name || '신부';
+    const heroImg = dbData.hero_img || 'https://sgcouple.o-r.kr/A.jpg';
+    const venueStr = `${dbData.wedding_venue || ''} ${dbData.wedding_venue_detail || ''}`.trim();
 
-    const groom = dbData.groom_name || '건주';
-    const bride = dbData.bride_name || '수아';
-    const shareText = `${groom} ♥ ${bride}의 결혼식에 소중한 분들을 초대합니다.\n\n[모바일 청첩장 보기]\n${finalShareUrl}`;
-
-    // 모바일 기기인 경우 카카오톡 공유 전용 URL Scheme 실행
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-    if (isMobile) {
-        // 카카오톡 내친구/채팅방 선택창을 직접 띄우는 공식 딥링크
-        const kakaoIntentUrl = `kakaolink://send?text=${encodeURIComponent(shareText)}`;
-        
-        // 딥링크 실행 시도 후, 카카오톡이 미설치된 경우 웹 공유창이나 복사로 Fallback
-        window.location.href = kakaoIntentUrl;
-
-        setTimeout(() => {
-            // 카카오톡 앱이 안 열릴 경우 네이티브 공유창 호출
-            if (navigator.share) {
-                navigator.share({
-                    title: `${groom} ♥ ${bride} 모바일 청첩장`,
-                    text: '소중한 분들을 초대합니다.',
-                    url: finalShareUrl
-                }).catch(() => {});
-            } else {
-                copyShareUrl();
-            }
-        }, 1000);
+    // 카카오 SDK가 정상 초기화된 경우 카카오톡 앱 직접 공유
+    if (window.Kakao && window.Kakao.isInitialized()) {
+        window.Kakao.Share.sendDefault({
+            objectType: 'feed',
+            content: {
+                title: `${groom} ♥ ${bride} 결혼합니다`,
+                description: venueStr ? `예식 장소: ${venueStr}\n소중한 분들을 초대합니다.` : '소중한 분들을 초대합니다.',
+                imageUrl: heroImg,
+                link: {
+                    mobileWebUrl: shareUrl,
+                    webUrl: shareUrl
+                }
+            },
+            buttons: [
+                {
+                    title: '모바일 청첩장 보기',
+                    link: {
+                        mobileWebUrl: shareUrl,
+                        webUrl: shareUrl
+                    }
+                }
+            ]
+        });
+    } else if (navigator.share) {
+        // 카카오 키 미등록 시 기본 모바일 공유창 호출
+        navigator.share({
+            title: document.title || '모바일 청첩장',
+            text: `${groom} ♥ ${bride}의 결혼식에 소중한 분들을 초대합니다.`,
+            url: shareUrl
+        }).catch(() => {});
     } else {
-        // PC 환경인 경우 주소 복사 진행
+        // PC 또는 공유 미지원 브라우저인 경우 주소 복사
         copyShareUrl();
     }
 }
 
 function copyShareUrl() {
-    const url = "https://sgcouple.o-r.kr" || window.location.href;
+    const url = dbData.share_url || window.location.href;
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(url).then(() => {
             showToast('청첩장 주소가 복사되었습니다.');
@@ -2075,7 +2063,6 @@ function copyShareUrl() {
         fallbackCopyText(url);
     }
 }
-
 
 // --- ImgBB 업로드 & 썸네일 리스트 ---
 async function uploadGalleryImagesToImgBB(event) {
@@ -2596,7 +2583,7 @@ function applyDataToDOM(data) {
 
     const endingSourceEl = document.getElementById('ending-source-text');
     if (endingSourceEl) {
-        endingSourceEl.innerText = data.ending_quote || "- 영화 '이보다 더 좋을 순 없다' 중";
+        endingSourceEl.innerText = data.ending_source || "- 영화 '이보다 더 좋을 순 없다' 중";
     }
 
     if (data.wedding_datetime) {
