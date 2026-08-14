@@ -204,59 +204,63 @@
         <section class="section story-section">
             <div id="story-hearts-container" class="story-hearts-container"></div>
 
-            <div id="story-cover-view" class="story-view-wrapper">
-                <p class="story-cover-tag reveal">함께 보낸 소중한 날</p>
-                <h3 class="story-cover-dday reveal" id="story-dday-text">+ 0 일</h3>
+            <div id="story-book-flipper" class="story-book-flipper">
+                <!-- 표지 뷰 -->
+                <div id="story-cover-view" class="story-view-wrapper">
+                    <p class="story-cover-tag reveal">함께 보낸 소중한 날</p>
+                    <h3 class="story-cover-dday reveal" id="story-dday-text">+ 0 일</h3>
 
-                <div class="story-cover-img-box reveal">
-                    <img id="story-cover-img-element" src="" alt="연애 스토리 표지 사진" oncontextmenu="return false;" ondragstart="return false;">
-                </div>
-
-                <div class="story-cover-meta-grid reveal">
-                    <div class="story-meta-left">
-                        <span class="meta-label">Collection :</span>
-                        <span class="meta-sub">Ongoing Records</span>
+                    <div class="story-cover-img-box reveal">
+                        <img id="story-cover-img-element" src="" alt="연애 스토리 표지 사진" oncontextmenu="return false;" ondragstart="return false;">
                     </div>
-                    <div class="story-meta-right">
-                        <span class="meta-cursive">Our story</span>
-                    </div>
-                </div>
 
-                <p class="story-cover-subtext reveal" id="story-intro-desc-display">
-                    Milestone Documentation. These moments, carefully documented and lovingly preserved.<br>Relationship Development Timeline.
-                </p>
-
-                <div class="story-cover-action reveal" onclick="startStoryInline()">
-                    <span>이야기 시작하기</span>
-                    <button type="button" class="story-circle-arrow-btn" aria-label="이야기 시작하기">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                    </button>
-                </div>
-            </div>
-
-            <div id="story-inline-view" class="story-view-wrapper" style="display: none;">
-                <div class="story-inline-topbar">
-                    <span class="story-inline-no" onclick="showStoryCover()" title="표지로 돌아가기">№·</span>
-                    <span class="story-inline-page" id="story-page-indicator">01 / 05</span>
-                </div>
-
-                <div class="story-card-viewport">
-                    <div class="story-page-card" id="story-page-card">
-                        <div class="story-inline-img-box">
-                            <img id="story-display-img" src="" alt="스토리 사진" oncontextmenu="return false;" ondragstart="return false;">
+                    <div class="story-cover-meta-grid reveal">
+                        <div class="story-meta-left">
+                            <span class="meta-label">Collection :</span>
+                            <span class="meta-sub">Ongoing Records</span>
                         </div>
-                        <h4 class="story-inline-title" id="story-display-title"></h4>
-                        <p class="story-inline-desc" id="story-display-desc"></p>
+                        <div class="story-meta-right">
+                            <span class="meta-cursive">Our story</span>
+                        </div>
+                    </div>
+
+                    <p class="story-cover-subtext reveal" id="story-intro-desc-display">
+                        Milestone Documentation. These moments, carefully documented and lovingly preserved.<br>Relationship Development Timeline.
+                    </p>
+
+                    <div class="story-cover-action reveal" onclick="startStoryInline()">
+                        <span>이야기 시작하기</span>
+                        <button type="button" class="story-circle-arrow-btn" aria-label="이야기 시작하기">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                        </button>
                     </div>
                 </div>
 
-                <div class="story-inline-nav-bottom">
-                    <button type="button" class="story-arrow-btn" id="story-prev-btn" onclick="prevStoryPage()" aria-label="이전 페이지">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                    </button>
-                    <button type="button" class="story-arrow-btn" id="story-next-btn" onclick="nextStoryPage()" aria-label="다음 페이지">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </button>
+                <!-- 내부 페이지 뷰 -->
+                <div id="story-inline-view" class="story-view-wrapper" style="display: none;">
+                    <div class="story-inline-topbar">
+                        <span class="story-inline-no" onclick="showStoryCover()" title="표지로 돌아가기">№·</span>
+                        <span class="story-inline-page" id="story-page-indicator">01 / 05</span>
+                    </div>
+
+                    <div class="story-card-viewport">
+                        <div class="story-page-card" id="story-page-card">
+                            <div class="story-inline-img-box">
+                                <img id="story-display-img" src="" alt="스토리 사진" oncontextmenu="return false;" ondragstart="return false;">
+                            </div>
+                            <h4 class="story-inline-title" id="story-display-title"></h4>
+                            <p class="story-inline-desc" id="story-display-desc"></p>
+                        </div>
+                    </div>
+
+                    <div class="story-inline-nav-bottom">
+                        <button type="button" class="story-arrow-btn" id="story-prev-btn" onclick="prevStoryPage()" aria-label="이전 페이지">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </button>
+                        <button type="button" class="story-arrow-btn" id="story-next-btn" onclick="nextStoryPage()" aria-label="다음 페이지">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
