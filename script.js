@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }, 5000);
 
-    const minIntroDelay = new Promise(resolve => setTimeout(resolve, 3000));
+    const minIntroDelay = new Promise(resolve => setTimeout(resolve, 2000));
 
     try {
         // 1. DB 데이터 가져오기
