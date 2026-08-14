@@ -2032,9 +2032,39 @@ function shareKakao() {
     if (!heroImg || !heroImg.startsWith('http')) {
         heroImg = 'https://sgcouple.o-r.kr/A.jpg';
     }
+// --- 날짜 포맷팅 헬퍼 함수 ---
+function formatWeddingDatetime(datetimeStr) {
+    if (!datetimeStr) return '';
+    
+    const date = new Date(datetimeStr);
+    if (isNaN(date.getTime())) return datetimeStr; // 변환 실패 시 원본 반환
 
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    
+    // 요일 구하기
+    const daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
+    const dayOfWeek = daysOfWeek[date.getDay()];
+
+    // 오전/오후 및 시간 구하기
+    let hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? '오후' : '오전';
+    
+    hours = hours % 12;
+    hours = hours ? hours : 12; // 0시는 12시로 표시
+
+    // 분이 0분이 아니면 'X분' 추가, 0분이면 생략
+    const minuteStr = minutes > 0 ? `${minutes}분` : '';
+
+    return `${year}년 ${month}월 ${day}일 ${dayOfWeek}요일 ${ampm} ${hours}시 ${minuteStr}`.trim();
+}
+
+
+    
     const venueStr = `${dbData.wedding_venue || ''} ${dbData.wedding_venue_detail || ''}`.trim();
-    const venueDat = `${dbData.wedding_datetime || ''}`.trim();
+    const venueDat = formatWeddingDatetime(dbData.wedding_datetime);
 
     // 3. 로컬 파일(file://) 환경 검증
     if (window.location.protocol === 'file:') {
