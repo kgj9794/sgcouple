@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const heroImgUrl = dbData.hero_img || '';
         const heroImgPromise = waitForHeroImageLoad(heroImgUrl);
 
-        // 3. 메인 사진 로딩 + 최소 인트로 노출 시간(3초) + 타이핑 애니메이션 완료 동시 대기
+        // 3. 메인 사진 로딩 + 최소 인트로 노출 시간 + 타이핑 애니메이션 완료 동시 대기
         await Promise.all([heroImgPromise, minIntroDelay, typingPromise]);
 
         isInitialLoaded = true;
@@ -342,9 +342,9 @@ function initBgm() {
             if (isBgmPlaying) bgmAudio.play().catch(() => {});
         }
     };
+}
 
-    startAudio();
-
+function addUnlockListeners() {
     UNLOCK_EVENTS.forEach(evt => {
         window.addEventListener(evt, unlockInteraction, { passive: true });
     });
@@ -362,9 +362,6 @@ function unlockInteraction(e) {
         return;
     }
     startAudio();
-    if (isBgmPlaying) {
-        removeUnlockListeners();
-    }
 }
 
 function startAudio() {
@@ -373,12 +370,15 @@ function startAudio() {
         bgmAudio.play().then(() => {
             isBgmPlaying = true;
             updateBgmBtnUI(true);
+            removeUnlockListeners();
             
             if (!hasShownInitialBgmToast) {
                 hasShownInitialBgmToast = true;
                 showToast('배경음악이 재생됩니다.');
             }
-        }).catch(() => {});
+        }).catch(() => {
+            // 브라우저 자동재생 제한 정책으로 인해 시작하지 못한 경우 터치 이벤트 대기
+        });
     }
 }
 
@@ -409,6 +409,28 @@ function updateBgmBtnUI(isPlaying) {
     const bgmBtn = document.getElementById('bgm-btn');
     if (bgmBtn) {
         bgmBtn.innerText = isPlaying ? '🎵' : '🔇';
+    }
+}
+
+// --- 인트로 종료 및 메인 화면 전환 시점 BGM 재생 ---
+function hideIntroOverlay() {
+    const introOverlay = document.getElementById('intro-overlay');
+    if (introOverlay && !introOverlay.classList.contains('zoom-into-heart')) {
+        introOverlay.classList.add('zoom-into-heart');
+        
+        // 인트로가 끝나고 메인으로 진입할 때 BGM 재생 시작
+        startAudio();
+        // 브라우저 정책으로 자동 재생 차단 시 첫 인터랙션으로 해제되도록 리스너 연결
+        addUnlockListeners();
+
+        setTimeout(() => {
+            stopFireworks();
+            document.body.classList.remove('no-scroll');
+        }, 900);
+    } else {
+        document.body.classList.remove('no-scroll');
+        startAudio();
+        addUnlockListeners();
     }
 }
 
@@ -1385,13 +1407,13 @@ function resetRsvpStatusButtons() {
     const noBtn = document.getElementById('rsvp-status-no');
     if (yesBtn) {
         yesBtn.classList.remove('active');
-        const yesCheck = yesBtn.querySelector('.check-circle');
-        if (yesCheck) yesCheck.innerText = '';
+        const check = yesBtn.querySelector('.check-circle');
+        if (check) check.innerText = '';
     }
     if (noBtn) {
         noBtn.classList.remove('active');
-        const noCheck = noBtn.querySelector('.check-circle');
-        if (noCheck) noCheck.innerText = '';
+        const check = noBtn.querySelector('.check-circle');
+        if (check) check.innerText = '';
     }
 }
 
@@ -2021,58 +2043,49 @@ async function syncCongratsToDB() {
 
 // --- SECTION 13: 청첩장 공유하기 (카카오톡 앱 연동 & 디버깅 강화) ---
 function shareKakao() {
-    // 1. 현재 접속된 정확한 웹 주소 추출
     const currentFullUrl = window.location.href;
     const shareUrl = dbData.share_url && dbData.share_url.startsWith('http') ? dbData.share_url : currentFullUrl;
     const groom = dbData.groom_name || '신랑';
     const bride = dbData.bride_name || '신부';
     
-    // 2. 카카오톡 메시지에 노출할 이미지 (반드시 공개 HTTPS 주소)
     let heroImg = dbData.hero_img;
     if (!heroImg || !heroImg.startsWith('http')) {
         heroImg = 'https://sgcouple.o-r.kr/A.jpg';
     }
-// --- 날짜 포맷팅 헬퍼 함수 ---
-function formatWeddingDatetime(datetimeStr) {
-    if (!datetimeStr) return '';
-    
-    const date = new Date(datetimeStr);
-    if (isNaN(date.getTime())) return datetimeStr; // 변환 실패 시 원본 반환
 
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    
-    // 요일 구하기
-    const daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
-    const dayOfWeek = daysOfWeek[date.getDay()];
+    function formatWeddingDatetime(datetimeStr) {
+        if (!datetimeStr) return '';
+        
+        const date = new Date(datetimeStr);
+        if (isNaN(date.getTime())) return datetimeStr;
 
-    // 오전/오후 및 시간 구하기
-    let hours = date.getHours();
-    const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? '오후' : '오전';
-    
-    hours = hours % 12;
-    hours = hours ? hours : 12; // 0시는 12시로 표시
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        
+        const daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
+        const dayOfWeek = daysOfWeek[date.getDay()];
 
-    // 분이 0분이 아니면 'X분' 추가, 0분이면 생략
-    const minuteStr = minutes > 0 ? `${minutes}분` : '';
+        let hours = date.getHours();
+        const minutes = date.getMinutes();
+        const ampm = hours >= 12 ? '오후' : '오전';
+        
+        hours = hours % 12;
+        hours = hours ? hours : 12;
 
-    return `${month}월 ${day}일 ${dayOfWeek}요일 ${ampm} ${hours}시 ${minuteStr}`.trim();
-}
+        const minuteStr = minutes > 0 ? `${minutes}분` : '';
 
-
+        return `${month}월 ${day}일 ${dayOfWeek}요일 ${ampm} ${hours}시 ${minuteStr}`.trim();
+    }
     
     const venueStr = `${dbData.wedding_venue || ''} ${dbData.wedding_venue_detail || ''}`.trim();
     const venueDat = formatWeddingDatetime(dbData.wedding_datetime);
 
-    // 3. 로컬 파일(file://) 환경 검증
     if (window.location.protocol === 'file:') {
         alert("로컬 파일(file://) 환경에서는 카카오톡 API가 작동하지 않습니다.\n웹 서버 환경(Live Server 또는 웹 호스팅 도메인)에서 테스트해주세요.");
         return;
     }
 
-    // 4. SDK 초기화 상태 재확인
     if (window.Kakao && !window.Kakao.isInitialized()) {
         initKakaoSDK();
     }
@@ -2104,7 +2117,6 @@ function formatWeddingDatetime(datetimeStr) {
             console.error("카카오톡 공유 실행 오류:", err);
             showToast("카카오톡 공유 중 오류가 발생했습니다. (F12 콘솔 확인)");
             
-            // 오류 시 fallback: 웹 기본 공유창 호출
             if (navigator.share) {
                 navigator.share({
                     title: `${groom} ♥ ${bride} 모바일 청첩장`,
@@ -2487,19 +2499,6 @@ function initAdminLongPress() {
     adminBtn.addEventListener('touchcancel', cancelPress);
 }
 
-function hideIntroOverlay() {
-    const introOverlay = document.getElementById('intro-overlay');
-    if (introOverlay && !introOverlay.classList.contains('zoom-into-heart')) {
-        introOverlay.classList.add('zoom-into-heart');
-        setTimeout(() => {
-            stopFireworks();
-            document.body.classList.remove('no-scroll');
-        }, 900);
-    } else {
-        document.body.classList.remove('no-scroll');
-    }
-}
-
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
@@ -2647,7 +2646,6 @@ function applyDataToDOM(data) {
         congratsNumEl.innerText = congratsCount.toLocaleString();
     }
 
-    // 섹션 12: 마무리 커플 컷 & 명언 적용
     if (data.ending_img) {
         const endingImgEl = document.getElementById('ending-img-element');
         if (endingImgEl) endingImgEl.src = data.ending_img;
