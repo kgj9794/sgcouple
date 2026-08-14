@@ -109,6 +109,49 @@ function initViewportHeight() {
     });
 }
 
+// 메인 배경 사진(섹션 1) 로딩 완료 감지 Promise
+function waitForHeroImageLoad(url) {
+    return new Promise((resolve) => {
+        if (!url) {
+            resolve();
+            return;
+        }
+
+        const heroImgEl = document.getElementById('hero-img-element');
+        if (!heroImgEl) {
+            const img = new Image();
+            img.src = url;
+            img.onload = () => resolve();
+            return;
+        }
+
+        if (heroImgEl.src !== url) {
+            heroImgEl.src = url;
+        }
+
+        if (heroImgEl.complete && heroImgEl.naturalWidth > 0) {
+            resolve();
+            return;
+        }
+
+        const onLoad = () => {
+            heroImgEl.removeEventListener('load', onLoad);
+            heroImgEl.removeEventListener('error', onError);
+            resolve();
+        };
+
+        const onError = () => {
+            heroImgEl.removeEventListener('load', onLoad);
+            heroImgEl.removeEventListener('error', onError);
+            console.error("메인 배경 이미지 로드 실패");
+            // 에러 발생 시 7초 타임아웃에 의해 새로고침되도록 대기
+        };
+
+        heroImgEl.addEventListener('load', onLoad);
+        heroImgEl.addEventListener('error', onError);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('contextmenu', (e) => e.preventDefault());
     document.addEventListener('dragstart', (e) => e.preventDefault());
@@ -123,18 +166,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     initMapPinchZoom();
     initCongratsFireworks();
 
+    // 7초 타임아웃: 7초 내에 메인 사진을 포함한 초기 로딩이 완료되지 않으면 자동 새로고침
+    let isInitialLoaded = false;
+    const heroLoadTimeoutTimer = setTimeout(() => {
+        if (!isInitialLoaded) {
+            console.warn("메인 배경 사진을 7초 이내에 불러오지 못하여 새로고침합니다.");
+            window.location.reload();
+        }
+    }, 7000);
+
     const minIntroDelay = new Promise(resolve => setTimeout(resolve, 3000));
-    const maxSafetyTimeout = new Promise(resolve => setTimeout(resolve, 6000)); // 최대 6초 안전 타임아웃
 
     try {
-        await Promise.race([
-            Promise.all([fetchDBData(), minIntroDelay, typingPromise]),
-            maxSafetyTimeout
-        ]);
-    } catch (err) {
-        console.error("초기 데이터 로딩 중 오류 발생:", err);
-    } finally {
+        // 1. DB 데이터 가져오기
+        await fetchDBData();
+
+        // 2. 섹션 1 메인 사진이 완전히 로드될 때까지 대기
+        const heroImgUrl = dbData.hero_img || '';
+        const heroImgPromise = waitForHeroImageLoad(heroImgUrl);
+
+        // 3. 메인 사진 로딩 + 최소 인트로 노출 시간(3초) + 타이핑 애니메이션 완료 동시 대기
+        await Promise.all([heroImgPromise, minIntroDelay, typingPromise]);
+
+        isInitialLoaded = true;
+        clearTimeout(heroLoadTimeoutTimer);
         hideIntroOverlay();
+    } catch (err) {
+        console.error("초기 데이터 및 이미지 로딩 중 오류 발생:", err);
     }
 
     setTimeout(() => {
@@ -1441,11 +1499,9 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
-// --- SECTION 11: 마음껏 축하해주기 (1회 터치 1발 단일 발사 + 배경 FadeIn/Out + 은은한 숫자 상승 모션) ---
-
+// --- SECTION 11: 마음껏 축하해주기 ---
 const FIREWORK_TYPES = ['peony', 'chrysanthemum', 'willow', 'palm', 'crossette', 'ring', 'katamono'];
 
-// 배경 사진 변경 시 FadeIn / FadeOut 트랜지션 처리
 function updateCongratsBgImage(isInitial = false) {
     const sec = document.getElementById('congrats-section');
     if (!sec) return;
@@ -1813,25 +1869,20 @@ function launchCongratsFirework(isUserClick = false) {
     congratsRockets.push(new RocketConstructor(startX, startY, targetX, targetY, type));
 }
 
-// 축하 버튼 클릭 핸들러 (한 번 터치 시 딱 1발의 폭죽만 발사)
 function handleCongratsClick() {
-    // 1. 화면 꽉 차게 섹션으로 스무스 이동
     const section = document.getElementById('congrats-section');
     if (section) {
         section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // 2. 폭죽 단 1발만 포물선 발사
     launchCongratsFirework(true);
 
-    // 3. 로컬 카운트 즉시 반영
     congratsCount++;
     pendingCongratsIncrement++;
 
     const numEl = document.getElementById('congrats-count-num');
     const boxEl = document.getElementById('congrats-count-box');
 
-    // 부드럽고 우아한 숫자 상승 모션 (Smooth Scale & Subtle Lift)
     if (numEl) {
         numEl.innerText = congratsCount.toLocaleString();
 
@@ -1846,7 +1897,6 @@ function handleCongratsClick() {
         }, 220);
     }
 
-    // 4. 박스 전체 부드러운 타격감 미세 흔들림
     if (boxEl) {
         boxEl.classList.remove('hit-shake');
         void boxEl.offsetWidth;
@@ -1854,7 +1904,6 @@ function handleCongratsClick() {
         setTimeout(() => boxEl.classList.remove('hit-shake'), 260);
     }
 
-    // 5. N00번째 (100, 200, 300...) 달성 시 진동, 섹션 11 주변 전체 글로우 하이라이트 & 야경 배경 FadeIn/FadeOut 전환
     if (congratsCount > 0 && congratsCount % 100 === 0) {
         if (navigator.vibrate) {
             navigator.vibrate([100, 50, 100, 50, 200]);
@@ -1881,14 +1930,12 @@ function handleCongratsClick() {
         showToast(`🎉 축하 폭죽 ${congratsCount}번째!`);
     }
 
-    // 6. DB 서버 동기화 디바운싱 (0.6초 후 최종 전송)
     if (congratsSyncDebounceTimer) {
         clearTimeout(congratsSyncDebounceTimer);
     }
     congratsSyncDebounceTimer = setTimeout(syncCongratsToDB, 600);
 }
 
-// 누적된 클릭 수를 DB에 한 번에 연동하는 함수
 async function syncCongratsToDB() {
     if (pendingCongratsIncrement <= 0) return;
 
@@ -1917,7 +1964,7 @@ async function syncCongratsToDB() {
     }
 }
 
-// --- SECTION 13: 청첩장 공유하기 (카카오톡 전하기 & 주소 복사하기) ---
+// --- SECTION 13: 청첩장 공유하기 ---
 function shareKakao() {
     const url = dbData.share_url || window.location.href;
     if (navigator.share) {
@@ -2296,7 +2343,7 @@ function hideIntroOverlay() {
         introOverlay.classList.add('zoom-into-heart');
         setTimeout(() => {
             stopFireworks();
-            document.body.classList.remove('no-scroll'); // 인트로 종료 시 스크롤 락 해제
+            document.body.classList.remove('no-scroll');
         }, 900);
     } else {
         document.body.classList.remove('no-scroll');
@@ -2373,7 +2420,7 @@ function handleBackdropClick(event) {
 
 async function fetchDBData() {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5초 타임아웃 제한
+    const timeoutId = setTimeout(() => controller.abort(), 6500);
 
     try {
         const res = await fetch(`${APPS_SCRIPT_URL}?action=getData`, { signal: controller.signal });
@@ -2387,6 +2434,7 @@ async function fetchDBData() {
     } catch (err) {
         clearTimeout(timeoutId);
         console.error("DB 데이터 연동 실패:", err);
+        throw err;
     }
 }
 
