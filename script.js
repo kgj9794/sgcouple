@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.warn("메인 배경 사진을 7초 이내에 불러오지 못하여 새로고침합니다.");
             window.location.reload();
         }
-    }, 7000);
+    }, 5000);
 
     const minIntroDelay = new Promise(resolve => setTimeout(resolve, 3000));
 
