@@ -2058,7 +2058,7 @@ function formatWeddingDatetime(datetimeStr) {
     // 분이 0분이 아니면 'X분' 추가, 0분이면 생략
     const minuteStr = minutes > 0 ? `${minutes}분` : '';
 
-    return `${year}년 ${month}월 ${day}일 ${dayOfWeek}요일 ${ampm} ${hours}시 ${minuteStr}`.trim();
+    return `${month}월 ${day}일 ${dayOfWeek}요일 ${ampm} ${hours}시 ${minuteStr}`.trim();
 }
 
 
@@ -2083,7 +2083,7 @@ function formatWeddingDatetime(datetimeStr) {
                 objectType: 'feed',
                 content: {
                     title: `${groom} ♥ ${bride} 결혼합니다`,
-                    description: venueStr ? `예식 장소: ${venueStr}\n예식 날짜: ${venueDat}\n소중한 분들을 초대합니다.` : '소중한 분들을 초대합니다.',
+                    description: venueStr ? `장소: ${venueStr}\n날짜: ${venueDat}\n소중한 분들을 초대합니다.` : '소중한 분들을 초대합니다.',
                     imageUrl: heroImg,
                     link: {
                         mobileWebUrl: shareUrl,
