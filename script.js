@@ -144,7 +144,6 @@ function waitForHeroImageLoad(url) {
             heroImgEl.removeEventListener('load', onLoad);
             heroImgEl.removeEventListener('error', onError);
             console.error("메인 배경 이미지 로드 실패");
-            // 에러 발생 시 7초 타임아웃에 의해 새로고침되도록 대기
         };
 
         heroImgEl.addEventListener('load', onLoad);
@@ -411,37 +410,74 @@ function preloadStoryImages(data) {
     });
 }
 
+// 책 넘김 3D 애니메이션 적용: 이야기 시작하기
 function startStoryInline() {
     const coverView = document.getElementById('story-cover-view');
     const inlineView = document.getElementById('story-inline-view');
     const storySection = document.querySelector('.story-section');
 
-    if (coverView && inlineView) {
+    if (!coverView || !inlineView) return;
+
+    // 기존 애니메이션 클래스 초기화
+    coverView.classList.remove('book-flip-out', 'book-flip-in', 'book-flip-back-out', 'book-flip-back-in');
+    inlineView.classList.remove('book-flip-out', 'book-flip-in', 'book-flip-back-out', 'book-flip-back-in');
+
+    // 1단계: 표지가 3D로 넘어가며 사라짐
+    coverView.classList.add('book-flip-out');
+
+    setTimeout(() => {
         coverView.style.display = 'none';
+        coverView.classList.remove('book-flip-out');
+
+        // 2단계: 내부 페이지가 3D로 펼쳐지며 나타남
         inlineView.style.display = 'flex';
+        inlineView.classList.add('book-flip-in');
+
         currentStoryPage = 1;
         renderStoryPage(currentStoryPage);
 
         if (storySection) {
             storySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-    }
+
+        setTimeout(() => {
+            inlineView.classList.remove('book-flip-in');
+        }, 450);
+    }, 380);
 }
 
+// 책 넘김 3D 애니메이션 적용: 표지로 돌아가기
 function showStoryCover() {
     const coverView = document.getElementById('story-cover-view');
     const inlineView = document.getElementById('story-inline-view');
     const storySection = document.querySelector('.story-section');
     const storyScrollIndicator = document.querySelector('.story-scroll-indicator');
 
+    if (!coverView || !inlineView) return;
+
     if (storySection) storySection.classList.remove('pink-bg');
     if (storyScrollIndicator) storyScrollIndicator.classList.remove('show');
     stopFloatingHearts();
 
-    if (coverView && inlineView) {
+    // 기존 애니메이션 클래스 초기화
+    coverView.classList.remove('book-flip-out', 'book-flip-in', 'book-flip-back-out', 'book-flip-back-in');
+    inlineView.classList.remove('book-flip-out', 'book-flip-in', 'book-flip-back-out', 'book-flip-back-in');
+
+    // 1단계: 내부 페이지가 반대로 넘어가며 사라짐
+    inlineView.classList.add('book-flip-back-out');
+
+    setTimeout(() => {
         inlineView.style.display = 'none';
+        inlineView.classList.remove('book-flip-back-out');
+
+        // 2단계: 표지가 반대로 펼쳐지며 나타남
         coverView.style.display = 'flex';
-    }
+        coverView.classList.add('book-flip-back-in');
+
+        setTimeout(() => {
+            coverView.classList.remove('book-flip-back-in');
+        }, 450);
+    }, 380);
 }
 
 function renderStoryPage(page) {
@@ -2839,7 +2875,6 @@ function openAdminModalValues() {
     setVal('input-groom-father-tel', normalizePhoneNumber(dbData.groom_father_tel));
     setVal('input-groom-mother-name', dbData.groom_mother_name);
     setVal('input-groom-mother-tel', normalizePhoneNumber(dbData.groom_mother_tel));
-
     setVal('input-bride-father-name', dbData.bride_father_name);
     setVal('input-bride-father-tel', normalizePhoneNumber(dbData.bride_father_tel));
     setVal('input-bride-mother-name', dbData.bride_mother_name);
