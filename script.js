@@ -2022,9 +2022,8 @@ async function syncCongratsToDB() {
     }
 }
 
-// --- SECTION 13: 청첩장 공유하기 (안전성 및 반응성 최적화 버전) ---
+// --- SECTION 13: 청첩장 공유하기 (URL Scheme 우회 방식) ---
 function shareKakao() {
-    // 1. 도메인 지정: 지정 도메인(https://sgcouple.o-r.kr)을 우선 사용하되, 없으면 현재 주소 사용
     let finalShareUrl = "https://sgcouple.o-r.kr";
     if (dbData.share_url && typeof dbData.share_url === 'string' && dbData.share_url.startsWith('http')) {
         finalShareUrl = dbData.share_url.trim();
@@ -2034,58 +2033,20 @@ function shareKakao() {
 
     const groom = dbData.groom_name || '건주';
     const bride = dbData.bride_name || '수아';
-    
-    // 2. 카카오톡 메시지에 노출할 이미지 (반드시 공개 HTTPS 주소)
-    let heroImg = dbData.hero_img;
-    if (!heroImg || !heroImg.startsWith('http')) {
-        heroImg = 'https://sgcouple.o-r.kr/A.jpg';
-    }
+    const shareText = `${groom} ♥ ${bride}의 결혼식에 소중한 분들을 초대합니다.\n\n[모바일 청첩장 보기]\n${finalShareUrl}`;
 
+    // 모바일 기기인 경우 카카오톡 공유 전용 URL Scheme 실행
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-    const venueStr = `${dbData.wedding_venue || ''} ${dbData.wedding_venue_detail || ''}`.trim();
+    if (isMobile) {
+        // 카카오톡 내친구/채팅방 선택창을 직접 띄우는 공식 딥링크
+        const kakaoIntentUrl = `kakaolink://send?text=${encodeURIComponent(shareText)}`;
+        
+        // 딥링크 실행 시도 후, 카카오톡이 미설치된 경우 웹 공유창이나 복사로 Fallback
+        window.location.href = kakaoIntentUrl;
 
-    // 3. 로컬 파일(file://) 환경 검증
-    if (window.location.protocol === 'file:') {
-        alert("로컬 파일(file://) 환경에서는 카카오톡 API가 작동하지 않습니다.\nGitHub Pages 등 웹 서버 환경에서 열어주세요.");
-        return;
-    }
-
-    // 4. SDK 초기화 상태 재확인
-    if (window.Kakao && !window.Kakao.isInitialized()) {
-        initKakaoSDK();
-    }
-
-    if (window.Kakao && window.Kakao.isInitialized()) {
-        try {
-            console.log("카카오 공유 전송 주소:", finalShareUrl);
-
-            window.Kakao.Share.sendDefault({
-                objectType: 'feed',
-                content: {
-                    title: `${groom} ♥ ${bride} 결혼합니다`,
-                    description: venueStr ? `예식 장소: ${venueStr}\n소중한 분들을 초대합니다.` : '소중한 분들을 초대합니다.',
-                    imageUrl: heroImg,
-                    link: {
-                        mobileWebUrl: finalShareUrl,
-                        webUrl: finalShareUrl,
-                        androidExecutionParams: 'key1=value1',
-                        iosExecutionParams: 'key1=value1'
-                    }
-                },
-                buttons: [
-                    {
-                        title: '모바일 청첩장 보기',
-                        link: {
-                            mobileWebUrl: finalShareUrl,
-                            webUrl: finalShareUrl,
-                            androidExecutionParams: 'key1=value1',
-                            iosExecutionParams: 'key1=value1'
-                        }
-                    }
-                ]
-            });
-        } catch (err) {
-            console.error("카카오톡 공유 실행 오류:", err);
+        setTimeout(() => {
+            // 카카오톡 앱이 안 열릴 경우 네이티브 공유창 호출
             if (navigator.share) {
                 navigator.share({
                     title: `${groom} ♥ ${bride} 모바일 청첩장`,
@@ -2095,23 +2056,15 @@ function shareKakao() {
             } else {
                 copyShareUrl();
             }
-        }
+        }, 1000);
     } else {
-        console.warn("Kakao SDK 미초기화. 기본 웹 공유 또는 링크 복사로 진행합니다.");
-        if (navigator.share) {
-            navigator.share({
-                title: `${groom} ♥ ${bride} 모바일 청첩장`,
-                text: '소중한 분들을 초대합니다.',
-                url: finalShareUrl
-            }).catch(() => {});
-        } else {
-            copyShareUrl();
-        }
+        // PC 환경인 경우 주소 복사 진행
+        copyShareUrl();
     }
 }
 
 function copyShareUrl() {
-    const url = TARGET_SHARE_DOMAIN || window.location.href;
+    const url = "https://sgcouple.o-r.kr" || window.location.href;
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(url).then(() => {
             showToast('청첩장 주소가 복사되었습니다.');
@@ -2122,6 +2075,7 @@ function copyShareUrl() {
         fallbackCopyText(url);
     }
 }
+
 
 // --- ImgBB 업로드 & 썸네일 리스트 ---
 async function uploadGalleryImagesToImgBB(event) {
