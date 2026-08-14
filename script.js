@@ -2,6 +2,9 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDQCQbrwOX9F_K
 
 const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
+// 카카오 디벨로퍼스에서 발급받은 JavaScript 키를 입력해주세요.
+const KAKAO_JAVASCRIPT_KEY = "45a0a2cc0df0c3e8aac2e81b7082362a";
+
 // BGM 음원 목록
 const BGM_PLAYLIST = [
     "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/%E1%84%8B%E1%85%A6%E1%84%8B%E1%85%AE%E1%84%85%E1%85%A6%E1%86%AF.mp3",
@@ -109,6 +112,15 @@ function initViewportHeight() {
     });
 }
 
+// 카카오 SDK 초기화
+function initKakaoSDK() {
+    if (window.Kakao && !window.Kakao.isInitialized()) {
+        if (KAKAO_JAVASCRIPT_KEY && KAKAO_JAVASCRIPT_KEY !== "YOUR_KAKAO_JAVASCRIPT_KEY") {
+            window.Kakao.init(KAKAO_JAVASCRIPT_KEY);
+        }
+    }
+}
+
 // 메인 배경 사진(섹션 1) 로딩 완료 감지 Promise
 function waitForHeroImageLoad(url) {
     return new Promise((resolve) => {
@@ -156,6 +168,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('dragstart', (e) => e.preventDefault());
 
     initViewportHeight();
+    initKakaoSDK();
     initBgm();
     initFireworks();
     const typingPromise = startTypingAnimation();
@@ -418,18 +431,15 @@ function startStoryInline() {
 
     if (!coverView || !inlineView) return;
 
-    // 기존 애니메이션 클래스 초기화
     coverView.classList.remove('book-flip-out', 'book-flip-in', 'book-flip-back-out', 'book-flip-back-in');
     inlineView.classList.remove('book-flip-out', 'book-flip-in', 'book-flip-back-out', 'book-flip-back-in');
 
-    // 1단계: 표지가 3D로 넘어가며 사라짐
     coverView.classList.add('book-flip-out');
 
     setTimeout(() => {
         coverView.style.display = 'none';
         coverView.classList.remove('book-flip-out');
 
-        // 2단계: 내부 페이지가 3D로 펼쳐지며 나타남
         inlineView.style.display = 'flex';
         inlineView.classList.add('book-flip-in');
 
@@ -459,18 +469,15 @@ function showStoryCover() {
     if (storyScrollIndicator) storyScrollIndicator.classList.remove('show');
     stopFloatingHearts();
 
-    // 기존 애니메이션 클래스 초기화
     coverView.classList.remove('book-flip-out', 'book-flip-in', 'book-flip-back-out', 'book-flip-back-in');
     inlineView.classList.remove('book-flip-out', 'book-flip-in', 'book-flip-back-out', 'book-flip-back-in');
 
-    // 1단계: 내부 페이지가 반대로 넘어가며 사라짐
     inlineView.classList.add('book-flip-back-out');
 
     setTimeout(() => {
         inlineView.style.display = 'none';
         inlineView.classList.remove('book-flip-back-out');
 
-        // 2단계: 표지가 반대로 펼쳐지며 나타남
         coverView.style.display = 'flex';
         coverView.classList.add('book-flip-back-in');
 
@@ -2000,16 +2007,46 @@ async function syncCongratsToDB() {
     }
 }
 
-// --- SECTION 13: 청첩장 공유하기 ---
+// --- SECTION 13: 청첩장 공유하기 (카카오톡 앱 연동 피드형 메시지) ---
 function shareKakao() {
-    const url = dbData.share_url || window.location.href;
-    if (navigator.share) {
+    const shareUrl = dbData.share_url || window.location.href;
+    const groom = dbData.groom_name || '신랑';
+    const bride = dbData.bride_name || '신부';
+    const heroImg = dbData.hero_img || 'https://sgcouple.o-r.kr/A.jpg';
+    const venueStr = `${dbData.wedding_venue || ''} ${dbData.wedding_venue_detail || ''}`.trim();
+
+    // 카카오 SDK가 정상 초기화된 경우 카카오톡 앱 직접 공유
+    if (window.Kakao && window.Kakao.isInitialized()) {
+        window.Kakao.Share.sendDefault({
+            objectType: 'feed',
+            content: {
+                title: `${groom} ♥ ${bride} 결혼합니다`,
+                description: venueStr ? `예식 장소: ${venueStr}\n소중한 분들을 초대합니다.` : '소중한 분들을 초대합니다.',
+                imageUrl: heroImg,
+                link: {
+                    mobileWebUrl: shareUrl,
+                    webUrl: shareUrl
+                }
+            },
+            buttons: [
+                {
+                    title: '모바일 청첩장 보기',
+                    link: {
+                        mobileWebUrl: shareUrl,
+                        webUrl: shareUrl
+                    }
+                }
+            ]
+        });
+    } else if (navigator.share) {
+        // 카카오 키 미등록 시 기본 모바일 공유창 호출
         navigator.share({
             title: document.title || '모바일 청첩장',
-            text: '소중한 분들을 초대합니다.',
-            url: url
+            text: `${groom} ♥ ${bride}의 결혼식에 소중한 분들을 초대합니다.`,
+            url: shareUrl
         }).catch(() => {});
     } else {
+        // PC 또는 공유 미지원 브라우저인 경우 주소 복사
         copyShareUrl();
     }
 }
