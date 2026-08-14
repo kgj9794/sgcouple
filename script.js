@@ -2022,12 +2022,14 @@ async function syncCongratsToDB() {
     }
 }
 
-// --- SECTION 13: 청첩장 공유하기 (sgcouple.o-r.kr 도메인 직접 연결) ---
+// --- SECTION 13: 청첩장 공유하기 (안전성 및 반응성 최적화 버전) ---
 function shareKakao() {
-    // 1. 도메인 지정: 지정 도메인(https://sgcouple.o-r.kr)을 우선 사용
-    let finalShareUrl = TARGET_SHARE_DOMAIN;
+    // 1. 도메인 지정: 지정 도메인(https://sgcouple.o-r.kr)을 우선 사용하되, 없으면 현재 주소 사용
+    let finalShareUrl = "https://sgcouple.o-r.kr";
     if (dbData.share_url && typeof dbData.share_url === 'string' && dbData.share_url.startsWith('http')) {
         finalShareUrl = dbData.share_url.trim();
+    } else if (window.location.protocol.startsWith('http')) {
+        finalShareUrl = window.location.href.split('?')[0].split('#')[0];
     }
 
     const groom = dbData.groom_name || '건주';
@@ -2038,6 +2040,7 @@ function shareKakao() {
     if (!heroImg || !heroImg.startsWith('http')) {
         heroImg = 'https://sgcouple.o-r.kr/A.jpg';
     }
+
 
     const venueStr = `${dbData.wedding_venue || ''} ${dbData.wedding_venue_detail || ''}`.trim();
 
