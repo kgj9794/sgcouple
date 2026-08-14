@@ -2083,7 +2083,7 @@ function formatWeddingDatetime(datetimeStr) {
                 objectType: 'feed',
                 content: {
                     title: `${groom} ♥ ${bride} 결혼합니다`,
-                    description: venueStr ? `예식 장소: ${venueStr}\n소중한 분들을 초대합니다.` : '소중한 분들을 초대합니다.',
+                    description: venueStr ? `장소: ${venueStr}\n날짜: ${venueDat}\n소중한 분들을 초대합니다.`,
                     imageUrl: heroImg,
                     link: {
                         mobileWebUrl: shareUrl,
