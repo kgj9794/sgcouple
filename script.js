@@ -2,7 +2,7 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDQCQbrwOX9F_K
 
 const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
-// 카카오 디벨로퍼스에서 발급받은 JavaScript 키를 입력해주세요.
+// 카카오 디벨로퍼스에서 발급받은 [JavaScript 키]를 입력해주세요.
 const KAKAO_JAVASCRIPT_KEY = "45a0a2cc0df0c3e8aac2e81b7082362a";
 
 // BGM 음원 목록
@@ -112,11 +112,23 @@ function initViewportHeight() {
     });
 }
 
-// 카카오 SDK 초기화
+// 카카오 SDK 초기화 및 상태 검증
 function initKakaoSDK() {
-    if (window.Kakao && !window.Kakao.isInitialized()) {
+    if (!window.Kakao) {
+        console.warn("Kakao SDK가 index.html에 로드되지 않았습니다.");
+        return;
+    }
+
+    if (!window.Kakao.isInitialized()) {
         if (KAKAO_JAVASCRIPT_KEY && KAKAO_JAVASCRIPT_KEY !== "YOUR_KAKAO_JAVASCRIPT_KEY") {
-            window.Kakao.init(KAKAO_JAVASCRIPT_KEY);
+            try {
+                window.Kakao.init(KAKAO_JAVASCRIPT_KEY);
+                console.log("Kakao SDK 초기화 성공:", window.Kakao.isInitialized());
+            } catch (err) {
+                console.error("Kakao SDK 초기화 오류:", err);
+            }
+        } else {
+            console.warn("카카오 JavaScript 키가 설정되지 않았습니다.");
         }
     }
 }
@@ -2007,52 +2019,91 @@ async function syncCongratsToDB() {
     }
 }
 
-// --- SECTION 13: 청첩장 공유하기 (카카오톡 앱 연동 피드형 메시지) ---
+// --- SECTION 13: 청첩장 공유하기 (카카오톡 4019 에러 방지 도메인 보정) ---
 function shareKakao() {
-    const shareUrl = dbData.share_url || window.location.href;
+    // 1. 현재 접속된 정확한 웹 주소 추출 (기본 fallback)
+    const currentFullUrl = window.location.href;
+    
+    // 2. 도메인 불일치 방지: share_url이 유효한 http 주소면 사용하고, 아니면 현재 접속 주소 사용
+    let targetShareUrl = currentFullUrl;
+    if (dbData.share_url && typeof dbData.share_url === 'string' && dbData.share_url.startsWith('http')) {
+        targetShareUrl = dbData.share_url.trim();
+    }
+
     const groom = dbData.groom_name || '신랑';
     const bride = dbData.bride_name || '신부';
-    const heroImg = dbData.hero_img || 'https://sgcouple.o-r.kr/A.jpg';
+    
+    // 3. 카카오톡 메시지에 노출할 이미지 (반드시 공개 HTTPS 주소)
+    let heroImg = dbData.hero_img;
+    if (!heroImg || !heroImg.startsWith('http')) {
+        heroImg = 'https://sgcouple.o-r.kr/A.jpg';
+    }
+
     const venueStr = `${dbData.wedding_venue || ''} ${dbData.wedding_venue_detail || ''}`.trim();
 
-    // 카카오 SDK가 정상 초기화된 경우 카카오톡 앱 직접 공유
+    // 4. 로컬 파일(file://) 환경 검증
+    if (window.location.protocol === 'file:') {
+        alert("로컬 파일(file://) 환경에서는 카카오톡 API가 작동하지 않습니다.\n웹 서버 환경(Live Server 또는 웹 호스팅 도메인)에서 테스트해주세요.");
+        return;
+    }
+
+    // 5. SDK 초기화 상태 재확인
+    if (window.Kakao && !window.Kakao.isInitialized()) {
+        initKakaoSDK();
+    }
+
     if (window.Kakao && window.Kakao.isInitialized()) {
-        window.Kakao.Share.sendDefault({
-            objectType: 'feed',
-            content: {
-                title: `${groom} ♥ ${bride} 결혼합니다`,
-                description: venueStr ? `예식 장소: ${venueStr}\n소중한 분들을 초대합니다.` : '소중한 분들을 초대합니다.',
-                imageUrl: heroImg,
-                link: {
-                    mobileWebUrl: shareUrl,
-                    webUrl: shareUrl
-                }
-            },
-            buttons: [
-                {
-                    title: '모바일 청첩장 보기',
+        try {
+            window.Kakao.Share.sendDefault({
+                objectType: 'feed',
+                content: {
+                    title: `${groom} ♥ ${bride} 결혼합니다`,
+                    description: venueStr ? `예식 장소: ${venueStr}\n소중한 분들을 초대합니다.` : '소중한 분들을 초대합니다.',
+                    imageUrl: heroImg,
                     link: {
-                        mobileWebUrl: shareUrl,
-                        webUrl: shareUrl
+                        mobileWebUrl: targetShareUrl,
+                        webUrl: targetShareUrl
                     }
-                }
-            ]
-        });
-    } else if (navigator.share) {
-        // 카카오 키 미등록 시 기본 모바일 공유창 호출
-        navigator.share({
-            title: document.title || '모바일 청첩장',
-            text: `${groom} ♥ ${bride}의 결혼식에 소중한 분들을 초대합니다.`,
-            url: shareUrl
-        }).catch(() => {});
+                },
+                buttons: [
+                    {
+                        title: '모바일 청첩장 보기',
+                        link: {
+                            mobileWebUrl: targetShareUrl,
+                            webUrl: targetShareUrl
+                        }
+                    }
+                ]
+            });
+        } catch (err) {
+            console.error("카카오톡 공유 실행 오류:", err);
+            // 에러 시 브라우저 기본 웹 공유창 fallback
+            if (navigator.share) {
+                navigator.share({
+                    title: `${groom} ♥ ${bride} 모바일 청첩장`,
+                    text: '소중한 분들을 초대합니다.',
+                    url: targetShareUrl
+                }).catch(() => {});
+            } else {
+                copyShareUrl();
+            }
+        }
     } else {
-        // PC 또는 공유 미지원 브라우저인 경우 주소 복사
-        copyShareUrl();
+        console.warn("Kakao SDK 미초기화. 기본 웹 공유 또는 링크 복사로 진행합니다.");
+        if (navigator.share) {
+            navigator.share({
+                title: `${groom} ♥ ${bride} 모바일 청첩장`,
+                text: '소중한 분들을 초대합니다.',
+                url: targetShareUrl
+            }).catch(() => {});
+        } else {
+            copyShareUrl();
+        }
     }
 }
 
 function copyShareUrl() {
-    const url = dbData.share_url || window.location.href;
+    const url = (dbData.share_url && dbData.share_url.startsWith('http')) ? dbData.share_url : window.location.href;
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(url).then(() => {
             showToast('청첩장 주소가 복사되었습니다.');
