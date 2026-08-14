@@ -5,6 +5,9 @@ const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 // 카카오 디벨로퍼스에서 발급받은 [JavaScript 키]를 입력해주세요.
 const KAKAO_JAVASCRIPT_KEY = "45a0a2cc0df0c3e8aac2e81b7082362a";
 
+// 카카오톡 공유 시 연결될 최종 목적지 도메인 고정
+const TARGET_SHARE_DOMAIN = "https://sgcouple.o-r.kr";
+
 // BGM 음원 목록
 const BGM_PLAYLIST = [
     "https://maplemusic.o-r.kr/%EB%85%B8%EB%9E%98/%E1%84%8B%E1%85%A6%E1%84%8B%E1%85%AE%E1%84%85%E1%85%A6%E1%86%AF.mp3",
@@ -123,7 +126,7 @@ function initKakaoSDK() {
         if (KAKAO_JAVASCRIPT_KEY && KAKAO_JAVASCRIPT_KEY !== "YOUR_KAKAO_JAVASCRIPT_KEY") {
             try {
                 window.Kakao.init(KAKAO_JAVASCRIPT_KEY);
-                console.log("Kakao SDK 초기화 성공:", window.Kakao.isInitialized());
+                console.log("Kakao SDK 초기화 성공 여부:", window.Kakao.isInitialized());
             } catch (err) {
                 console.error("Kakao SDK 초기화 오류:", err);
             }
@@ -2019,21 +2022,18 @@ async function syncCongratsToDB() {
     }
 }
 
-// --- SECTION 13: 청첩장 공유하기 (카카오톡 4019 에러 방지 도메인 보정) ---
+// --- SECTION 13: 청첩장 공유하기 (sgcouple.o-r.kr 도메인 직접 연결) ---
 function shareKakao() {
-    // 1. 현재 접속된 정확한 웹 주소 추출 (기본 fallback)
-    const currentFullUrl = window.location.href;
-    
-    // 2. 도메인 불일치 방지: share_url이 유효한 http 주소면 사용하고, 아니면 현재 접속 주소 사용
-    let targetShareUrl = currentFullUrl;
+    // 1. 도메인 지정: 지정 도메인(https://sgcouple.o-r.kr)을 우선 사용
+    let finalShareUrl = TARGET_SHARE_DOMAIN;
     if (dbData.share_url && typeof dbData.share_url === 'string' && dbData.share_url.startsWith('http')) {
-        targetShareUrl = dbData.share_url.trim();
+        finalShareUrl = dbData.share_url.trim();
     }
 
-    const groom = dbData.groom_name || '신랑';
-    const bride = dbData.bride_name || '신부';
+    const groom = dbData.groom_name || '건주';
+    const bride = dbData.bride_name || '수아';
     
-    // 3. 카카오톡 메시지에 노출할 이미지 (반드시 공개 HTTPS 주소)
+    // 2. 카카오톡 메시지에 노출할 이미지 (반드시 공개 HTTPS 주소)
     let heroImg = dbData.hero_img;
     if (!heroImg || !heroImg.startsWith('http')) {
         heroImg = 'https://sgcouple.o-r.kr/A.jpg';
@@ -2041,19 +2041,21 @@ function shareKakao() {
 
     const venueStr = `${dbData.wedding_venue || ''} ${dbData.wedding_venue_detail || ''}`.trim();
 
-    // 4. 로컬 파일(file://) 환경 검증
+    // 3. 로컬 파일(file://) 환경 검증
     if (window.location.protocol === 'file:') {
-        alert("로컬 파일(file://) 환경에서는 카카오톡 API가 작동하지 않습니다.\n웹 서버 환경(Live Server 또는 웹 호스팅 도메인)에서 테스트해주세요.");
+        alert("로컬 파일(file://) 환경에서는 카카오톡 API가 작동하지 않습니다.\nGitHub Pages 등 웹 서버 환경에서 열어주세요.");
         return;
     }
 
-    // 5. SDK 초기화 상태 재확인
+    // 4. SDK 초기화 상태 재확인
     if (window.Kakao && !window.Kakao.isInitialized()) {
         initKakaoSDK();
     }
 
     if (window.Kakao && window.Kakao.isInitialized()) {
         try {
+            console.log("카카오 공유 전송 주소:", finalShareUrl);
+
             window.Kakao.Share.sendDefault({
                 objectType: 'feed',
                 content: {
@@ -2061,28 +2063,31 @@ function shareKakao() {
                     description: venueStr ? `예식 장소: ${venueStr}\n소중한 분들을 초대합니다.` : '소중한 분들을 초대합니다.',
                     imageUrl: heroImg,
                     link: {
-                        mobileWebUrl: targetShareUrl,
-                        webUrl: targetShareUrl
+                        mobileWebUrl: finalShareUrl,
+                        webUrl: finalShareUrl,
+                        androidExecutionParams: 'key1=value1',
+                        iosExecutionParams: 'key1=value1'
                     }
                 },
                 buttons: [
                     {
                         title: '모바일 청첩장 보기',
                         link: {
-                            mobileWebUrl: targetShareUrl,
-                            webUrl: targetShareUrl
+                            mobileWebUrl: finalShareUrl,
+                            webUrl: finalShareUrl,
+                            androidExecutionParams: 'key1=value1',
+                            iosExecutionParams: 'key1=value1'
                         }
                     }
                 ]
             });
         } catch (err) {
             console.error("카카오톡 공유 실행 오류:", err);
-            // 에러 시 브라우저 기본 웹 공유창 fallback
             if (navigator.share) {
                 navigator.share({
                     title: `${groom} ♥ ${bride} 모바일 청첩장`,
                     text: '소중한 분들을 초대합니다.',
-                    url: targetShareUrl
+                    url: finalShareUrl
                 }).catch(() => {});
             } else {
                 copyShareUrl();
@@ -2094,7 +2099,7 @@ function shareKakao() {
             navigator.share({
                 title: `${groom} ♥ ${bride} 모바일 청첩장`,
                 text: '소중한 분들을 초대합니다.',
-                url: targetShareUrl
+                url: finalShareUrl
             }).catch(() => {});
         } else {
             copyShareUrl();
@@ -2103,7 +2108,7 @@ function shareKakao() {
 }
 
 function copyShareUrl() {
-    const url = (dbData.share_url && dbData.share_url.startsWith('http')) ? dbData.share_url : window.location.href;
+    const url = TARGET_SHARE_DOMAIN || window.location.href;
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(url).then(() => {
             showToast('청첩장 주소가 복사되었습니다.');
@@ -2634,7 +2639,7 @@ function applyDataToDOM(data) {
 
     const endingSourceEl = document.getElementById('ending-source-text');
     if (endingSourceEl) {
-        endingSourceEl.innerText = data.ending_source || "- 영화 '이보다 더 좋을 순 없다' 중";
+        endingSourceEl.innerText = data.ending_quote || "- 영화 '이보다 더 좋을 순 없다' 중";
     }
 
     if (data.wedding_datetime) {
