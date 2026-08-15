@@ -2826,7 +2826,7 @@ function updateCountdown() {
 
     if (ddayTextEl) {
         if (calendarDiffDays > 0) {
-            ddayTextEl.innerHTML = `${groomName} <span class="dday-heart">♥</span> ${brideName}의 결혼식이 <strong>${calendarDiffDays}</strong>일 남았습니다.`;
+    ddayTextEl.innerHTML = `${groomName.slice(-2)} <span class="dday-heart">♥</span> ${brideName.slice(-2)}의 결혼식이 <strong>${calendarDiffDays}</strong>일 남았습니다.`;
         } else if (calendarDiffDays === 0) {
             ddayTextEl.innerHTML = `오늘이 바로 ${groomName} <span class="dday-heart">♥</span> ${brideName}의 <strong>결혼식 날</strong>입니다! 🎉`;
         } else {
