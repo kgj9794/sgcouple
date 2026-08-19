@@ -1552,7 +1552,7 @@ async function handleRsvpSubmit(event) {
         const result = await res.json();
 
         if (result.result === 'success') {
-            showToast('참석 의사가 전달되었습니다. 감사합니다!');
+            showToast('참석 의사가 전달되었습니다.\n감사합니다!');
             closeRsvpModal();
         } else {
             alert(result.message || '참석 의사 전달에 실패했습니다.');
