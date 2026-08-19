@@ -19,7 +19,10 @@ const NIGHT_SKY_BGS = [
     "https://images.unsplash.com/photo-1611416370495-50fac9e1b382?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fCVFQyU5NSVCQyVFQSVCMiVCRCUyMCVFQiU8RiU8NCVFQyU8QiU9Q3xlbnwwfHwwfHx8MA%3D%3D",
     "https://img.magnific.com/premium-photo/high-angle-view-illuminated-city-night_1599761-785.jpg?semt=ais_test_b&w=740&q=80",
     "https://image.utoimage.com/preview/cp932674/2021/12/202112026451_500.jpg",
-    "https://img.magnific.com/free-photo/high-angle-buildings-with-lights-landscape_23-2149444955.jpg"
+    "https://img.magnific.com/free-photo/high-angle-buildings-with-lights-landscape_23-2149444955.jpg",
+    "https://pub-7d430b8241bc4d38b717b9e2905120d8.r2.dev/uploads/2023/01/skytree-jikken-bridge.jpg",
+    "https://images.pexels.com/photos/18839145/pexels-photo-18839145.jpeg?cs=tinysrgb&dpr=1&w=500",
+    "https://images.pexels.com/photos/25551863/pexels-photo-25551863.jpeg"
 ];
 
 let dbData = {};
@@ -1981,7 +1984,7 @@ function handleCongratsClick() {
         setTimeout(() => boxEl.classList.remove('hit-shake'), 260);
     }
 
-    if (congratsCount > 0 && congratsCount % 100 === 0) {
+    if (congratsCount > 0 && congratsCount % 50 === 0) {
         if (navigator.vibrate) {
             navigator.vibrate([100, 50, 100, 50, 200]);
         }
