@@ -410,7 +410,7 @@ function toggleBgm() {
 function updateBgmBtnUI(isPlaying) {
     const bgmBtn = document.getElementById('bgm-btn');
     if (bgmBtn) {
-        bgmBtn.innerText = isPlaying ? '🎵' : '🔇';
+        bgmBtn.innerText = isPlaying ? '🔊' : '🔇';
     }
 }
 
