@@ -32,59 +32,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Gowun+Batang:wght@400;700&family=Yeon+Sung&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 
-    <!-- 모바일 브라우저 주소창 축소/확장 시 하단 빈 화면 방지 스타일 및 스크립트 -->
-    <style>
-        :root {
-            --vh: 1vh;
-        }
-        html, body {
-            min-height: 100%;
-            min-height: -webkit-fill-available;
-            min-height: 100dvh;
-        }
-        .mobile-frame {
-            min-height: 100%;
-            min-height: -webkit-fill-available;
-            min-height: 100dvh;
-            min-height: calc(var(--vh, 1vh) * 100);
-        }
-        .intro-overlay,
-        .hero-section,
-        .date-section,
-        .story-section,
-        .congrats-section,
-        .ending-section,
-        .modal-overlay,
-        .modal-content,
-        .lightbox-content {
-            min-height: 100vh;
-            min-height: 100dvh;
-            min-height: calc(var(--vh, 1vh) * 100);
-        }
-        .intro-overlay,
-        .modal-overlay,
-        .modal-content,
-        .lightbox-content {
-            height: 100vh;
-            height: 100dvh;
-            height: calc(var(--vh, 1vh) * 100);
-        }
-    </style>
-    <script>
-        function updateMobileViewport() {
-            const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
-        }
-        updateMobileViewport();
-        window.addEventListener('resize', updateMobileViewport);
-        window.addEventListener('orientationchange', () => {
-            setTimeout(updateMobileViewport, 100);
-        });
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', updateMobileViewport);
-        }
-    </script>
-
     <!-- 카카오 JavaScript SDK (무결성 차단 오류 방지 적용) -->
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"></script>
 </head>
@@ -1128,7 +1075,7 @@
                         </button>
                         <button type="button" class="btn-rsvp-status" id="rsvp-status-no" onclick="setRsvpStatus('no')">
                             <span class="status-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32" fill="none"><path d="M14.6376 18.4088H9.63828L7.89609 28.5052C7.80202 29.049 7.28434 29.4144 6.74049 29.3209C6.19648 29.227 5.83121 28.7093 5.92474 28.1653L7.60898 18.4088H6.56667C6.01461 18.4088 5.56704 17.9608 5.56667 17.4088C5.56667 16.8565 6.01438 16.4088 6.56667 16.4088H10.6747L11.0283 14.7994L14.6376 18.4088Z" fill="currentColor"></path><path d="M18.9299 22.7011L18.2965 28.4453C18.2355 28.9937 17.7408 29.3897 17.1923 29.3294C16.6436 29.2687 16.2478 28.7739 16.3082 28.2252L17.1181 20.8893L18.9299 22.7011Z" fill="currentColor"></path><path d="M4.76328 4.76298C5.15382 4.37262 5.78687 4.37251 6.17734 4.76298L27.2372 25.8229C27.6277 26.2133 27.6276 26.8464 27.2372 27.2369C26.8467 27.6273 26.2137 27.6274 25.8232 27.2369L4.76328 6.17704C4.3728 5.78657 4.3729 5.15352 4.76328 4.76298Z" fill="currentColor"></path><path d="M23.665 2.66858C25.5817 2.6682 27.0077 4.44106 26.596 6.31311L24.5686 15.5299C24.4271 16.1725 24.1212 16.7443 23.7021 17.2057C23.7105 17.2385 23.7178 17.2724 23.7229 17.3066L24.1871 20.4153L20.1799 16.4088H20.9872C21.7694 16.4086 22.4472 15.864 22.6155 15.1002L24.6428 5.88342C24.7799 5.25956 24.3043 4.66863 23.6656 4.66858L16.6448 4.67118C15.8626 4.67148 15.186 5.21586 15.0178 5.97978L14.0673 10.2962L12.3889 8.6178L13.0647 5.55009C13.4346 3.86941 14.9227 2.67179 16.6441 2.67118L23.665 2.66858Z" fill="currentColor"></path></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32" fill="none"><path d="M14.6376 18.4088H9.63828L7.89609 28.5052C7.80202 29.049 7.28434 29.4144 6.74049 29.3209C6.19648 29.227 5.83121 28.7093 5.92474 28.1653L7.60898 18.4088H6.56667C6.01461 18.4088 5.56704 17.9608 5.56667 17.4088C5.56667 16.8565 6.01438 16.4088 6.56667 16.4088H10.6747L11.0283 14.7994L14.6376 18.4088Z" fill="currentColor"></path><path d="M18.9299 22.7011L18.2965 28.4453C18.2355 28.9937 17.7408 29.3897 17.1923 29.3294C16.6436 29.2687 16.2478 28.7739 16.3082 28.2252L17.1181 20.8893L18.9299 22.7011Z" fill="currentColor"></path><path d="M4.76328 4.76298C5.15382 4.37262 5.78687 4.37251 6.17734 4.76298L27.2372 25.8229C27.6277 26.2133 27.6276 26.8464 27.2372 27.2369C26.8467 27.6273 26.2137 27.6274 25.8232 27.2369L4.76328 6.17704C4.3728 5.78657 4.3729 5.15352 4.76328 4.76298Z" fill="currentColor"></path><path d="M23.665 2.66858C25.5817 2.6682 27.0077 4.44106 26.596 6.31311L24.5686 15.5299C24.4271 16.1725 24.1212 16.7443 23.7021 17.2057C23.7105 17.2385 23.7178 17.2724 23.7229 17.3066L24.1871 20.4153L20.1799 16.4088H20.9872C21.7694 16.4086 22.4472 15.864 22.6155 15.1002L24.6428 5.88342C24.7799 5.25956 24.3043 4.66863 23.6656 4.66858L16.6448 4.67118C15.8626 4.67148 15.186 5.21586 15.0178 5.97978L14.0673 10.2962L12.3889 8.6178L13.0647 5.55009C13.4346 3.86941 14.9232 2.67179 16.6441 2.67118L23.665 2.66858Z" fill="currentColor"></path></svg>
                             </span>
                             <span class="status-label">불가</span>
                             <span class="check-circle"></span>
