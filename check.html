@@ -1,563 +1,1159 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-        <!-- Favicon 설정 -->
-    <link rel="icon" type="image/png" href="Image.png">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>참석 의사 전달 확인</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Gowun Batang', serif;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>참석 의사 확인 센터 - RSVP</title>
+  <link rel="icon" type="image/png" href="Image.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
 
-        body {
-            background-color: #f7f6f4;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            color: #333;
-        }
+  <style>
+    /* ==========================================
+       1. Material Design 3 토큰 정의 (웨딩 RSVP 테마)
+       ========================================== */
+    :root {
+      --md-sys-color-primary: #8c4a58;
+      --md-sys-color-on-primary: #ffffff;
+      --md-sys-color-primary-container: #ffd9df;
+      --md-sys-color-on-primary-container: #3a0717;
 
-        .container {
-            width: 100%;
-            max-width: 500px;
-            min-height: 100vh;
-            background-color: #ffffff;
-            box-shadow: 0 0 20px rgba(0,0,0,0.05);
-            padding: 24px 20px 40px;
-            position: relative;
-        }
+      --md-sys-color-secondary: #74565c;
+      --md-sys-color-secondary-container: #ffd9df;
+      --md-sys-color-on-secondary-container: #2b151b;
 
-        /* HEADER */
-        .page-header {
-            text-align: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #f0eae1;
-            margin-bottom: 20px;
-        }
+      --md-sys-color-surface: #ffffff;
+      --md-sys-color-surface-dim: #fbf8f8;
+      --md-sys-color-surface-container: #ffffff;
+      --md-sys-color-surface-container-high: #f6f1f2;
+      --md-sys-color-surface-container-highest: #ece4e6;
 
-        .page-header h1 {
-            font-size: 1.35rem;
-            color: #a86b75;
-            font-weight: 700;
-        }
+      --md-sys-color-on-surface: #201a1b;
+      --md-sys-color-on-surface-variant: #524346;
+      --md-sys-color-outline: #847376;
+      --md-sys-color-outline-variant: #d6c2c5;
 
-        /* AUTH BOX */
-        .auth-card {
-            background-color: #faf8f5;
-            border: 1px solid #f0eae1;
-            border-radius: 16px;
-            padding: 30px 20px;
-            text-align: center;
-            margin-top: 40px;
-        }
+      --md-sys-color-error: #ba1a1a;
+      --md-sys-color-error-container: #ffdad6;
+      --md-sys-color-on-error-container: #410002;
 
-        .auth-card h2 {
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-            color: #222;
-        }
+      --md-shape-corner-xs: 4px;
+      --md-shape-corner-s: 8px;
+      --md-shape-corner-m: 12px;
+      --md-shape-corner-l: 16px;
+      --md-shape-corner-xl: 24px;
+      --md-shape-corner-full: 9999px;
 
-        .auth-card p {
-            font-size: 0.85rem;
-            color: #777;
-            margin-bottom: 20px;
-        }
+      --md-elevation-1: 0 1px 3px 0 rgba(32, 26, 27, 0.06), 0 1px 2px -1px rgba(32, 26, 27, 0.06);
+      --md-elevation-2: 0 4px 6px -1px rgba(32, 26, 27, 0.08), 0 2px 4px -2px rgba(32, 26, 27, 0.06);
+    }
 
-        .auth-card input[type="password"] {
-            width: 100%;
-            padding: 12px 14px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            outline: none;
-            margin-bottom: 14px;
-            text-align: center;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-        .auth-card button {
-            width: 100%;
-            padding: 14px;
-            background-color: #a86b75;
-            color: #ffffff;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
+    body {
+      background-color: var(--md-sys-color-surface-dim);
+      color: var(--md-sys-color-on-surface);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 0 40px;
+    }
 
-        .auth-card button:active {
-            background-color: #8c5a63;
-        }
+    .material-symbols-outlined {
+      font-size: 18px;
+      vertical-align: middle;
+      font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 20;
+    }
 
-        .auth-card button:disabled {
-            background-color: #d1b8bc;
-            cursor: not-allowed;
-        }
+    .container {
+      width: 100%;
+      max-width: 1140px;
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
 
-        /* DASHBOARD CONTENT */
-        #dashboard-content {
-            display: none;
-        }
+    /* ==========================================
+       2. 마퀴 (Marquee) 텍스트 롤링
+       ========================================== */
+    .marquee-box {
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      display: block;
+      position: relative;
+    }
 
-        /* STATS SUMMARY */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
+    .marquee-text {
+      display: inline-block;
+      white-space: nowrap;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: middle;
+    }
 
-        .stat-box {
-            background-color: #faf8f6;
-            border: 1px solid #f0eae1;
-            border-radius: 12px;
-            padding: 14px;
-            text-align: center;
-        }
+    .marquee-text.is-marquee {
+      max-width: none;
+      overflow: visible;
+      text-overflow: clip;
+      animation: autoMarqueeScroll 4.5s ease-in-out infinite alternate;
+      will-change: transform;
+    }
 
-        .stat-box.full {
-            grid-column: span 2;
-            background-color: #faf8f6;
-            border-color: #f0eae1;
-        }
+    @keyframes autoMarqueeScroll {
+      0%, 20% {
+        transform: translateX(0);
+      }
+      80%, 100% {
+        transform: translateX(var(--marquee-dist, -24px));
+      }
+    }
 
-        .stat-label {
-            font-size: 0.78rem;
-            color: #777;
-            margin-bottom: 4px;
-            display: block;
-        }
+    /* ==========================================
+       3. 상단 탑 앱 바
+       ========================================== */
+    .top-app-bar {
+      width: 100%;
+      background-color: var(--md-sys-color-surface);
+      border-bottom: 1.5px solid var(--md-sys-color-outline-variant);
+      box-shadow: var(--md-elevation-1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      padding: 8px 16px;
+      margin-bottom: 12px;
+    }
 
-        .stat-value {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #222;
-        }
+    .top-app-bar-inner {
+      width: 100%;
+      max-width: 1140px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-width: 0;
+    }
 
-        .stat-box.full .stat-value {
-            color: #222;
-            font-size: 1.25rem;
-        }
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1 1 auto;
+      overflow: hidden;
+    }
 
-        /* FILTER TABS */
-        .filter-wrap {
-            display: flex;
-            gap: 6px;
-            overflow-x: auto;
-            padding-bottom: 10px;
-            margin-bottom: 16px;
-            scrollbar-width: none;
-        }
+    .brand-logo-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--md-shape-corner-s);
+      background-color: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
 
-        .filter-wrap::-webkit-scrollbar { display: none; }
+    .brand-text.marquee-box {
+      flex: 1;
+      min-width: 0;
+    }
 
-        .btn-filter {
-            padding: 8px 14px;
-            border-radius: 20px;
-            border: 1px solid #e0e0e0;
-            background-color: #ffffff;
-            font-size: 0.82rem;
-            color: #666;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s ease;
-        }
+    .brand-text h1.marquee-text {
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: var(--md-sys-color-on-surface);
+      line-height: 1.2;
+    }
 
-        .btn-filter.active {
-            background-color: #222222;
-            color: #ffffff;
-            border-color: #222222;
-            font-weight: 700;
-        }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
 
-        /* RSVP LIST */
-        .rsvp-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+    .md-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 6px 12px;
+      border-radius: var(--md-shape-corner-full);
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+      white-space: nowrap;
+      user-select: none;
+    }
 
-        .rsvp-item-card {
-            background-color: #ffffff;
-            border: 1px solid #eee8e0;
-            border-radius: 14px;
-            padding: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-            position: relative;
-        }
+    .md-btn-tonal {
+      background-color: var(--md-sys-color-surface-container-highest);
+      color: var(--md-sys-color-on-surface-variant);
+      border-color: var(--md-sys-color-outline-variant);
+    }
+    .md-btn-tonal:hover {
+      background-color: #dfd5d7;
+    }
 
-        .rsvp-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
+    .md-btn-error {
+      background-color: var(--md-sys-color-error-container);
+      color: var(--md-sys-color-error);
+      border-color: rgba(186, 26, 26, 0.2);
+    }
+    .md-btn-error:hover {
+      background-color: #ffc9c2;
+    }
 
-        .rsvp-name {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #222;
-        }
+    .md-btn-filled {
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+    }
+    .md-btn-filled:hover {
+      background-color: #723b47;
+    }
 
-        .tags-wrap {
-            display: flex;
-            gap: 6px;
-        }
+    .sync-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: var(--md-shape-corner-full);
+      background-color: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-primary);
+      font-size: 0.6875rem;
+      font-weight: 800;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .sync-status-pill.active {
+      opacity: 1;
+    }
+    .spin-icon {
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
 
-        .tag {
-            font-size: 0.72rem;
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-weight: 700;
-        }
+    /* ==========================================
+       4. 로그인 인증 카드
+       ========================================== */
+    .auth-container {
+      width: 100%;
+      min-height: calc(100vh - 120px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-        .tag.side-groom {
-            background-color: #eaf3fb;
-            color: #2b6cb0;
-        }
+    .auth-card {
+      width: 100%;
+      max-width: 360px;
+      background-color: var(--md-sys-color-surface-container);
+      border-radius: var(--md-shape-corner-xl);
+      border: 1.5px solid var(--md-sys-color-outline-variant);
+      box-shadow: var(--md-elevation-2);
+      padding: 32px 24px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
 
-        .tag.side-bride {
-            background-color: #fcebf0;
-            color: #c53030;
-        }
+    .auth-icon-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--md-shape-corner-full);
+      background-color: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+    }
+    .auth-icon-circle .material-symbols-outlined { font-size: 24px; }
 
-        .tag.status-yes {
-            background-color: #e6fffa;
-            color: #234e52;
-        }
+    .auth-header h2 {
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: var(--md-sys-color-on-surface);
+    }
+    .auth-header p {
+      font-size: 0.75rem;
+      color: var(--md-sys-color-on-surface-variant);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
 
-        .tag.status-no {
-            background-color: #fff5f5;
-            color: #9b2c2c;
-        }
+    .auth-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      text-align: left;
+    }
 
-        .rsvp-details {
-            font-size: 0.88rem;
-            color: #555;
-            line-height: 1.6;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
+    .m3-text-field {
+      width: 100%;
+      padding: 12px 14px;
+      background-color: var(--md-sys-color-surface-container-high);
+      border: 1.5px solid var(--md-sys-color-outline-variant);
+      border-radius: var(--md-shape-corner-s);
+      font-size: 0.875rem;
+      color: var(--md-sys-color-on-surface);
+      outline: none;
+      transition: border-color 0.2s ease;
+      text-align: center;
+    }
+    .m3-text-field:focus {
+      border-color: var(--md-sys-color-primary);
+      background-color: var(--md-sys-color-surface);
+    }
 
-        .rsvp-tel a {
-            color: #3182ce;
-            text-decoration: none;
-            font-weight: 700;
-        }
+    /* ==========================================
+       5. KPI 요약 카드 그리드
+       ========================================== */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      width: 100%;
+    }
 
-        .rsvp-date {
-            font-size: 0.75rem;
-            color: #aaa;
-            margin-top: 6px;
-            text-align: right;
-        }
+    .kpi-card {
+      background-color: var(--md-sys-color-surface-container);
+      border: 1.5px solid var(--md-sys-color-outline-variant);
+      border-radius: var(--md-shape-corner-m);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--md-elevation-1);
+      min-width: 0;
+      gap: 8px;
+    }
 
-        .empty-msg {
-            text-align: center;
-            color: #888;
-            padding: 40px 0;
-            font-size: 0.9rem;
-        }
+    .kpi-info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
+    }
 
-        .btn-refresh {
-            width: 100%;
-            padding: 12px;
-            background-color: #ffffff;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            font-size: 0.88rem;
-            color: #555;
-            font-weight: 700;
-            cursor: pointer;
-            margin-bottom: 16px;
-        }
+    .kpi-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      color: var(--md-sys-color-on-surface-variant);
+      white-space: nowrap;
+      overflow: hidden;
+    }
 
-        .btn-refresh:active {
-            background-color: #f5f5f5;
-        }
-    </style>
+    .kpi-value {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--md-sys-color-on-surface);
+      line-height: 1.1;
+      margin-top: 3px;
+    }
+
+    .kpi-sub {
+      font-size: 0.65rem;
+      color: var(--md-sys-color-outline);
+      margin-top: 2px;
+      font-weight: 600;
+    }
+
+    .kpi-icon-box {
+      width: 34px;
+      height: 34px;
+      border-radius: var(--md-shape-corner-s);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .kpi-icon-box.total { background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-primary); }
+    .kpi-icon-box.status { background-color: #dcfce7; color: #15803d; }
+    .kpi-icon-box.groom { background-color: #e0f2fe; color: #0369a1; }
+    .kpi-icon-box.bride { background-color: #fce7f3; color: #be185d; }
+
+    /* ==========================================
+       6. 검색 & 필터 바
+       ========================================== */
+    .filter-search-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      background-color: var(--md-sys-color-surface-container);
+      border: 1.5px solid var(--md-sys-color-outline-variant);
+      border-radius: var(--md-shape-corner-m);
+      padding: 8px 12px;
+      box-shadow: var(--md-elevation-1);
+    }
+
+    .filter-chips-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding: 2px 0;
+    }
+    .filter-chips-group::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 11px;
+      border-radius: var(--md-shape-corner-s);
+      background-color: var(--md-sys-color-surface-container-high);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      color: var(--md-sys-color-on-surface-variant);
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .filter-chip:hover {
+      border-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-surface);
+    }
+
+    .filter-chip.active {
+      background-color: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-on-primary-container);
+      border-color: var(--md-sys-color-primary);
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background-color: var(--md-sys-color-surface-container-high);
+      border: 1.5px solid var(--md-sys-color-outline-variant);
+      border-radius: var(--md-shape-corner-full);
+      padding: 4px 12px;
+      width: 220px;
+      flex-shrink: 0;
+    }
+    .search-box:focus-within {
+      border-color: var(--md-sys-color-primary);
+      background-color: var(--md-sys-color-surface);
+    }
+    .search-box input {
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 0.75rem;
+      color: var(--md-sys-color-on-surface);
+      width: 100%;
+    }
+    .search-box .material-symbols-outlined {
+      color: var(--md-sys-color-outline);
+      font-size: 16px;
+    }
+
+    /* ==========================================
+       7. PC 데이터 테이블 뷰 (>768px)
+       ========================================== */
+    .table-container-card {
+      background-color: var(--md-sys-color-surface-container);
+      border: 1.5px solid var(--md-sys-color-outline-variant);
+      border-radius: var(--md-shape-corner-m);
+      overflow: hidden;
+      box-shadow: var(--md-elevation-1);
+      display: block;
+    }
+
+    table.m3-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    table.m3-table th,
+    table.m3-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--md-sys-color-surface-container-highest);
+      vertical-align: middle;
+    }
+
+    table.m3-table th {
+      background-color: var(--md-sys-color-surface-container-high);
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--md-sys-color-on-surface-variant);
+      border-bottom: 1.5px solid var(--md-sys-color-outline-variant);
+      white-space: nowrap;
+    }
+
+    table.m3-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    table.m3-table tr:hover td {
+      background-color: var(--md-sys-color-surface-dim);
+    }
+
+    .col-no { width: 50px; text-align: center; font-weight: 800; color: var(--md-sys-color-on-surface-variant); font-size: 0.8125rem; }
+    .col-date { width: 140px; font-size: 0.75rem; color: var(--md-sys-color-on-surface-variant); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .col-side { width: 90px; }
+    .col-status { width: 100px; }
+    .col-name { font-weight: 800; color: var(--md-sys-color-on-surface); width: 140px; font-size: 0.875rem; }
+    .col-guests { width: 90px; text-align: center; font-weight: 700; font-size: 0.875rem; }
+    .col-tel { font-size: 0.8125rem; }
+    .col-tel a { color: #0284c7; text-decoration: none; font-weight: 700; }
+    .col-tel a:hover { text-decoration: underline; }
+
+    .tag-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 3px 8px;
+      border-radius: var(--md-shape-corner-s);
+      font-size: 0.6875rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .badge-groom { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+    .badge-bride { background-color: #fce7f3; color: #be185d; border: 1px solid #fbcfe8; }
+    .badge-status-yes { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .badge-status-no { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+    /* ==========================================
+       8. 모바일 카드 리스트 뷰 (<=768px)
+       ========================================== */
+    .mobile-cards-view {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .mobile-rsvp-card {
+      background-color: var(--md-sys-color-surface-container);
+      border: 1.5px solid var(--md-sys-color-outline-variant);
+      border-radius: var(--md-shape-corner-m);
+      padding: 12px 14px;
+      box-shadow: var(--md-elevation-1);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mobile-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px dashed var(--md-sys-color-outline-variant);
+      padding-bottom: 8px;
+    }
+
+    .mobile-card-header-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mobile-card-num {
+      font-size: 0.75rem;
+      font-weight: 900;
+      color: var(--md-sys-color-primary);
+      background-color: var(--md-sys-color-primary-container);
+      padding: 1px 6px;
+      border-radius: var(--md-shape-corner-s);
+    }
+
+    .mobile-card-name {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--md-sys-color-on-surface);
+    }
+
+    .mobile-card-date {
+      font-size: 0.6875rem;
+      color: var(--md-sys-color-on-surface-variant);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .mobile-card-body {
+      font-size: 0.8125rem;
+      color: var(--md-sys-color-on-surface-variant);
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .mobile-card-body strong {
+      color: var(--md-sys-color-on-surface);
+    }
+    .mobile-card-body a {
+      color: #0284c7;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .empty-state {
+      padding: 40px 16px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+    .empty-state .material-symbols-outlined { font-size: 40px; color: var(--md-sys-color-outline); }
+    .empty-state p { font-size: 0.875rem; font-weight: 600; }
+
+    /* ==========================================
+       9. 반응형 미디어 쿼리
+       ========================================== */
+    @media (max-width: 768px) {
+      body { padding-bottom: 30px; }
+      .top-app-bar { padding: 8px 12px; margin-bottom: 10px; }
+      .container { padding: 0 10px; gap: 10px; }
+
+      .brand-section {
+        flex: 1 1 0%;
+        min-width: 0;
+      }
+      .brand-text h1.marquee-text {
+        font-size: 0.95rem;
+      }
+
+      .top-actions .btn-text {
+        display: none;
+      }
+      .top-actions .md-btn {
+        padding: 6px 8px;
+      }
+
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+      .kpi-card { padding: 8px 10px; }
+      .kpi-value { font-size: 1.15rem; }
+      .kpi-icon-box { width: 28px; height: 28px; }
+      .kpi-icon-box .material-symbols-outlined { font-size: 16px; }
+
+      .filter-search-bar {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 8px 10px;
+        gap: 8px;
+      }
+      .search-box { width: 100%; }
+
+      .table-container-card { display: none !important; }
+      .mobile-cards-view { display: flex !important; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header class="page-header">
-            <h1>참석 의사 전달 확인</h1>
-        </header>
 
-        <!-- 비밀번호 인증 폼 -->
-        <div id="auth-section" class="auth-card">
-            <h2>관리자 인증</h2>
-            <p>참석 명단을 확인하시려면 비밀번호를 입력해주세요.</p>
-
-            <form onsubmit="handleAuthSubmit(event)">
-                <input type="password" id="check-pass-input" placeholder="비밀번호 입력" required autocomplete="current-password">
-                <button type="submit" id="check-auth-btn">확인하기</button>
-            </form>
+  <!-- 1. M3 슬림 탑 앱 바 -->
+  <header class="top-app-bar">
+    <div class="top-app-bar-inner">
+      <div class="brand-section">
+        <div class="brand-logo-badge">
+          <span class="material-symbols-outlined">how_to_reg</span>
         </div>
-
-        <!-- 참석 현황 대시보드 (인증 성공 시 노출) -->
-        <div id="dashboard-content">
-            <!-- 요약 통계 -->
-            <div class="stats-grid">
-                <div class="stat-box full">
-                    <span class="stat-label">총 참석 예정 인원</span>
-                    <span class="stat-value" id="stat-total-guests">0 명</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">신랑측 참석 인원</span>
-                    <span class="stat-value" id="stat-groom-guests">0 명</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">신부측 참석 인원</span>
-                    <span class="stat-value" id="stat-bride-guests">0 명</span>
-                </div>
-                <!-- 전체 응답 현황 -->
-                <div class="stat-box full">
-                    <span class="stat-label">전체 응답 현황<br>(참석 가능 / 참석 불가)</span>
-                    <span class="stat-value" id="stat-status-combined">0건 / 0건</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">신랑측 (가능/불가)</span>
-                    <span class="stat-value" id="stat-groom-count">0 / 0</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">신부측 (가능/불가)</span>
-                    <span class="stat-value" id="stat-bride-count">0 / 0</span>
-                </div>
-            </div>
-
-            <button type="button" class="btn-refresh" onclick="fetchRsvpData()">🔄 새로고침</button>
-
-            <!-- 필터 탭 -->
-            <div class="filter-wrap">
-                <button type="button" class="btn-filter active" onclick="setFilter('all', this)">전체보기</button>
-                <button type="button" class="btn-filter" onclick="setFilter('groom', this)">신랑측</button>
-                <button type="button" class="btn-filter" onclick="setFilter('bride', this)">신부측</button>
-                <button type="button" class="btn-filter" onclick="setFilter('yes', this)">참석가능</button>
-                <button type="button" class="btn-filter" onclick="setFilter('no', this)">참석불가</button>
-            </div>
-
-            <!-- RSVP 리스트 목록 -->
-            <div class="rsvp-list" id="rsvp-list-container">
-                <!-- JS 동적 생성 -->
-            </div>
+        <div class="brand-text marquee-box" id="brand-title-box">
+          <h1 class="marquee-text" id="brand-title-text">참석 의사 확인 센터</h1>
         </div>
+      </div>
+
+      <div class="top-actions" id="top-actions-box" style="display: none;">
+        <span class="sync-status-pill" id="sync-status">
+          <span class="material-symbols-outlined spin-icon" style="font-size: 12px;">sync</span>
+          <span>동기화 중...</span>
+        </span>
+        <button type="button" class="md-btn md-btn-tonal" id="btn-refresh" onclick="fetchRsvpData(false)">
+          <span class="material-symbols-outlined">refresh</span>
+          <span class="btn-text">새로고침</span>
+        </button>
+        <button type="button" class="md-btn md-btn-error" onclick="handleLogout()" title="로그아웃">
+          <span class="material-symbols-outlined">logout</span>
+          <span class="btn-text">로그아웃</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- 2. 관리자 인증 뷰 -->
+    <div class="auth-container" id="auth-view">
+      <div class="auth-card">
+        <div class="auth-icon-circle">
+          <span class="material-symbols-outlined">admin_panel_settings</span>
+        </div>
+        <div class="auth-header">
+          <h2>관리자 인증</h2>
+          <p>참석 명단 및 통계 조회를 위해<br>비밀번호를 입력해주세요.</p>
+        </div>
+        <form onsubmit="handleLogin(event)" class="auth-input-group">
+          <input type="password" id="admin-pw" class="m3-text-field" placeholder="비밀번호를 입력하세요" required autofocus autocomplete="current-password" />
+          <button type="submit" id="login-btn" class="md-btn md-btn-filled" style="padding: 10px; font-size: 0.875rem;">
+            <span>인증 및 데이터 조회</span>
+          </button>
+        </form>
+      </div>
     </div>
 
-    <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDQCQbrwOX9F_Kx2uf_fg4tBTyslIdWFd_CDIHSS98O79V42Mia94KYT9hpWzTY0K7Fw/exec";
-        
-        // 로컬스토리지 저장 키 및 기간 설정 (1주일 = 7일 * 24시간 * 60분 * 60초 * 1000밀리초)
-        const AUTH_STORAGE_KEY = 'rsvp_admin_auth';
-        const EXPIRATION_TIME = 7 * 24 * 60 * 60 * 1000;
+    <!-- 3. 메인 대시보드 뷰 -->
+    <div id="dashboard-view" style="display: none; flex-direction: column; gap: 12px;">
+      
+      <!-- KPI 요약 통계 카드 그리드 (순서: 총 참석 예정 -> 전체 참석 여부 -> 신랑측 -> 신부측) -->
+      <section class="kpi-grid">
+        <!-- 1. 총 참석 예정 인원 -->
+        <div class="kpi-card">
+          <div class="kpi-info">
+            <span class="kpi-label marquee-box"><span class="marquee-text">총 참석 예정 인원</span></span>
+            <span class="kpi-value" id="kpi-total-guests">0명</span>
+            <span class="kpi-sub" id="kpi-total-responses">총 0건 응답</span>
+          </div>
+          <div class="kpi-icon-box total">
+            <span class="material-symbols-outlined">groups</span>
+          </div>
+        </div>
 
-        let verifiedPassword = "";
-        let rawRsvpList = [];
-        let currentFilter = "all";
+        <!-- 2. 전체 참석 여부 (2번째로 이동) -->
+        <div class="kpi-card">
+          <div class="kpi-info">
+            <span class="kpi-label marquee-box"><span class="marquee-text">전체 참석 여부</span></span>
+            <span class="kpi-value" id="kpi-status-ratio" style="font-size: 1.05rem;">0 / 0</span>
+            <span class="kpi-sub">참석가능 / 불참</span>
+          </div>
+          <div class="kpi-icon-box status">
+            <span class="material-symbols-outlined">check_circle</span>
+          </div>
+        </div>
 
-        // 페이지 로드 시 로컬 스토리지 확인 및 자동 로그인 시도
-        document.addEventListener('DOMContentLoaded', async () => {
-            const storedAuth = localStorage.getItem(AUTH_STORAGE_KEY);
-            
-            if (storedAuth) {
-                try {
-                    const parsedAuth = JSON.parse(storedAuth);
-                    const currentTime = new Date().getTime();
-                    
-                    // 만료 기간(1주일)이 지나지 않았는지 확인
-                    if (currentTime < parsedAuth.expires) {
-                        verifiedPassword = parsedAuth.password;
-                        
-                        const authBtn = document.getElementById('check-auth-btn');
-                        authBtn.disabled = true;
-                        authBtn.innerText = "자동 로그인 중...";
-                        
-                        try {
-                            await fetchRsvpData();
-                            document.getElementById('auth-section').style.display = 'none';
-                            document.getElementById('dashboard-content').style.display = 'block';
-                        } catch (err) {
-                            // 비번이 바뀌는 등 오류가 발생하면 초기화
-                            localStorage.removeItem(AUTH_STORAGE_KEY);
-                            authBtn.disabled = false;
-                            authBtn.innerText = "확인하기";
-                        }
-                    } else {
-                        // 만료 시 로컬 스토리지 삭제
-                        localStorage.removeItem(AUTH_STORAGE_KEY);
-                    }
-                } catch (e) {
-                    localStorage.removeItem(AUTH_STORAGE_KEY);
-                }
-            }
+        <!-- 3. 신랑측 참석 인원 -->
+        <div class="kpi-card">
+          <div class="kpi-info">
+            <span class="kpi-label marquee-box"><span class="marquee-text">신랑측 참석 인원</span></span>
+            <span class="kpi-value" id="kpi-groom-guests">0명</span>
+            <span class="kpi-sub" id="kpi-groom-ratio">가능 0 / 불가 0</span>
+          </div>
+          <div class="kpi-icon-box groom">
+            <span class="material-symbols-outlined">male</span>
+          </div>
+        </div>
+
+        <!-- 4. 신부측 참석 인원 -->
+        <div class="kpi-card">
+          <div class="kpi-info">
+            <span class="kpi-label marquee-box"><span class="marquee-text">신부측 참석 인원</span></span>
+            <span class="kpi-value" id="kpi-bride-guests">0명</span>
+            <span class="kpi-sub" id="kpi-bride-ratio">가능 0 / 불가 0</span>
+          </div>
+          <div class="kpi-icon-box bride">
+            <span class="material-symbols-outlined">female</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 필터 & 검색 바 -->
+      <section class="filter-search-bar">
+        <div class="filter-chips-group">
+          <button type="button" class="filter-chip active" data-filter="all">
+            <span>전체보기</span>
+          </button>
+          <button type="button" class="filter-chip" data-filter="groom">
+            <span class="material-symbols-outlined" style="font-size: 14px;">male</span>
+            <span>신랑측</span>
+          </button>
+          <button type="button" class="filter-chip" data-filter="bride">
+            <span class="material-symbols-outlined" style="font-size: 14px;">female</span>
+            <span>신부측</span>
+          </button>
+          <button type="button" class="filter-chip" data-filter="yes">
+            <span class="material-symbols-outlined" style="font-size: 14px;">task_alt</span>
+            <span>참석가능</span>
+          </button>
+          <button type="button" class="filter-chip" data-filter="no">
+            <span class="material-symbols-outlined" style="font-size: 14px;">cancel</span>
+            <span>참석불가</span>
+          </button>
+        </div>
+
+        <div class="search-box">
+          <span class="material-symbols-outlined">search</span>
+          <input type="text" id="search-input" placeholder="이름 / 연락처 검색..." />
+        </div>
+      </section>
+
+      <!-- 🖥️ PC 전용 M3 데이터 테이블 뷰 -->
+      <div class="table-container-card">
+        <table class="m3-table">
+          <thead>
+            <tr>
+              <th class="col-no">No.</th>
+              <th class="col-date">등록 일시</th>
+              <th class="col-side">구분</th>
+              <th class="col-status">참석 여부</th>
+              <th class="col-name">참석자 성함</th>
+              <th class="col-guests">참석 인원</th>
+              <th class="col-tel">연락처</th>
+            </tr>
+          </thead>
+          <tbody id="desktop-table-body">
+            <!-- 렌더링 영역 -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 📱 모바일 전용 M3 카드 리스트 뷰 -->
+      <div class="mobile-cards-view" id="mobile-cards-container">
+        <!-- 렌더링 영역 -->
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDQCQbrwOX9F_Kx2uf_fg4tBTyslIdWFd_CDIHSS98O79V42Mia94KYT9hpWzTY0K7Fw/exec";
+    const AUTH_STORAGE_KEY = 'rsvp_admin_auth';
+    const CACHE_DATA_KEY = 'rsvp_cached_data';
+    const EXPIRATION_TIME = 7 * 24 * 60 * 60 * 1000; // 1주일 유효
+
+    let verifiedPassword = "";
+    let rawRsvpList = [];
+    let activeFilter = 'all';
+    let searchQuery = '';
+
+    function checkAndApplyMarquees() {
+      const marqueeBoxes = document.querySelectorAll('.marquee-box');
+      marqueeBoxes.forEach(box => {
+        const textEl = box.querySelector('.marquee-text');
+        if (!textEl || !textEl.innerText.trim()) return;
+
+        textEl.classList.remove('is-marquee');
+
+        const containerWidth = box.clientWidth;
+        const textWidth = textEl.scrollWidth;
+
+        if (textWidth > containerWidth + 1) {
+          textEl.classList.add('is-marquee');
+          const overflowDistance = textWidth - containerWidth + 8;
+          textEl.style.setProperty('--marquee-dist', `-${overflowDistance}px`);
+        } else {
+          textEl.style.removeProperty('--marquee-dist');
+        }
+      });
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function getSideBadge(side) {
+      const s = String(side || '').trim();
+      if (s === '신랑측') {
+        return `<span class="tag-badge badge-groom"><span class="material-symbols-outlined" style="font-size: 13px;">male</span>신랑측</span>`;
+      }
+      return `<span class="tag-badge badge-bride"><span class="material-symbols-outlined" style="font-size: 13px;">female</span>신부측</span>`;
+    }
+
+    function getStatusBadge(status) {
+      const st = String(status || '').trim();
+      if (st === '참석가능') {
+        return `<span class="tag-badge badge-status-yes"><span class="material-symbols-outlined" style="font-size: 13px;">task_alt</span>참석가능</span>`;
+      }
+      return `<span class="tag-badge badge-status-no"><span class="material-symbols-outlined" style="font-size: 13px;">cancel</span>참석불가</span>`;
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      verifiedPassword = document.getElementById('admin-pw').value.trim();
+      fetchRsvpData(true);
+    }
+
+    function handleLogout() {
+      if (confirm('로그아웃 하시겠습니까? 다음 접속 시 비밀번호를 다시 입력해야 합니다.')) {
+        localStorage.removeItem(AUTH_STORAGE_KEY);
+        localStorage.removeItem(CACHE_DATA_KEY);
+        verifiedPassword = '';
+        rawRsvpList = [];
+        document.getElementById('admin-pw').value = '';
+        document.getElementById('dashboard-view').style.display = 'none';
+        document.getElementById('top-actions-box').style.display = 'none';
+        document.getElementById('auth-view').style.display = 'flex';
+      }
+    }
+
+    async function fetchRsvpData(isManualLogin = false) {
+      const syncStatus = document.getElementById('sync-status');
+      const loginBtn = document.getElementById('login-btn');
+      const refreshBtn = document.getElementById('btn-refresh');
+
+      if (syncStatus) syncStatus.classList.add('active');
+      if (isManualLogin && loginBtn) loginBtn.innerText = '인증 확인 중...';
+      if (refreshBtn) refreshBtn.style.opacity = '0.6';
+
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: "getRsvp",
+            password: verifiedPassword
+          })
         });
 
-        async function handleAuthSubmit(event) {
-            event.preventDefault();
-            const passInput = document.getElementById('check-pass-input').value;
-            const authBtn = document.getElementById('check-auth-btn');
+        const result = await response.json();
 
-            if (!passInput) return;
+        if (result.result === 'success' || result.status === 'success') {
+          const expireDate = new Date().getTime() + EXPIRATION_TIME;
+          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
+            password: verifiedPassword,
+            expires: expireDate
+          }));
+          localStorage.setItem(CACHE_DATA_KEY, JSON.stringify(result.data || []));
 
-            authBtn.disabled = true;
-            authBtn.innerText = "확인 중...";
+          rawRsvpList = result.data || [];
+          document.getElementById('auth-view').style.display = 'none';
+          document.getElementById('dashboard-view').style.display = 'flex';
+          document.getElementById('top-actions-box').style.display = 'flex';
 
-            try {
-                verifiedPassword = passInput;
-                await fetchRsvpData();
-                
-                // 로그인 성공 시 로컬 스토리지에 비밀번호와 만료일(1주일 후) 저장
-                const expireDate = new Date().getTime() + EXPIRATION_TIME;
-                localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
-                    password: verifiedPassword,
-                    expires: expireDate
-                }));
-                
-                document.getElementById('auth-section').style.display = 'none';
-                document.getElementById('dashboard-content').style.display = 'block';
-            } catch (err) {
-                alert("비밀번호가 일치하지 않거나 오류가 발생했습니다.");
-                console.error(err);
-            } finally {
-                authBtn.disabled = false;
-                authBtn.innerText = "확인하기";
-            }
+          updateStats();
+          renderViews();
+          checkAndApplyMarquees();
+        } else {
+          localStorage.removeItem(AUTH_STORAGE_KEY);
+          localStorage.removeItem(CACHE_DATA_KEY);
+          document.getElementById('dashboard-view').style.display = 'none';
+          document.getElementById('top-actions-box').style.display = 'none';
+          document.getElementById('auth-view').style.display = 'flex';
+          alert(result.message || '인증에 실패했습니다. 비밀번호를 확인해주세요.');
         }
+      } catch (err) {
+        console.error('RSVP 데이터 조회 실패:', err);
+        if (isManualLogin) {
+          alert('데이터를 가져오는 중 네트워크 오류가 발생했습니다.');
+        }
+      } finally {
+        if (syncStatus) syncStatus.classList.remove('active');
+        if (loginBtn) loginBtn.innerText = '인증 및 데이터 조회';
+        if (refreshBtn) refreshBtn.style.opacity = '1';
+      }
+    }
 
-        async function fetchRsvpData() {
-            const res = await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({
-                    action: "getRsvp",
-                    password: verifiedPassword
-                })
-            });
+    function updateStats() {
+      let totalGuests = 0;
+      let yesCount = 0;
+      let noCount = 0;
+      let groomYes = 0;
+      let groomNo = 0;
+      let groomGuests = 0;
+      let brideYes = 0;
+      let brideNo = 0;
+      let brideGuests = 0;
 
-            const result = await res.json();
+      rawRsvpList.forEach(item => {
+        const isYes = item.status === '참석가능';
+        const isGroom = item.side === '신랑측';
+        const count = parseInt(item.extraCount, 10) || 1;
 
-            if (result.result === 'success') {
-                rawRsvpList = result.data || [];
+        if (isYes) {
+          yesCount++;
+          totalGuests += count;
+          if (isGroom) {
+            groomYes++;
+            groomGuests += count;
+          } else {
+            brideYes++;
+            brideGuests += count;
+          }
+        } else {
+          noCount++;
+          if (isGroom) groomNo++;
+          else brideNo++;
+        }
+      });
+
+      document.getElementById('kpi-total-guests').innerText = `${totalGuests}명`;
+      document.getElementById('kpi-total-responses').innerText = `총 ${rawRsvpList.length}건 응답`;
+      document.getElementById('kpi-status-ratio').innerText = `${yesCount}건 / ${noCount}건`;
+      document.getElementById('kpi-groom-guests').innerText = `${groomGuests}명`;
+      document.getElementById('kpi-groom-ratio').innerText = `가능 ${groomYes} / 불가 ${groomNo}`;
+      document.getElementById('kpi-bride-guests').innerText = `${brideGuests}명`;
+      document.getElementById('kpi-bride-ratio').innerText = `가능 ${brideYes} / 불가 ${brideNo}`;
+    }
+
+    function renderViews() {
+      const desktopTbody = document.getElementById('desktop-table-body');
+      const mobileContainer = document.getElementById('mobile-cards-container');
+
+      const filtered = rawRsvpList.filter(item => {
+        let matchFilter = true;
+        if (activeFilter === 'groom') matchFilter = (item.side === '신랑측');
+        else if (activeFilter === 'bride') matchFilter = (item.side === '신부측');
+        else if (activeFilter === 'yes') matchFilter = (item.status === '참석가능');
+        else if (activeFilter === 'no') matchFilter = (item.status === '참석불가');
+
+        const q = searchQuery.toLowerCase();
+        const matchSearch = !searchQuery ||
+          String(item.name || '').toLowerCase().includes(q) ||
+          String(item.tel || '').toLowerCase().includes(q);
+
+        return matchFilter && matchSearch;
+      });
+
+      if (filtered.length === 0) {
+        const emptyHtml = `
+          <div class="empty-state">
+            <span class="material-symbols-outlined">inbox</span>
+            <p>조건에 일치하는 참석 정보가 없습니다.</p>
+          </div>
+        `;
+        desktopTbody.innerHTML = `<tr><td colspan="7">${emptyHtml}</td></tr>`;
+        mobileContainer.innerHTML = emptyHtml;
+        return;
+      }
+
+      desktopTbody.innerHTML = filtered.map((item, index) => {
+        const rowNo = index + 1;
+        const sideBadge = getSideBadge(item.side);
+        const statusBadge = getStatusBadge(item.status);
+        const guestCount = item.status === '참석가능' ? `${escapeHtml(String(item.extraCount || 1))}명` : '-';
+        const telLink = item.tel ? `<a href="tel:${escapeHtml(item.tel)}">${escapeHtml(item.tel)}</a>` : '-';
+
+        return `
+          <tr>
+            <td class="col-no">${rowNo}</td>
+            <td class="col-date">${escapeHtml(item.date || '-')}</td>
+            <td class="col-side">${sideBadge}</td>
+            <td class="col-status">${statusBadge}</td>
+            <td class="col-name">${escapeHtml(item.name || '익명')}</td>
+            <td class="col-guests">${guestCount}</td>
+            <td class="col-tel">${telLink}</td>
+          </tr>
+        `;
+      }).join('');
+
+      mobileContainer.innerHTML = filtered.map((item, index) => {
+        const rowNo = index + 1;
+        const sideBadge = getSideBadge(item.side);
+        const statusBadge = getStatusBadge(item.status);
+        const guestCount = item.status === '참석가능' ? `${escapeHtml(String(item.extraCount || 1))}명` : '참석 불가';
+        const telLink = item.tel ? `<a href="tel:${escapeHtml(item.tel)}">${escapeHtml(item.tel)}</a>` : '-';
+
+        return `
+          <div class="mobile-rsvp-card">
+            <div class="mobile-card-header">
+              <div class="mobile-card-header-left">
+                <span class="mobile-card-num">#${rowNo}</span>
+                <span class="mobile-card-name">${escapeHtml(item.name || '익명')}</span>
+              </div>
+              <span class="mobile-card-date">${escapeHtml(item.date || '')}</span>
+            </div>
+            <div style="display: flex; gap: 6px; margin-top: 2px;">
+              ${sideBadge}
+              ${statusBadge}
+            </div>
+            <div class="mobile-card-body">
+              <div>참석 인원: <strong>${guestCount}</strong></div>
+              <div>연락처: ${telLink}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function setupFilterAndSearch() {
+      const chips = document.querySelectorAll('.filter-chip');
+      chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          chips.forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          activeFilter = chip.dataset.filter;
+          renderViews();
+        });
+      });
+
+      const searchInput = document.getElementById('search-input');
+      searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value.trim();
+        renderViews();
+      });
+
+      let resizeTimer = null;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(checkAndApplyMarquees, 150);
+      });
+    }
+
+    (function initInstantAuth() {
+      const storedAuth = localStorage.getItem(AUTH_STORAGE_KEY);
+      if (storedAuth) {
+        try {
+          const parsed = JSON.parse(storedAuth);
+          if (new Date().getTime() < parsed.expires) {
+            verifiedPassword = parsed.password;
+            document.getElementById('auth-view').style.display = 'none';
+            document.getElementById('dashboard-view').style.display = 'flex';
+            document.getElementById('top-actions-box').style.display = 'flex';
+
+            const cached = localStorage.getItem(CACHE_DATA_KEY);
+            if (cached) {
+              try {
+                rawRsvpList = JSON.parse(cached);
                 updateStats();
-                renderList();
-            } else {
-                throw new Error(result.message || "조회 실패");
-            }
-        }
-
-        function updateStats() {
-            let totalGuests = 0;
-            let yesCount = 0;
-            let noCount = 0;
-            let groomYes = 0;
-            let groomNo = 0;
-            let groomGuests = 0;
-            let brideYes = 0;
-            let brideNo = 0;
-            let brideGuests = 0;
-
-            rawRsvpList.forEach(item => {
-                const isYes = item.status === '참석가능';
-                const isGroom = item.side === '신랑측';
-                const count = parseInt(item.extraCount, 10) || 1;
-
-                if (isYes) {
-                    yesCount++;
-                    totalGuests += count;
-                    if (isGroom) {
-                        groomYes++;
-                        groomGuests += count;
-                    } else {
-                        brideYes++;
-                        brideGuests += count;
-                    }
-                } else {
-                    noCount++;
-                    if (isGroom) groomNo++;
-                    else brideNo++;
-                }
-            });
-
-            document.getElementById('stat-total-guests').innerText = `${totalGuests} 명`;
-            document.getElementById('stat-groom-guests').innerText = `${groomGuests} 명`;
-            document.getElementById('stat-bride-guests').innerText = `${brideGuests} 명`;
-            document.getElementById('stat-status-combined').innerText = `${yesCount}건 / ${noCount}건`;
-            document.getElementById('stat-groom-count').innerText = `${groomYes} / ${groomNo}`;
-            document.getElementById('stat-bride-count').innerText = `${brideYes} / ${brideNo}`;
-        }
-
-        function setFilter(filterType, btnEl) {
-            currentFilter = filterType;
-            document.querySelectorAll('.btn-filter').forEach(btn => btn.classList.remove('active'));
-            if (btnEl) btnEl.classList.add('active');
-            renderList();
-        }
-
-        function renderList() {
-            const container = document.getElementById('rsvp-list-container');
-            container.innerHTML = '';
-
-            let filtered = rawRsvpList.filter(item => {
-                if (currentFilter === 'groom') return item.side === '신랑측';
-                if (currentFilter === 'bride') return item.side === '신부측';
-                if (currentFilter === 'yes') return item.status === '참석가능';
-                if (currentFilter === 'no') return item.status === '참석불가';
-                return true;
-            });
-
-            if (filtered.length === 0) {
-                container.innerHTML = '<div class="empty-msg">해당 조건의 참석 정보가 없습니다.</div>';
-                return;
+                renderViews();
+              } catch (e) {}
             }
 
-            const fragment = document.createDocumentFragment();
-
-            filtered.forEach(item => {
-                const isGroom = item.side === '신랑측';
-                const isYes = item.status === '참석가능';
-
-                const card = document.createElement('div');
-                card.className = 'rsvp-item-card';
-                card.innerHTML = `
-                    <div class="rsvp-item-header">
-                        <span class="rsvp-name">${escapeHtml(item.name || '익명')}</span>
-                        <div class="tags-wrap">
-                            <span class="tag ${isGroom ? 'side-groom' : 'side-bride'}">${escapeHtml(item.side || '')}</span>
-                            <span class="tag ${isYes ? 'status-yes' : 'status-no'}">${escapeHtml(item.status || '')}</span>
-                        </div>
-                    </div>
-                    <div class="rsvp-details">
-                        <div class="rsvp-tel">연락처: <a href="tel:${escapeHtml(item.tel)}">${escapeHtml(item.tel || '-')}</a></div>
-                        <div>참석 인원: <strong>${escapeHtml(String(item.extraCount || 1))}명</strong></div>
-                    </div>
-                    <div class="rsvp-date">${escapeHtml(item.date || '')}</div>
-                `;
-                fragment.appendChild(card);
-            });
-
-            container.appendChild(fragment);
+            fetchRsvpData(false);
+          } else {
+            localStorage.removeItem(AUTH_STORAGE_KEY);
+          }
+        } catch (e) {
+          localStorage.removeItem(AUTH_STORAGE_KEY);
         }
+      }
+    })();
 
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-    </script>
+    document.addEventListener('DOMContentLoaded', () => {
+      setupFilterAndSearch();
+      checkAndApplyMarquees();
+    });
+  </script>
 </body>
 </html>
