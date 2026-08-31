@@ -722,7 +722,7 @@
         <form onsubmit="handleLogin(event)" class="auth-input-group">
           <input type="password" id="admin-pw" class="m3-text-field" placeholder="비밀번호를 입력하세요" required autofocus autocomplete="current-password" />
           <button type="submit" id="login-btn" class="md-btn md-btn-filled" style="padding: 10px; font-size: 0.875rem;">
-            <span>인증 및 데이터 조회</span>
+            <span>로그인</span>
           </button>
         </form>
       </div>
@@ -969,7 +969,7 @@
         }
       } finally {
         if (syncStatus) syncStatus.classList.remove('active');
-        if (loginBtn) loginBtn.innerText = '인증 및 데이터 조회';
+        if (loginBtn) loginBtn.innerText = '비밀번호 확인 중..';
         if (refreshBtn) refreshBtn.style.opacity = '1';
       }
     }
