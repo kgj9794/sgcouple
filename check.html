@@ -923,7 +923,7 @@
       const refreshBtn = document.getElementById('btn-refresh');
 
       if (syncStatus) syncStatus.classList.add('active');
-      if (isManualLogin && loginBtn) loginBtn.innerText = '인증 확인 중...';
+      if (isManualLogin && loginBtn) loginBtn.innerText = '정보 확인 중..';
       if (refreshBtn) refreshBtn.style.opacity = '0.6';
 
       try {
@@ -969,7 +969,7 @@
         }
       } finally {
         if (syncStatus) syncStatus.classList.remove('active');
-        if (loginBtn) loginBtn.innerText = '비밀번호 확인 중..';
+        if (loginBtn) loginBtn.innerText = '로그인';
         if (refreshBtn) refreshBtn.style.opacity = '1';
       }
     }
