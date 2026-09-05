@@ -2106,7 +2106,7 @@ function shareKakao() {
                 },
                 buttons: [
                     {
-                        title: '모바일 청첩장 보기',
+                        title: '청첩장 보기',
                         link: {
                             mobileWebUrl: shareUrl,
                             webUrl: shareUrl
@@ -2120,7 +2120,7 @@ function shareKakao() {
             
             if (navigator.share) {
                 navigator.share({
-                    title: `${groom} ♥ ${bride} 모바일 청첩장`,
+                    title: `${groom} ♥ ${bride} 청첩장`,
                     text: '소중한 분들을 초대합니다.',
                     url: shareUrl
                 }).catch(() => {});
@@ -2130,7 +2130,7 @@ function shareKakao() {
         console.warn("Kakao SDK가 초기화되지 않았습니다. JavaScript 키 및 도메인 설정을 확인해주세요.");
         if (navigator.share) {
             navigator.share({
-                title: `${groom} ♥ ${bride} 모바일 청첩장`,
+                title: `${groom} ♥ ${bride} 청첩장`,
                 text: '소중한 분들을 초대합니다.',
                 url: shareUrl
             }).catch(() => {});
@@ -2602,7 +2602,7 @@ function applyDataToDOM(data) {
     const brideName = data.bride_name || '';
 
     if (groomName && brideName) {
-        document.title = `${groomName} & ${brideName}의 모바일 청첩장`;
+        document.title = `${groomName} & ${brideName}의 청첩장`;
         const ogTitle = document.getElementById('og-title');
         if (ogTitle) ogTitle.setAttribute('content', `${groomName} ♥ ${brideName} 결혼합니다`);
     }
