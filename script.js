@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 5000);
 });
 
-// 뒤로가기(bfcache) 복귀 시 인트로 재실행 방지 및 화면 유지
+// 뒤로가기(bfcache) 복귀 시 인트로 재실행 방지 및 보던 화면 유지
 window.addEventListener('pageshow', (e) => {
     if (e.persisted) {
         const introOverlay = document.getElementById('intro-overlay');
@@ -995,7 +995,7 @@ function resetMapZoom() {
     applyMapTransform();
 }
 
-// --- 내비게이션 연결 (카카오맵과 동일하게 원본 탭을 보존하는 새 탭 앱/웹 호출) ---
+// --- 내비게이션 연결 (안드로이드 앱 인텐트 + iOS/PC 안전 새 탭 모바일 웹 호출) ---
 function openNavApp(type) {
     const keyword = dbData.map_search_keyword || dbData.wedding_venue || '';
     if (!keyword) {
@@ -1009,16 +1009,14 @@ function openNavApp(type) {
         const webUrl = `https://m.map.naver.com/search2/search.naver?query=${encoded}`;
         const appName = encodeURIComponent(window.location.hostname || 'wedding_invitation');
         const isAndroid = /Android/i.test(navigator.userAgent);
-        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-        // 카카오맵처럼 현재 청첩장 페이지(스크롤 위치 및 세션)를 그대로 유지하기 위해 _blank(새 창)로 열기
         if (isAndroid) {
+            // 안드로이드: 인텐트 스킴으로 앱 즉시 실행, 미설치 시 브라우저 fallback URL로 안전 이동
             const intentUrl = `intent://search?query=${encoded}&appname=${appName}#Intent;scheme=nmap;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.nhn.android.nmap;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
             window.open(intentUrl, '_blank');
-        } else if (isIOS) {
-            // iOS: 새 창을 통해 nmap 스킴 호출 (미설치 시 웹으로)
-            window.open(`nmap://search?query=${encoded}&appname=${appName}`, '_blank');
         } else {
+            // iOS 및 PC 브라우저: 사파리 URL 유효성 에러 팝업을 방지하고 카카오맵과 동일하게 새 탭으로 웹 페이지 실행
+            // (네이버 지도 모바일 웹 상단에 '네이버 지도 앱으로 보기'가 기본 제공되어 설치자는 원터치 앱 전환 가능)
             window.open(webUrl, '_blank');
         }
         return;
