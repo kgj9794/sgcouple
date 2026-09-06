@@ -260,6 +260,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 5000);
 });
 
+// 뒤로가기(bfcache) 복귀 시 인트로 재실행 방지 및 화면 유지
+window.addEventListener('pageshow', (e) => {
+    if (e.persisted) {
+        const introOverlay = document.getElementById('intro-overlay');
+        if (introOverlay) {
+            introOverlay.style.display = 'none';
+        }
+        document.body.classList.remove('no-scroll');
+        stopFireworks();
+    }
+});
+
 // --- 인트로 타이핑 애니메이션 ---
 async function startTypingAnimation() {
     const titleEl = document.getElementById('typing-title');
@@ -983,7 +995,7 @@ function resetMapZoom() {
     applyMapTransform();
 }
 
-// --- 내비게이션 연결 (네이버 지도 앱 실행 및 폴백 처리) ---
+// --- 내비게이션 연결 (카카오맵과 동일하게 원본 탭을 보존하는 새 탭 앱/웹 호출) ---
 function openNavApp(type) {
     const keyword = dbData.map_search_keyword || dbData.wedding_venue || '';
     if (!keyword) {
@@ -999,20 +1011,14 @@ function openNavApp(type) {
         const isAndroid = /Android/i.test(navigator.userAgent);
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
+        // 카카오맵처럼 현재 청첩장 페이지(스크롤 위치 및 세션)를 그대로 유지하기 위해 _blank(새 창)로 열기
         if (isAndroid) {
-            // 안드로이드: 인텐트 스킴 호출 (네이버 지도 앱 즉시 실행, 미설치 시 웹 URL 폴백 이동)
-            location.href = `intent://search?query=${encoded}&appname=${appName}#Intent;scheme=nmap;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.nhn.android.nmap;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
+            const intentUrl = `intent://search?query=${encoded}&appname=${appName}#Intent;scheme=nmap;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.nhn.android.nmap;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
+            window.open(intentUrl, '_blank');
         } else if (isIOS) {
-            // iOS: nmap 커스텀 스킴 호출 후 미설치/미응답 시 모바일 웹 새 탭 폴백
-            const clickedAt = Date.now();
-            location.href = `nmap://search?query=${encoded}&appname=${appName}`;
-            setTimeout(() => {
-                if (Date.now() - clickedAt < 2000) {
-                    window.open(webUrl, '_blank');
-                }
-            }, 1500);
+            // iOS: 새 창을 통해 nmap 스킴 호출 (미설치 시 웹으로)
+            window.open(`nmap://search?query=${encoded}&appname=${appName}`, '_blank');
         } else {
-            // PC 등 기타 브라우저 환경
             window.open(webUrl, '_blank');
         }
         return;
@@ -1190,7 +1196,7 @@ function renderGuestbookFullList() {
     listContainer.appendChild(fragment);
 }
 
-// 방명록 전용 새로고침 (10초 쿨다운 및 10초 버튼 터치 비활성화 적용)
+// 방명록 전용 새로고침 (10초 쿨다운 및 버튼 터치 비활성화 적용)
 async function refreshGuestbookOnly() {
     const now = Date.now();
     const elapsedSeconds = (now - lastGuestbookRefreshTime) / 1000;
