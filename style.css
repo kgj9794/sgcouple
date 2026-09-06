@@ -453,18 +453,40 @@ body {
     margin-bottom: 16px;
 }
 
+/* 3열 고정 그리드 정렬 (가운데/마지막 모두 중앙 정렬) */
 .family-row {
     font-size: 0.95rem;
     color: #333333;
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
     align-items: center;
-    justify-content: center;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
     gap: 6px;
 }
 
-.family-row .parents { color: #777777; font-size: 0.9rem; }
-.family-row .relation { font-size: 0.85rem; color: #888888; }
-.family-row .name { font-size: 1.05rem; font-weight: 700; color: #222222; }
+.family-row .parents {
+    color: #777777;
+    font-size: 0.9rem;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.family-row .relation {
+    font-size: 0.85rem;
+    color: #888888;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.family-row .name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #222222;
+    text-align: center;
+    white-space: nowrap;
+}
 
 .contact-trigger-btn {
     width: 100%;
