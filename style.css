@@ -161,7 +161,7 @@ body {
     transform: translateX(-50%) translateY(0);
 }
 
-/* INTRO OVERLAY */
+/* INTRO OVERLAY (원래 부드러운 전환 속도로 복구) */
 .intro-overlay {
     position: fixed;
     top: 0;
@@ -657,13 +657,11 @@ body {
     letter-spacing: -0.3px;
 }
 
-/* DAYS 카드가 3자리(예: 420)인 경우 폰트 크기 자동 최적화 */
 #flip-days .num {
     font-size: 1.42rem;
     letter-spacing: -0.8px;
 }
 
-/* 카드 정중앙 슬릿/구분선 */
 .flip-card-crease {
     position: absolute;
     top: 50%;
@@ -676,7 +674,6 @@ body {
     pointer-events: none;
 }
 
-/* 플립 애니메이션 레이어링 */
 .leaf-top {
     z-index: 3;
     backface-visibility: hidden;
@@ -696,7 +693,6 @@ body {
     z-index: 1;
 }
 
-/* 3D 플립 애니메이션 실행 클래스 */
 .flip-card.flipping .leaf-top {
     animation: flipLeafTop 0.28s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
