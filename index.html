@@ -147,7 +147,7 @@
             </button>
         </section>
 
-        <!-- Section 3: 날짜 및 카운트다운 (플립 시계 구조 적용) -->
+        <!-- Section 3: 날짜 및 카운트다운 (플립 시계) -->
         <section class="section date-section">
             <div class="date-header reveal">
                 <span class="section-tag">WEDDING DAY</span>
@@ -563,10 +563,22 @@
                 </div>
             </div>
 
-            <!-- 하단 작성하기 / 전체보기 버튼 -->
+            <!-- 하단 작성하기 / 전체보기 및 새로고침 버튼 (2단 구성) -->
             <div class="guestbook-actions reveal">
-                <button type="button" class="btn-guestbook-action" onclick="openGuestbookWriteModal()">작성하기</button>
-                <button type="button" class="btn-guestbook-action" onclick="openGuestbookListModal()">전체보기</button>
+                <div class="guestbook-action-row">
+                    <button type="button" class="btn-guestbook-action" onclick="openGuestbookWriteModal()">작성하기</button>
+                    <button type="button" class="btn-guestbook-action" onclick="openGuestbookListModal()">전체보기</button>
+                </div>
+                <div class="guestbook-refresh-wrap">
+                    <button type="button" class="btn-guestbook-action btn-guestbook-refresh" id="btn-guestbook-refresh" onclick="refreshGuestbookOnly()" aria-label="방명록 새로고침">
+                        <svg class="refresh-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        <span>새로고침</span>
+                    </button>
+                </div>
             </div>
         </section>
 
