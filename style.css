@@ -1879,6 +1879,13 @@ body {
     animation: spinRefresh 0.8s linear infinite;
 }
 
+/* 10초 쿨다운 중 버튼 터치 차단 및 비활성화 스타일 */
+.btn-guestbook-refresh:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 @keyframes spinRefresh {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
