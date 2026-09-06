@@ -162,6 +162,7 @@ function waitForHeroImageLoad(url) {
             heroImgEl.removeEventListener('load', onLoad);
             heroImgEl.removeEventListener('error', onError);
             console.error("메인 배경 이미지 로드 실패");
+            resolve();
         };
 
         heroImgEl.addEventListener('load', onLoad);
@@ -199,11 +200,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 1. DB 데이터 가져오기
         await fetchDBData();
 
-        // 2. 섹션 1 메인 사진이 완전히 로드될 때까지 대기
+        // 2. 섹션 1 메인 사진 로딩 대기
         const heroImgUrl = dbData.hero_img || '';
         const heroImgPromise = waitForHeroImageLoad(heroImgUrl);
 
-        // 3. 메인 사진 로딩 + 최소 인트로 노출 시간 + 타이핑 애니메이션 완료 동시 대기
+        // 3. 메인 사진 로딩 + 최소 인트로 노출 시간(2초) + 타이핑 애니메이션 완료 동시 대기
         await Promise.all([heroImgPromise, minIntroDelay, typingPromise]);
 
         isInitialLoaded = true;
@@ -252,7 +253,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     setInterval(updateCountdown, 1000);
 
-    // 5초에 한번씩 카운트 증가 없는 자동 폭죽 발사
+    // 5초에 한번씩 자동 폭죽 발사
     congratsAutoTimer = setInterval(() => {
         launchCongratsFirework(false);
     }, 5000);
@@ -981,6 +982,7 @@ function resetMapZoom() {
     applyMapTransform();
 }
 
+// --- 네이버지도 앱 우선 실행(딥링크) 및 길안내 연동 ---
 function openNavApp(type) {
     const keyword = dbData.map_search_keyword || dbData.wedding_venue || '';
     if (!keyword) {
@@ -989,18 +991,33 @@ function openNavApp(type) {
     }
 
     const encoded = encodeURIComponent(keyword);
-    let targetUrl = '';
 
     if (type === 'naver') {
-        targetUrl = `https://m.map.naver.com/search2/search.naver?query=${encoded}`;
-    } else if (type === 'tmap') {
-        targetUrl = `https://tmap.co.kr/tmap2/mobile/route.jsp?name=${encoded}`;
-    } else if (type === 'kakao') {
-        targetUrl = `https://map.kakao.com/link/search/${encoded}`;
-    }
+        const webUrl = `https://m.map.naver.com/search2/search.naver?query=${encoded}`;
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    if (targetUrl) {
-        window.open(targetUrl, '_blank');
+        if (isMobile) {
+            // 네이버지도 전용 앱 스킴 호출
+            const appUrl = `nmap://search?query=${encoded}&appname=${encodeURIComponent(window.location.hostname || 'mobile_invitation')}`;
+            const start = Date.now();
+            window.location.href = appUrl;
+
+            // 앱이 설치되지 않아 페이지 전환이 일어나지 않은 경우 모바일 웹으로 폴백(Fallback)
+            setTimeout(() => {
+                if (Date.now() - start < 1500) {
+                    window.open(webUrl, '_blank');
+                }
+            }, 1000);
+        } else {
+            window.open(webUrl, '_blank');
+        }
+        return;
+    } else if (type === 'tmap') {
+        window.open(`https://tmap.co.kr/tmap2/mobile/route.jsp?name=${encoded}`, '_blank');
+        return;
+    } else if (type === 'kakao') {
+        window.open(`https://map.kakao.com/link/search/${encoded}`, '_blank');
+        return;
     }
 }
 
@@ -2033,7 +2050,7 @@ async function syncCongratsToDB() {
     }
 }
 
-// --- SECTION 13: 청첩장 공유하기 (카카오톡 앱 연동 & 디버깅 강화) ---
+// --- SECTION 13: 청첩장 공유하기 ---
 function shareKakao() {
     const currentFullUrl = window.location.href;
     const shareUrl = dbData.share_url && dbData.share_url.startsWith('http') ? dbData.share_url : currentFullUrl;
@@ -2979,7 +2996,7 @@ function openAdminModalValues() {
     setVal('input-bride-father-bank', dbData.bride_father_bank);
     setVal('input-bride-father-account', dbData.bride_father_account);
     setVal('input-bride-father-pay-link', dbData.bride_father_pay_link);
-    setCheck('input-bride-father-pay-show', dbData.bride_father_pay_show);
+    setCheck('input-bride-pay-show', dbData.bride_father_pay_show);
 
     setVal('input-bride-mother-bank', dbData.bride_mother_bank);
     setVal('input-bride-mother-account', dbData.bride_mother_account);
