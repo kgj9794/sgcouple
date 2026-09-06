@@ -983,7 +983,7 @@ function resetMapZoom() {
     applyMapTransform();
 }
 
-// --- 내비게이션 연결 (카카오맵과 동일한 새 탭 방식) ---
+// --- 내비게이션 연결 (네이버 지도 앱 실행 및 폴백 처리) ---
 function openNavApp(type) {
     const keyword = dbData.map_search_keyword || dbData.wedding_venue || '';
     if (!keyword) {
@@ -994,7 +994,27 @@ function openNavApp(type) {
     const encoded = encodeURIComponent(keyword);
 
     if (type === 'naver') {
-        window.open(`https://m.map.naver.com/search2/search.naver?query=${encoded}`, '_blank');
+        const webUrl = `https://m.map.naver.com/search2/search.naver?query=${encoded}`;
+        const appName = encodeURIComponent(window.location.hostname || 'wedding_invitation');
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+        if (isAndroid) {
+            // 안드로이드: 인텐트 스킴 호출 (네이버 지도 앱 즉시 실행, 미설치 시 웹 URL 폴백 이동)
+            location.href = `intent://search?query=${encoded}&appname=${appName}#Intent;scheme=nmap;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.nhn.android.nmap;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
+        } else if (isIOS) {
+            // iOS: nmap 커스텀 스킴 호출 후 미설치/미응답 시 모바일 웹 새 탭 폴백
+            const clickedAt = Date.now();
+            location.href = `nmap://search?query=${encoded}&appname=${appName}`;
+            setTimeout(() => {
+                if (Date.now() - clickedAt < 2000) {
+                    window.open(webUrl, '_blank');
+                }
+            }, 1500);
+        } else {
+            // PC 등 기타 브라우저 환경
+            window.open(webUrl, '_blank');
+        }
         return;
     } else if (type === 'tmap') {
         window.open(`https://tmap.co.kr/tmap2/mobile/route.jsp?name=${encoded}`, '_blank');
@@ -1170,12 +1190,12 @@ function renderGuestbookFullList() {
     listContainer.appendChild(fragment);
 }
 
-// 방명록 전용 새로고침 (10초 쿨다운 적용)
+// 방명록 전용 새로고침 (10초 쿨다운 및 10초 버튼 터치 비활성화 적용)
 async function refreshGuestbookOnly() {
     const now = Date.now();
     const elapsedSeconds = (now - lastGuestbookRefreshTime) / 1000;
 
-    // 10초 이내 연타 시 서버 요청 자체를 차단
+    // 10초 이내 연타 시 서버 요청 차단
     if (elapsedSeconds < 10) {
         showToast('10초 뒤에 다시 시도해 주세요.');
         return;
@@ -1184,7 +1204,16 @@ async function refreshGuestbookOnly() {
     lastGuestbookRefreshTime = now;
 
     const refreshBtn = document.getElementById('btn-guestbook-refresh');
-    if (refreshBtn) refreshBtn.classList.add('spinning');
+    if (refreshBtn) {
+        refreshBtn.disabled = true; // 10초 동안 클릭/터치 차단
+        refreshBtn.classList.add('spinning');
+    }
+
+    // 10초 후 버튼 다시 활성화
+    setTimeout(() => {
+        const btn = document.getElementById('btn-guestbook-refresh');
+        if (btn) btn.disabled = false;
+    }, 10000);
 
     try {
         const res = await fetch(`${APPS_SCRIPT_URL}?action=getData`);
