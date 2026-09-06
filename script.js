@@ -983,7 +983,7 @@ function resetMapZoom() {
     applyMapTransform();
 }
 
-// --- 네이버지도 앱 우선 실행 및 웹 중복 열림 방지 로직 ---
+// --- 내비게이션 연결 (카카오맵과 동일한 새 탭 방식) ---
 function openNavApp(type) {
     const keyword = dbData.map_search_keyword || dbData.wedding_venue || '';
     if (!keyword) {
@@ -994,52 +994,7 @@ function openNavApp(type) {
     const encoded = encodeURIComponent(keyword);
 
     if (type === 'naver') {
-        const webUrl = `https://m.map.naver.com/search2/search.naver?query=${encoded}`;
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-        if (isMobile) {
-            const appUrl = `nmap://search?query=${encoded}&appname=${encodeURIComponent(window.location.hostname || 'mobile_invitation')}`;
-            let hasAppOpened = false;
-            let fallbackTimer = null;
-
-            const cancelFallback = () => {
-                hasAppOpened = true;
-                if (fallbackTimer) {
-                    clearTimeout(fallbackTimer);
-                    fallbackTimer = null;
-                }
-                cleanupListeners();
-            };
-
-            const onVisibilityChange = () => {
-                if (document.hidden || document.visibilityState === 'hidden') {
-                    cancelFallback();
-                }
-            };
-
-            const cleanupListeners = () => {
-                window.removeEventListener('pagehide', cancelFallback);
-                window.removeEventListener('blur', cancelFallback);
-                document.removeEventListener('visibilitychange', onVisibilityChange);
-            };
-
-            window.addEventListener('pagehide', cancelFallback, { once: true });
-            window.addEventListener('blur', cancelFallback, { once: true });
-            document.addEventListener('visibilitychange', onVisibilityChange);
-
-            const clickTime = Date.now();
-            window.location.href = appUrl;
-
-            // 앱 미설치로 화면 전환이 일어나지 않았을 때만 모바일 웹으로 이동
-            fallbackTimer = setTimeout(() => {
-                cleanupListeners();
-                if (!hasAppOpened && !document.hidden && Date.now() - clickTime < 2200) {
-                    window.location.href = webUrl;
-                }
-            }, 1200);
-        } else {
-            window.open(webUrl, '_blank');
-        }
+        window.open(`https://m.map.naver.com/search2/search.naver?query=${encoded}`, '_blank');
         return;
     } else if (type === 'tmap') {
         window.open(`https://tmap.co.kr/tmap2/mobile/route.jsp?name=${encoded}`, '_blank');
