@@ -77,8 +77,8 @@ let isMapPanning = false;
 
 // 섹션 11 축하 폭죽 관련 변수
 let congratsCount = 0;
-let pendingCongratsIncrement = 0; // 클릭 버퍼 누적
-let congratsSyncDebounceTimer = null; // 디바운스 타이머
+let pendingCongratsIncrement = 0;
+let congratsSyncDebounceTimer = null;
 let currentNightBgIndex = 0;
 let congratsCanvas = null;
 let congratsCtx = null;
@@ -86,13 +86,6 @@ let congratsRockets = [];
 let congratsParticles = [];
 let congratsAnimationId = null;
 let congratsAutoTimer = null;
-
-let prevValues = {
-    days: '',
-    hours: '',
-    mins: '',
-    secs: ''
-};
 
 const UNLOCK_EVENTS = ['click', 'touchstart', 'touchend', 'touchmove', 'scroll', 'wheel', 'pointerdown', 'keydown'];
 
@@ -191,11 +184,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     initMapPinchZoom();
     initCongratsFireworks();
 
-    // 7초 타임아웃: 7초 내에 메인 사진을 포함한 초기 로딩이 완료되지 않으면 자동 새로고침
+    // 5초 타임아웃: 5초 내에 메인 사진을 포함한 초기 로딩이 완료되지 않으면 자동 새로고침
     let isInitialLoaded = false;
     const heroLoadTimeoutTimer = setTimeout(() => {
         if (!isInitialLoaded) {
-            console.warn("메인 배경 사진을 7초 이내에 불러오지 못하여 새로고침합니다.");
+            console.warn("메인 배경 사진을 5초 이내에 불러오지 못하여 새로고침합니다.");
             window.location.reload();
         }
     }, 5000);
@@ -419,9 +412,7 @@ function hideIntroOverlay() {
     if (introOverlay && !introOverlay.classList.contains('zoom-into-heart')) {
         introOverlay.classList.add('zoom-into-heart');
         
-        // 인트로가 끝나고 메인으로 진입할 때 BGM 재생 시작
         startAudio();
-        // 브라우저 정책으로 자동 재생 차단 시 첫 인터랙션으로 해제되도록 리스너 연결
         addUnlockListeners();
 
         setTimeout(() => {
@@ -2806,18 +2797,56 @@ function renderCalendar(year, month, weddingDay) {
     }
 }
 
+// --- 플립 카드 3D 회전 제어 함수 ---
+function flipCardTo(boxId, newVal) {
+    const box = document.getElementById(boxId);
+    if (!box) return;
+    const card = box.querySelector('.flip-card');
+    if (!card) return;
+
+    const topPanelNum = card.querySelector('.flip-panel-top .num');
+    const botPanelNum = card.querySelector('.flip-panel-bottom .num');
+    const leafTopNum = card.querySelector('.leaf-top .num');
+    const leafBotNum = card.querySelector('.leaf-bottom .num');
+
+    const currentVal = leafTopNum ? leafTopNum.innerText : '';
+
+    if (currentVal === newVal) return;
+
+    // 초기 화면 진입 시 애니메이션 없이 즉시 세팅
+    if (!card.dataset.initialized) {
+        card.dataset.initialized = 'true';
+        if (topPanelNum) topPanelNum.innerText = newVal;
+        if (botPanelNum) botPanelNum.innerText = newVal;
+        if (leafTopNum) leafTopNum.innerText = newVal;
+        if (leafBotNum) leafBotNum.innerText = newVal;
+        return;
+    }
+
+    // 3D 플립 애니메이션 준비
+    if (topPanelNum) topPanelNum.innerText = newVal;
+    if (botPanelNum) botPanelNum.innerText = currentVal;
+    if (leafTopNum) leafTopNum.innerText = currentVal;
+    if (leafBotNum) leafBotNum.innerText = newVal;
+
+    card.classList.remove('flipping');
+    void card.offsetWidth;
+    card.classList.add('flipping');
+
+    setTimeout(() => {
+        if (botPanelNum) botPanelNum.innerText = newVal;
+        if (leafTopNum) leafTopNum.innerText = newVal;
+        card.classList.remove('flipping');
+    }, 550);
+}
+
 function updateCountdown() {
     if (!targetWeddingDate) return;
 
     const now = new Date();
     const diff = targetWeddingDate - now;
 
-    const daysEl = document.getElementById('timer-days');
-    const hoursEl = document.getElementById('timer-hours');
-    const minsEl = document.getElementById('timer-mins');
-    const secsEl = document.getElementById('timer-secs');
     const ddayTextEl = document.getElementById('dday-text');
-
     const groomName = dbData.groom_name || '신랑';
     const brideName = dbData.bride_name || '신부';
 
@@ -2827,7 +2856,7 @@ function updateCountdown() {
 
     if (ddayTextEl) {
         if (calendarDiffDays > 0) {
-    ddayTextEl.innerHTML = `${groomName.slice(-2)} <span class="dday-heart">♥</span> ${brideName.slice(-2)}의 결혼식이 <strong>${calendarDiffDays}</strong>일 남았습니다.`;
+            ddayTextEl.innerHTML = `${groomName.slice(-2)} <span class="dday-heart">♥</span> ${brideName.slice(-2)}의 결혼식이 <strong>${calendarDiffDays}</strong>일 남았습니다.`;
         } else if (calendarDiffDays === 0) {
             ddayTextEl.innerHTML = `오늘이 바로 ${groomName} <span class="dday-heart">♥</span> ${brideName}의 <strong>결혼식 날</strong>입니다! 🎉`;
         } else {
@@ -2836,10 +2865,10 @@ function updateCountdown() {
     }
 
     if (diff <= 0) {
-        if (daysEl) daysEl.innerText = '00';
-        if (hoursEl) hoursEl.innerText = '00';
-        if (minsEl) minsEl.innerText = '00';
-        if (secsEl) secsEl.innerText = '00';
+        flipCardTo('flip-days', '00');
+        flipCardTo('flip-hours', '00');
+        flipCardTo('flip-mins', '00');
+        flipCardTo('flip-secs', '00');
         return;
     }
 
@@ -2848,21 +2877,15 @@ function updateCountdown() {
     const mins = Math.floor((diff / 1000 / 60) % 60);
     const secs = Math.floor((diff / 1000) % 60);
 
-    updateValWithSlide(daysEl, String(days).padStart(2, '0'), 'days');
-    updateValWithSlide(hoursEl, String(hours).padStart(2, '0'), 'hours');
-    updateValWithSlide(minsEl, String(mins).padStart(2, '0'), 'mins');
-    updateValWithSlide(secsEl, String(secs).padStart(2, '0'), 'secs');
-}
+    const daysVal = String(days).padStart(2, '0');
+    const hoursVal = String(hours).padStart(2, '0');
+    const minsVal = String(mins).padStart(2, '0');
+    const secsVal = String(secs).padStart(2, '0');
 
-function updateValWithSlide(element, newVal, key) {
-    if (!element) return;
-    if (prevValues[key] !== newVal) {
-        element.innerText = newVal;
-        element.classList.remove('slide-down');
-        void element.offsetWidth;
-        element.classList.add('slide-down');
-        prevValues[key] = newVal;
-    }
+    flipCardTo('flip-days', daysVal);
+    flipCardTo('flip-hours', hoursVal);
+    flipCardTo('flip-mins', minsVal);
+    flipCardTo('flip-secs', secsVal);
 }
 
 function openContactModal() { openModal('contact-modal'); }
