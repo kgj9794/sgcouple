@@ -109,7 +109,7 @@ body {
     touch-action: manipulation;
 }
 
-/* 배경음악 토글 버튼 (크기 및 아이콘 축소) */
+/* 배경음악 토글 버튼 */
 .bgm-btn {
     position: fixed;
     top: 16px;
@@ -601,7 +601,7 @@ body {
     box-sizing: border-box;
 }
 
-/* 상단 패널 (밝은 아이보리) */
+/* 상단 패널 */
 .flip-panel-top,
 .leaf-top {
     top: 0;
@@ -611,7 +611,7 @@ body {
     transform-origin: bottom center;
 }
 
-/* 하단 패널 (따뜻한 베이지 음영) */
+/* 하단 패널 */
 .flip-panel-bottom,
 .leaf-bottom {
     bottom: 0;
@@ -621,7 +621,7 @@ body {
     transform-origin: top center;
 }
 
-/* 숫자 표시 (상/하 분할 결합) */
+/* 숫자 표시 */
 .flip-panel-top .num,
 .leaf-top .num {
     position: absolute;
@@ -1813,12 +1813,27 @@ body {
     font-weight: 500;
 }
 
+/* 방명록 2단 버튼 레이아웃 */
 .guestbook-actions {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    gap: 24px;
-    margin-top: 10px;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 14px;
+}
+
+.guestbook-action-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.guestbook-refresh-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-guestbook-action {
@@ -1828,13 +1843,45 @@ body {
     color: #444444;
     font-weight: 700;
     cursor: pointer;
-    padding: 8px 12px;
+    padding: 6px 12px;
     transition: color 0.2s ease, transform 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .btn-guestbook-action:active {
     color: #a86b75;
     transform: scale(0.95);
+}
+
+/* 방명록 새로고침 버튼 (서브 액션 스타일) */
+.btn-guestbook-refresh {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #888888;
+    padding: 4px 8px;
+    gap: 4px;
+}
+
+.btn-guestbook-refresh .refresh-icon {
+    display: inline-block;
+    color: #888888;
+    transition: transform 0.3s ease, color 0.2s ease;
+}
+
+.btn-guestbook-refresh:active,
+.btn-guestbook-refresh:active .refresh-icon {
+    color: #a86b75;
+}
+
+.btn-guestbook-refresh.spinning .refresh-icon {
+    animation: spinRefresh 0.8s linear infinite;
+}
+
+@keyframes spinRefresh {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 /* 방명록 모달 & 폼 UI */
