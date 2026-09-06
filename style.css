@@ -483,6 +483,274 @@ body {
     transform: scale(0.99);
 }
 
+/* SECTION 3: DATE & COUNTDOWN (FLIP CLOCK THEME) */
+.date-section {
+    width: 100%;
+    min-height: 100vh;
+    min-height: calc(var(--vh, 1vh) * 100);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+    background-color: #faf9f7;
+    border-top: 1px solid #f0eae1;
+}
+
+.date-header { margin-bottom: 20px; }
+
+.date-big-title {
+    font-size: 1.85rem;
+    font-weight: 700;
+    color: #222222;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+
+.date-sub-info { font-size: 0.95rem; color: #666666; }
+
+.calendar-card {
+    width: 100%;
+    max-width: 330px;
+    background-color: #ffffff;
+    border: 1px solid #eae3d9;
+    border-radius: 16px;
+    padding: 22px 18px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    margin-bottom: 26px;
+}
+
+.calendar-header, .calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+}
+
+.calendar-header {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #777777;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f2ede6;
+    margin-bottom: 12px;
+}
+
+.calendar-header .sun { color: #d9534f; }
+
+.calendar-days span {
+    font-size: 0.88rem;
+    padding: 9px 0;
+    color: #333333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-days .other-month { color: #d8d8d8; }
+
+.calendar-days .wedding-day {
+    background-color: #c5a059;
+    color: #ffffff;
+    font-weight: 700;
+    border-radius: 50%;
+    box-shadow: 0 3px 10px rgba(197, 160, 89, 0.4);
+}
+
+/* 플립 시계 컨테이너 & 카드 박스 */
+.countdown-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin-bottom: 24px;
+    width: 100%;
+    max-width: 370px;
+}
+
+.flip-card-box {
+    background-color: #ffffff;
+    border: 1px solid #eee8de;
+    border-radius: 16px;
+    padding: 8px 6px 9px;
+    flex: 1;
+    min-width: 62px;
+    max-width: 78px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.03);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.flip-card {
+    position: relative;
+    width: 100%;
+    height: 56px;
+    perspective: 450px;
+    border-radius: 10px;
+    overflow: visible;
+}
+
+.flip-card-panel,
+.flip-card-leaf {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* 상단 패널 (밝은 아이보리) */
+.flip-panel-top,
+.leaf-top {
+    top: 0;
+    height: 50%;
+    background-color: #fcf9f2;
+    border-radius: 10px 10px 0 0;
+    transform-origin: bottom center;
+}
+
+/* 하단 패널 (따뜻한 베이지 음영) */
+.flip-panel-bottom,
+.leaf-bottom {
+    bottom: 0;
+    height: 50%;
+    background-color: #f3ece0;
+    border-radius: 0 0 10px 10px;
+    transform-origin: top center;
+}
+
+/* 숫자 표시 (상/하 분할 결합) */
+.flip-panel-top .num,
+.leaf-top .num {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #b8964e;
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.3px;
+}
+
+.flip-panel-bottom .num,
+.leaf-bottom .num {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #b8964e;
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.3px;
+}
+
+/* DAYS 카드가 3자리(예: 420)인 경우 폰트 크기 자동 최적화 */
+#flip-days .num {
+    font-size: 1.42rem;
+    letter-spacing: -0.8px;
+}
+
+/* 카드 정중앙 슬릿/구분선 */
+.flip-card-crease {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: #e5dcce;
+    z-index: 5;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+/* 플립 애니메이션 레이어링 */
+.leaf-top {
+    z-index: 3;
+    backface-visibility: hidden;
+}
+
+.leaf-bottom {
+    z-index: 2;
+    transform: rotateX(90deg);
+    backface-visibility: hidden;
+}
+
+.flip-panel-top {
+    z-index: 1;
+}
+
+.flip-panel-bottom {
+    z-index: 1;
+}
+
+/* 3D 플립 애니메이션 실행 클래스 */
+.flip-card.flipping .leaf-top {
+    animation: flipLeafTop 0.28s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.flip-card.flipping .leaf-bottom {
+    animation: flipLeafBottom 0.28s cubic-bezier(0, 0, 0.2, 1) 0.25s forwards;
+}
+
+@keyframes flipLeafTop {
+    0% { transform: rotateX(0deg); }
+    100% { transform: rotateX(-90deg); }
+}
+
+@keyframes flipLeafBottom {
+    0% { transform: rotateX(90deg); }
+    100% { transform: rotateX(0deg); }
+}
+
+.flip-card-box .label {
+    display: block;
+    font-family: 'Gowun Batang', serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #7d786e;
+    letter-spacing: 1.5px;
+    margin-top: 8px;
+    line-height: 1;
+}
+
+.timer-colon {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #c5a059;
+    margin-top: -18px;
+    user-select: none;
+}
+
+.dday-counter-box {
+    background-color: #f3ece1;
+    border: 1px solid #e5dac9;
+    padding: 12px 22px;
+    border-radius: 30px;
+    color: #4a3e2e;
+    font-size: 0.9rem;
+}
+
+.dday-counter-box strong {
+    color: #bfa15f;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.dday-heart { color: #ff85a1; font-size: 0.85rem; }
+
 /* SECTION 4: COUPLE INTRO */
 .couple-section {
     background-color: #f4edd9;
@@ -1144,6 +1412,7 @@ body {
     color: #666666;
     letter-spacing: -0.2px;
     word-break: keep-all;
+    white-space: pre-line;
 }
 
 .map-iframe-container {
@@ -2774,153 +3043,6 @@ body {
     justify-content: center;
 }
 
-/* SECTION 3: DATE & COUNTDOWN */
-.date-section {
-    width: 100%;
-    min-height: 100vh;
-    min-height: calc(var(--vh, 1vh) * 100);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 40px 20px;
-    background-color: #faf9f7;
-    border-top: 1px solid #f0eae1;
-}
-
-.date-header { margin-bottom: 20px; }
-
-.date-big-title {
-    font-size: 1.85rem;
-    font-weight: 700;
-    color: #222222;
-    letter-spacing: 1px;
-    margin-bottom: 4px;
-}
-
-.date-sub-info { font-size: 0.95rem; color: #666666; }
-
-.calendar-card {
-    width: 100%;
-    max-width: 330px;
-    background-color: #ffffff;
-    border: 1px solid #eae3d9;
-    border-radius: 16px;
-    padding: 22px 18px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-    margin-bottom: 24px;
-}
-
-.calendar-header, .calendar-days {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    text-align: center;
-}
-
-.calendar-header {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #777777;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #f2ede6;
-    margin-bottom: 12px;
-}
-
-.calendar-header .sun { color: #d9534f; }
-
-.calendar-days span {
-    font-size: 0.88rem;
-    padding: 9px 0;
-    color: #333333;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.calendar-days .other-month { color: #d8d8d8; }
-
-.calendar-days .wedding-day {
-    background-color: #c5a059;
-    color: #ffffff;
-    font-weight: 700;
-    border-radius: 50%;
-    box-shadow: 0 3px 10px rgba(197, 160, 89, 0.4);
-}
-
-.countdown-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    margin-bottom: 20px;
-}
-
-.timer-box {
-    background-color: #ffffff;
-    border: 1px solid #eae3d9;
-    border-radius: 12px;
-    padding: 8px 10px;
-    min-width: 62px;
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.03);
-    text-align: center;
-}
-
-.number-wrap {
-    height: 30px;
-    overflow: hidden;
-    position: relative;
-}
-
-.number {
-    display: block;
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: #bfa15f;
-    line-height: 30px;
-    will-change: transform, opacity;
-}
-
-.number.slide-down {
-    animation: numSlideDown 0.45s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-}
-
-@keyframes numSlideDown {
-    from { transform: translateY(-100%); opacity: 0.2; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-.label {
-    display: block;
-    font-size: 0.65rem;
-    color: #888888;
-    letter-spacing: 1px;
-    margin-top: 2px;
-}
-
-.timer-colon {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #c5a059;
-    margin-top: -14px;
-}
-
-.dday-counter-box {
-    background-color: #f3ece1;
-    border: 1px solid #e5dac9;
-    padding: 12px 22px;
-    border-radius: 30px;
-    color: #4a3e2e;
-    font-size: 0.9rem;
-}
-
-.dday-counter-box strong {
-    color: #bfa15f;
-    font-size: 1.05rem;
-    font-weight: 700;
-}
-
-.dday-heart { color: #ff85a1; font-size: 0.85rem; }
-
 /* MODALS */
 .modal-overlay {
     display: none;
@@ -3062,12 +3184,21 @@ body {
 }
 
 .admin-field label { font-size: 0.8rem; color: #666; font-weight: 700; }
-.admin-field input {
+
+.admin-field input,
+.admin-field textarea {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 0.9rem;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.admin-field textarea {
+    resize: vertical;
+    line-height: 1.5;
 }
 
 .admin-field-group {
