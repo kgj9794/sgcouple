@@ -372,7 +372,7 @@ function startAudio() {
                 showToast('배경음악이 재생됩니다.');
             }
         }).catch(() => {
-            // 브라우저 자동재생 제한 정책으로 인해 시작하지 못한 경우 터치 이벤트 대기
+            // 브라우저 자동재생 제한 정책 대기
         });
     }
 }
@@ -982,7 +982,7 @@ function resetMapZoom() {
     applyMapTransform();
 }
 
-// --- 네이버지도 앱 우선 실행(딥링크) 및 길안내 연동 ---
+// --- 네이버지도 앱 우선 실행 및 웹 중복 열림 방지 로직 ---
 function openNavApp(type) {
     const keyword = dbData.map_search_keyword || dbData.wedding_venue || '';
     if (!keyword) {
@@ -997,17 +997,46 @@ function openNavApp(type) {
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
         if (isMobile) {
-            // 네이버지도 전용 앱 스킴 호출
             const appUrl = `nmap://search?query=${encoded}&appname=${encodeURIComponent(window.location.hostname || 'mobile_invitation')}`;
-            const start = Date.now();
+            let hasAppOpened = false;
+            let fallbackTimer = null;
+
+            // 앱이 실행되어 브라우저가 숨겨지거나 포커스를 잃으면 웹 이동 타이머 취소
+            const cancelFallback = () => {
+                hasAppOpened = true;
+                if (fallbackTimer) {
+                    clearTimeout(fallbackTimer);
+                    fallbackTimer = null;
+                }
+                cleanupListeners();
+            };
+
+            const onVisibilityChange = () => {
+                if (document.hidden || document.visibilityState === 'hidden') {
+                    cancelFallback();
+                }
+            };
+
+            const cleanupListeners = () => {
+                window.removeEventListener('pagehide', cancelFallback);
+                window.removeEventListener('blur', cancelFallback);
+                document.removeEventListener('visibilitychange', onVisibilityChange);
+            };
+
+            window.addEventListener('pagehide', cancelFallback, { once: true });
+            window.addEventListener('blur', cancelFallback, { once: true });
+            document.addEventListener('visibilitychange', onVisibilityChange);
+
+            const clickTime = Date.now();
             window.location.href = appUrl;
 
-            // 앱이 설치되지 않아 페이지 전환이 일어나지 않은 경우 모바일 웹으로 폴백(Fallback)
-            setTimeout(() => {
-                if (Date.now() - start < 1500) {
-                    window.open(webUrl, '_blank');
+            // 앱 미설치로 화면 전환이 일어나지 않았을 때만 모바일 웹으로 이동
+            fallbackTimer = setTimeout(() => {
+                cleanupListeners();
+                if (!hasAppOpened && !document.hidden && Date.now() - clickTime < 2200) {
+                    window.location.href = webUrl;
                 }
-            }, 1000);
+            }, 1200);
         } else {
             window.open(webUrl, '_blank');
         }
@@ -2830,7 +2859,6 @@ function flipCardTo(boxId, newVal) {
 
     if (currentVal === newVal) return;
 
-    // 초기 화면 진입 시 애니메이션 없이 즉시 세팅
     if (!card.dataset.initialized) {
         card.dataset.initialized = 'true';
         if (topPanelNum) topPanelNum.innerText = newVal;
@@ -2840,7 +2868,6 @@ function flipCardTo(boxId, newVal) {
         return;
     }
 
-    // 3D 플립 애니메이션 준비
     if (topPanelNum) topPanelNum.innerText = newVal;
     if (botPanelNum) botPanelNum.innerText = currentVal;
     if (leafTopNum) leafTopNum.innerText = currentVal;
@@ -2996,7 +3023,7 @@ function openAdminModalValues() {
     setVal('input-bride-father-bank', dbData.bride_father_bank);
     setVal('input-bride-father-account', dbData.bride_father_account);
     setVal('input-bride-father-pay-link', dbData.bride_father_pay_link);
-    setCheck('input-bride-pay-show', dbData.bride_father_pay_show);
+    setCheck('input-bride-father-pay-show', dbData.bride_father_pay_show);
 
     setVal('input-bride-mother-bank', dbData.bride_mother_bank);
     setVal('input-bride-mother-account', dbData.bride_mother_account);
