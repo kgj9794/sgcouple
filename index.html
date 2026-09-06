@@ -147,7 +147,7 @@
             </button>
         </section>
 
-        <!-- Section 3: 날짜 및 카운트다운 -->
+        <!-- Section 3: 날짜 및 카운트다운 (플립 시계 구조 적용) -->
         <section class="section date-section">
             <div class="date-header reveal">
                 <span class="section-tag">WEDDING DAY</span>
@@ -163,23 +163,57 @@
             </div>
 
             <div class="countdown-container reveal">
-                <div class="timer-box">
-                    <div class="number-wrap"><span id="timer-days" class="number">00</span></div>
+                <!-- DAYS -->
+                <div class="flip-card-box" id="flip-days">
+                    <div class="flip-card">
+                        <div class="flip-card-panel flip-panel-top"><span class="num">00</span></div>
+                        <div class="flip-card-panel flip-panel-bottom"><span class="num">00</span></div>
+                        <div class="flip-card-leaf leaf-top"><span class="num">00</span></div>
+                        <div class="flip-card-leaf leaf-bottom"><span class="num">00</span></div>
+                        <div class="flip-card-crease"></div>
+                    </div>
                     <span class="label">DAYS</span>
                 </div>
+
                 <span class="timer-colon">:</span>
-                <div class="timer-box">
-                    <div class="number-wrap"><span id="timer-hours" class="number">00</span></div>
+
+                <!-- HOURS -->
+                <div class="flip-card-box" id="flip-hours">
+                    <div class="flip-card">
+                        <div class="flip-card-panel flip-panel-top"><span class="num">00</span></div>
+                        <div class="flip-card-panel flip-panel-bottom"><span class="num">00</span></div>
+                        <div class="flip-card-leaf leaf-top"><span class="num">00</span></div>
+                        <div class="flip-card-leaf leaf-bottom"><span class="num">00</span></div>
+                        <div class="flip-card-crease"></div>
+                    </div>
                     <span class="label">HOURS</span>
                 </div>
+
                 <span class="timer-colon">:</span>
-                <div class="timer-box">
-                    <div class="number-wrap"><span id="timer-mins" class="number">00</span></div>
+
+                <!-- MINS -->
+                <div class="flip-card-box" id="flip-mins">
+                    <div class="flip-card">
+                        <div class="flip-card-panel flip-panel-top"><span class="num">00</span></div>
+                        <div class="flip-card-panel flip-panel-bottom"><span class="num">00</span></div>
+                        <div class="flip-card-leaf leaf-top"><span class="num">00</span></div>
+                        <div class="flip-card-leaf leaf-bottom"><span class="num">00</span></div>
+                        <div class="flip-card-crease"></div>
+                    </div>
                     <span class="label">MINS</span>
                 </div>
+
                 <span class="timer-colon">:</span>
-                <div class="timer-box">
-                    <div class="number-wrap"><span id="timer-secs" class="number">00</span></div>
+
+                <!-- SECS -->
+                <div class="flip-card-box" id="flip-secs">
+                    <div class="flip-card">
+                        <div class="flip-card-panel flip-panel-top"><span class="num">00</span></div>
+                        <div class="flip-card-panel flip-panel-bottom"><span class="num">00</span></div>
+                        <div class="flip-card-leaf leaf-top"><span class="num">00</span></div>
+                        <div class="flip-card-leaf leaf-bottom"><span class="num">00</span></div>
+                        <div class="flip-card-crease"></div>
+                    </div>
                     <span class="label">SECS</span>
                 </div>
             </div>
@@ -334,12 +368,12 @@
                 <p class="nav-subtitle">원하시는 앱을 선택하시면 길안내가 시작됩니다.</p>
 
                 <div class="nav-buttons-grid">
-    <button type="button" class="nav-app-btn naver" onclick="openNavApp('naver')">
-        <span class="app-icon naver-icon">
-            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHLQmyPrjyF_4hwBfC1XTq9iS0QUJc5dmznu0s2qIlLw&s=10" alt="네이버지도">
-        </span>
-        <span class="app-name">네이버지도</span>
-    </button>
+                    <button type="button" class="nav-app-btn naver" onclick="openNavApp('naver')">
+                        <span class="app-icon naver-icon">
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHLQmyPrjyF_4hwBfC1XTq9iS0QUJc5dmznu0s2qIlLw&s=10" alt="네이버지도">
+                        </span>
+                        <span class="app-name">네이버지도</span>
+                    </button>
                     <button type="button" class="nav-app-btn kakao" onclick="openNavApp('kakao')">
                         <span class="app-icon kakao-icon">
                             <img src="https://developers.kakao.com/tool/resource/static/img/logo/map/kakaomap_basic.png" alt="카카오내비">
@@ -547,7 +581,7 @@
             <div class="rsvp-btn-wrap reveal">
                 <button type="button" class="btn-rsvp-open" onclick="openRsvpModal()">
                     <span class="chair-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M23.6645 2.66834C25.5815 2.66769 27.0072 4.44066 26.5955 6.31287L24.5681 15.5297C24.4267 16.1724 24.1208 16.7439 23.7016 17.2054C23.71 17.2384 23.7173 17.272 23.7224 17.3064L25.1736 27.0284C25.2551 27.5746 24.8786 28.0835 24.3324 28.1651C23.7863 28.2466 23.2773 27.8701 23.1957 27.3239L21.8494 18.3044C21.5716 18.3716 21.2827 18.4086 20.9867 18.4086H19.4041L18.296 28.445C18.2352 28.9938 17.7406 29.3897 17.1918 29.3291C16.643 29.2684 16.2471 28.7738 16.3077 28.225L17.3923 18.4086H9.63778L7.89559 28.5049C7.80161 29.049 7.2841 29.4145 6.73999 29.3207C6.19588 29.2268 5.83053 28.7092 5.92424 28.1651L7.60848 18.4086H6.56616C6.014 18.4086 5.56636 17.9607 5.56616 17.4086C5.56616 16.8563 6.01388 16.4086 6.56616 16.4086H10.6742L13.0642 5.54985C13.4341 3.86914 14.9227 2.67154 16.6436 2.67094L23.6645 2.66834ZM16.6443 4.67094C15.8621 4.67124 15.1854 5.2156 15.0173 5.97953L12.7224 16.4086H20.9867C21.7691 16.4086 22.4468 15.864 22.615 15.1L24.6423 5.88318C24.7795 5.25916 24.3041 4.66812 23.6651 4.66834L16.6443 4.67094Z" fill="currentColor"></path></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M23.6645 2.66834C25.5815 2.66769 27.0072 4.44066 26.5955 6.31287L24.5681 15.5297C24.4267 16.1724 24.1208 16.7439 23.7016 17.2054C23.71 17.2384 23.7173 17.272 23.7224 17.3064L25.1736 27.0284C25.2551 27.5746 24.8786 28.0835 24.3324 28.1651C23.7863 28.2466 23.2773 27.8701 23.1957 27.3239L21.8494 18.3044C21.5716 18.3716 21.2827 18.4086 20.9867 18.4086H19.4041L18.296 28.445C18.2352 28.9938 17.7406 29.3897 17.1918 29.3291C16.643 29.2684 16.2471 28.7738 16.3077 28.225L17.3923 18.4086H9.63778L7.89559 28.5049C7.80161 29.049 7.2841 29.4145 6.73999 29.3207C6.19588 29.2268 5.83053 28.7092 5.92424 28.1651L7.60848 18.4086H6.56616C6.014 18.4086 5.56636 17.9607 5.56616 17.4086C5.56616 16.8563 6.01388 16.4086 6.56616 16.4086H10.6742L13.0642 5.54985C13.4341 3.86914 14.9227 2.67154 16.6446 2.67094L23.6645 2.66834ZM16.6443 4.67094C15.8621 4.67124 15.1854 5.2156 15.0173 5.97953L12.7224 16.4086H20.9867C21.7691 16.4086 22.4468 15.864 22.615 15.1L24.6423 5.88318C24.7795 5.25916 24.3041 4.66812 23.6651 4.66834L16.6443 4.67094Z" fill="currentColor"></path></svg>
                     </span> 참석의사 전달하기
                 </button>
             </div>
@@ -778,7 +812,7 @@
                     <div class="admin-section-title">오시는 길 (위치 & 내비게이션 설정)</div>
                     <div class="admin-field">
                         <label>결혼식장 도로명/지번 주소</label>
-                        <input type="text" id="input-wedding-address" required placeholder="예: 서울 강남구 선릉로 757">
+                        <textarea id="input-wedding-address" rows="3" required placeholder="예: 서울 강남구 선릉로 757 (줄바꿈 가능)"></textarea>
                     </div>
                     <div class="admin-field">
                         <label>지도 iframe URL (구글/네이버 지도 퍼가기 SRC 주소)</label>
@@ -1091,14 +1125,14 @@
                     <div class="rsvp-status-toggle">
                         <button type="button" class="btn-rsvp-status" id="rsvp-status-yes" onclick="setRsvpStatus('yes')">
                             <span class="status-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M23.6645 2.66834C25.5815 2.66769 27.0072 4.44066 26.5955 6.31287L24.5681 15.5297C24.4267 16.1724 24.1208 16.7439 23.7016 17.2054C23.71 17.2384 23.7173 17.272 23.7224 17.3064L25.1736 27.0284C25.2551 27.5746 24.8786 28.0835 24.3324 28.1651C23.7863 28.2466 23.2773 27.8701 23.1957 27.3239L21.8494 18.3044C21.5716 18.3716 21.2827 18.4086 20.9867 18.4086H19.4041L18.296 28.445C18.2352 28.9938 17.7406 29.3897 17.1918 29.3291C16.643 29.2684 16.2471 28.7738 16.3077 28.225L17.3923 18.4086H9.63778L7.89559 28.5049C7.80161 29.049 7.2841 29.4145 6.73999 29.3207C6.19588 29.2268 5.83053 28.7092 5.92424 28.1651L7.60848 18.4086H6.56616C6.014 18.4086 5.56636 17.9607 5.56616 17.4086C5.56616 16.8563 6.01388 16.4086 6.56616 16.4086H10.6742L13.0642 5.54985C13.4341 3.86914 14.9227 2.67154 16.6436 2.67094L23.6645 2.66834ZM16.6443 4.67094C15.8621 4.67124 15.1854 5.2156 15.0173 5.97953L12.7224 16.4086H20.9867C21.7691 16.4086 22.4468 15.864 22.615 15.1L24.6423 5.88318C24.7795 5.25916 24.3041 4.66812 23.6651 4.66834L16.6443 4.67094Z" fill="currentColor"></path></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M23.6645 2.66834C25.5815 2.66769 27.0072 4.44066 26.5955 6.31287L24.5681 15.5297C24.4267 16.1724 24.1208 16.7439 23.7016 17.2054C23.71 17.2384 23.7173 17.272 23.7224 17.3064L25.1736 27.0284C25.2551 27.5746 24.8786 28.0835 24.3324 28.1651C23.7863 28.2466 23.2773 27.8701 23.1957 27.3239L21.8494 18.3044C21.5716 18.3716 21.2827 18.4086 20.9867 18.4086H19.4041L18.296 28.445C18.2352 28.9938 17.7406 29.3897 17.1918 29.3291C16.643 29.2684 16.2471 28.7738 16.3077 28.225L17.3923 18.4086H9.63778L7.89559 28.5049C7.80161 29.049 7.2841 29.4145 6.73999 29.3207C6.19588 29.2268 5.83053 28.7092 5.92424 28.1651L7.60848 18.4086H6.56616C6.014 18.4086 5.56636 17.9607 5.56616 17.4086C5.56616 16.8563 6.01388 16.4086 6.56616 16.4086H10.6742L13.0642 5.54985C13.4341 3.86914 14.9227 2.67154 16.6446 2.67094L23.6645 2.66834ZM16.6443 4.67094C15.8621 4.67124 15.1854 5.2156 15.0173 5.97953L12.7224 16.4086H20.9867C21.7691 16.4086 22.4468 15.864 22.615 15.1L24.6423 5.88318C24.7795 5.25916 24.3041 4.66812 23.6651 4.66834L16.6443 4.67094Z" fill="currentColor"></path></svg>
                             </span>
                             <span class="status-label">가능</span>
                             <span class="check-circle"></span>
                         </button>
                         <button type="button" class="btn-rsvp-status" id="rsvp-status-no" onclick="setRsvpStatus('no')">
                             <span class="status-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32" fill="none"><path d="M14.6376 18.4088H9.63828L7.89609 28.5052C7.80202 29.049 7.28434 29.4144 6.74049 29.3209C6.19648 29.227 5.83121 28.7093 5.92474 28.1653L7.60898 18.4088H6.56667C6.01461 18.4088 5.56704 17.9608 5.56667 17.4088C5.56667 16.8565 6.01438 16.4088 6.56667 16.4088H10.6747L11.0283 14.7994L14.6376 18.4088Z" fill="currentColor"></path><path d="M18.9299 22.7011L18.2965 28.4453C18.2355 28.9937 17.7408 29.3897 17.1923 29.3294C16.6436 29.2687 16.2478 28.7739 16.3082 28.2252L17.1181 20.8893L18.9299 22.7011Z" fill="currentColor"></path><path d="M4.76328 4.76298C5.15382 4.37262 5.78687 4.37251 6.17734 4.76298L27.2372 25.8229C27.6277 26.2133 27.6276 26.8464 27.2372 27.2369C26.8467 27.6273 26.2137 27.6274 25.8232 27.2369L4.76328 6.17704C4.3728 5.78657 4.3729 5.15352 4.76328 4.76298Z" fill="currentColor"></path><path d="M23.665 2.66858C25.5817 2.6682 27.0077 4.44106 26.596 6.31311L24.5686 15.5299C24.4271 16.1725 24.1212 16.7443 23.7021 17.2057C23.7105 17.2385 23.7178 17.2724 23.7229 17.3066L24.1871 20.4153L20.1799 16.4088H20.9872C21.7694 16.4086 22.4472 15.864 22.6155 15.1002L24.6428 5.88342C24.7799 5.25956 24.3043 4.66863 23.6656 4.66858L16.6448 4.67118C15.8626 4.67148 15.186 5.21586 15.0178 5.97978L14.0673 10.2962L12.3889 8.6178L13.0647 5.55009C13.4346 3.86941 14.9232 2.67179 16.6441 2.67118L23.665 2.66858Z" fill="currentColor"></path></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32" fill="none"><path d="M14.6376 18.4088H9.63828L7.89609 28.5052C7.80202 29.049 7.28434 29.4144 6.74049 29.3209C6.19648 29.227 5.83121 28.7093 5.92474 28.1653L7.60898 18.4088H6.56667C6.01461 18.4088 5.56704 17.9608 5.56667 17.4088C5.56667 16.8565 6.01438 16.4088 6.56667 16.4088H10.6747L11.0283 14.7994L14.6376 18.4088Z" fill="currentColor"></path><path d="M18.9299 22.7011L18.2965 28.4453C18.2355 28.9937 17.7408 29.3897 17.1923 29.3294C16.6436 29.2687 16.2478 28.7739 16.3082 28.2252L17.1181 20.8893L18.9299 22.7011Z" fill="currentColor"></path><path d="M4.76328 4.76298C5.15382 4.37262 5.78687 4.37251 6.17734 4.76298L27.2372 25.8229C27.6277 26.2133 27.6276 26.8464 27.2372 27.2369C26.8467 27.6273 26.2137 27.6274 25.8232 27.2369L4.76328 6.17704C4.3728 5.78657 4.3729 5.15352 4.76328 4.76298Z" fill="currentColor"></path><path d="M23.665 2.66858C25.5817 2.6682 27.0077 4.44106 26.596 6.31311L24.5686 15.5299C24.4271 16.1725 24.1212 16.7443 23.7021 17.2057C23.7105 17.2385 23.7178 17.2724 23.7229 17.3066L24.1871 20.4153L20.1799 16.4088H20.9872C21.7694 16.4086 22.4472 15.864 22.6155 15.1002L24.6428 5.88342C24.7799 5.25956 24.3043 4.66863 23.6656 4.66858L16.6448 4.67118C15.8626 4.67148 15.186 5.21586 15.0178 5.97978L14.0673 10.2962L12.3889 8.6178L13.0647 5.55009C13.4346 3.86941 14.9227 2.67179 16.6441 2.67118L23.665 2.66858Z" fill="currentColor"></path></svg>
                             </span>
                             <span class="status-label">불가</span>
                             <span class="check-circle"></span>
