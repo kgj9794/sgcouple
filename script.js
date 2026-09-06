@@ -36,6 +36,7 @@ let isGalleryExpanded = false;
 
 let guestbookList = [];
 let selectedGuestbookId = null;
+let lastGuestbookRefreshTime = 0; // 방명록 마지막 새로고침 타임스탬프
 
 // RSVP 상태 변수
 let rsvpStatus = null;
@@ -185,7 +186,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initMapPinchZoom();
     initCongratsFireworks();
 
-    // 5초 타임아웃: 5초 내에 메인 사진을 포함한 초기 로딩이 완료되지 않으면 자동 새로고침
+    // 5초 타임아웃: 메인 사진을 포함한 초기 로딩이 완료되지 않으면 자동 새로고침
     let isInitialLoaded = false;
     const heroLoadTimeoutTimer = setTimeout(() => {
         if (!isInitialLoaded) {
@@ -1001,7 +1002,6 @@ function openNavApp(type) {
             let hasAppOpened = false;
             let fallbackTimer = null;
 
-            // 앱이 실행되어 브라우저가 숨겨지거나 포커스를 잃으면 웹 이동 타이머 취소
             const cancelFallback = () => {
                 hasAppOpened = true;
                 if (fallbackTimer) {
@@ -1215,6 +1215,67 @@ function renderGuestbookFullList() {
     listContainer.appendChild(fragment);
 }
 
+// 방명록 전용 새로고침 (10초 쿨다운 적용)
+async function refreshGuestbookOnly() {
+    const now = Date.now();
+    const elapsedSeconds = (now - lastGuestbookRefreshTime) / 1000;
+
+    // 10초 이내 연타 시 서버 요청 자체를 차단
+    if (elapsedSeconds < 10) {
+        showToast('10초 뒤에 다시 시도해 주세요.');
+        return;
+    }
+
+    lastGuestbookRefreshTime = now;
+
+    const refreshBtn = document.getElementById('btn-guestbook-refresh');
+    if (refreshBtn) refreshBtn.classList.add('spinning');
+
+    try {
+        const res = await fetch(`${APPS_SCRIPT_URL}?action=getData`);
+        const data = await res.json();
+        
+        if (data && data.guestbook) {
+            dbData.guestbook = data.guestbook;
+            guestbookList = data.guestbook || [];
+            renderGuestbookSlider();
+            renderGuestbookFullList();
+            showToast('방명록을 새로고침했습니다.');
+        } else {
+            showToast('방명록 정보를 불러오지 못했습니다.');
+        }
+    } catch (err) {
+        console.error("방명록 새로고침 오류:", err);
+        showToast('새로고침 중 오류가 발생했습니다.');
+    } finally {
+        setTimeout(() => {
+            if (refreshBtn) refreshBtn.classList.remove('spinning');
+        }, 600);
+    }
+}
+
+// 단순 비밀번호 검증 (동일 문자 반복 및 연속 번호 차단)
+function isTooSimplePassword(pwd) {
+    if (!pwd || pwd.length < 4) return true;
+
+    // 1. 모든 글자가 동일한 경우 (예: 1111, 0000, aaaa)
+    if (/^(.)\1+$/.test(pwd)) return true;
+
+    // 2. 대표적인 연속/단순 패턴 포함 여부 검사
+    const simpleSequences = [
+        '0123', '1234', '2345', '3456', '4567', '5678', '6789', '7890',
+        '0987', '9876', '8765', '7654', '6543', '5432', '4321', '3210',
+        'qwer', 'asdf', 'zxcv'
+    ];
+
+    const lower = pwd.toLowerCase();
+    for (let i = 0; i < simpleSequences.length; i++) {
+        if (lower.includes(simpleSequences[i])) return true;
+    }
+
+    return false;
+}
+
 function openGuestbookWriteModal() {
     const editIdEl = document.getElementById('guestbook-edit-id');
     const nameInput = document.getElementById('guestbook-input-name');
@@ -1308,6 +1369,14 @@ async function handleGuestbookSubmit(event) {
 
     if (!name || !content || !password) {
         showToast('모든 필수 항목을 입력해주세요.');
+        return;
+    }
+
+    // 비밀번호 단순 패턴 유효성 검사
+    if (isTooSimplePassword(password)) {
+        alert('비밀번호가 너무 단순합니다. 조금만 더 복잡하게 설정 부탁드립니다.');
+        const passInput = document.getElementById('guestbook-input-pass');
+        if (passInput) passInput.focus();
         return;
     }
 
