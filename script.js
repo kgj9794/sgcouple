@@ -184,8 +184,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     initMapPinchZoom();
     initCongratsFireworks();
 
-    // 세션 내 인트로 완료 이력 검사 (뒤로가기 또는 리로드 시 인트로 재실행 차단)
-    const hasSeenIntro = sessionStorage.getItem('intro_passed') === 'true';
+    // 세션 및 로컬 스토리지 기반 인트로 실행 이력 검사 (복귀 시 인트로 재실행 차단)
+    const hasSeenIntro = (sessionStorage.getItem('intro_passed') === 'true') || (localStorage.getItem('intro_passed') === 'true');
 
     if (hasSeenIntro) {
         const introOverlay = document.getElementById('intro-overlay');
@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const typingPromise = hasSeenIntro ? Promise.resolve() : startTypingAnimation();
     const minIntroDelay = hasSeenIntro ? Promise.resolve() : new Promise(resolve => setTimeout(resolve, 2000));
 
-    // 5초 타임아웃: 초기 데이터 로딩 실패 시 새로고침
+    // 5초 타임아웃: 메인 사진을 포함한 초기 로딩이 완료되지 않으면 자동 새로고침
     let isInitialLoaded = false;
     const heroLoadTimeoutTimer = setTimeout(() => {
         if (!isInitialLoaded) {
@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const heroImgUrl = dbData.hero_img || '';
         const heroImgPromise = waitForHeroImageLoad(heroImgUrl);
 
-        // 3. 메인 사진 로딩 및 인트로 완료 대기
+        // 3. 메인 사진 로딩 + 타이핑 애니메이션 완료 동시 대기
         await Promise.all([heroImgPromise, minIntroDelay, typingPromise]);
 
         isInitialLoaded = true;
@@ -280,7 +280,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // bfcache 복귀 시 화면 보존 및 스크롤 고정 해제
 window.addEventListener('pageshow', (e) => {
-    if (e.persisted || sessionStorage.getItem('intro_passed') === 'true') {
+    if (e.persisted || sessionStorage.getItem('intro_passed') === 'true' || localStorage.getItem('intro_passed') === 'true') {
         const introOverlay = document.getElementById('intro-overlay');
         if (introOverlay) {
             introOverlay.style.display = 'none';
@@ -441,6 +441,8 @@ function updateBgmBtnUI(isPlaying) {
 // --- 인트로 종료 및 메인 화면 전환 시점 BGM 재생 ---
 function hideIntroOverlay() {
     sessionStorage.setItem('intro_passed', 'true');
+    localStorage.setItem('intro_passed', 'true');
+
     const introOverlay = document.getElementById('intro-overlay');
     if (introOverlay && !introOverlay.classList.contains('zoom-into-heart')) {
         introOverlay.classList.add('zoom-into-heart');
@@ -1014,7 +1016,7 @@ function resetMapZoom() {
     applyMapTransform();
 }
 
-// --- 내비게이션 연결 (카카오톡 인앱 브라우저 리로드 방지 & 안드로이드 앱 인텐트 실행) ---
+// --- 내비게이션 연결 (카카오톡 및 기본 브라우저 전체 앱 실행 지원) ---
 function openNavApp(type) {
     const keyword = dbData.map_search_keyword || dbData.wedding_venue || '';
     if (!keyword) {
@@ -1027,18 +1029,25 @@ function openNavApp(type) {
     if (type === 'naver') {
         const webUrl = `https://m.map.naver.com/search2/search.naver?query=${encoded}`;
         const appName = encodeURIComponent(window.location.hostname || 'wedding_invitation');
-        const isKakaoTalk = /KAKAOTALK/i.test(navigator.userAgent);
         const isAndroid = /Android/i.test(navigator.userAgent);
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-        // 카카오톡 인앱 브라우저 환경에서는 intent 호출 시 웹뷰가 초기화(리로드)되므로, 카카오맵과 동일하게 웹 새 탭으로 안정적 처리
-        if (isKakaoTalk) {
-            window.open(webUrl, '_blank');
-        } else if (isAndroid) {
-            // 일반 안드로이드 브라우저(삼성인터넷, 크롬 등): 네이버 지도 앱 즉시 실행
-            const intentUrl = `intent://search?query=${encoded}&appname=${appName}#Intent;scheme=nmap;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.nhn.android.nmap;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
-            window.open(intentUrl, '_blank');
+        if (isAndroid) {
+            // 안드로이드 (카카오톡 인앱 브라우저, 삼성 인터넷, 크롬 등):
+            // location.href로 호출해야 카카오톡 웹뷰에서도 외부 앱 실행 인텐트가 즉시 정상 발동합니다.
+            location.href = `intent://search?query=${encoded}&appname=${appName}#Intent;scheme=nmap;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.nhn.android.nmap;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
+        } else if (isIOS) {
+            // iOS (카카오톡 인앱 브라우저, 사파리 등):
+            // nmap 커스텀 스킴을 호출하여 앱 실행 확인창을 띄우고, 미설치 시 모바일 웹으로 대체
+            const clickedAt = Date.now();
+            location.href = `nmap://search?query=${encoded}&appname=${appName}`;
+            setTimeout(() => {
+                if (Date.now() - clickedAt < 2000) {
+                    location.href = webUrl;
+                }
+            }, 1500);
         } else {
-            // iOS 및 PC 환경: 안전한 새 탭 모바일 웹 이동
+            // PC 브라우저 환경
             window.open(webUrl, '_blank');
         }
         return;
