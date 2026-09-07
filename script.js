@@ -1016,7 +1016,7 @@ function resetMapZoom() {
     applyMapTransform();
 }
 
-// --- 내비게이션 연결 (iOS / Android / PC 전 환경 앱 실행 및 폴백 보완) ---
+// --- 내비게이션 연결 (카카오톡 인앱 브라우저 창 닫힘 방지 & 일반 브라우저 앱 즉시 실행) ---
 function openNavApp(type) {
     const keyword = dbData.map_search_keyword || dbData.wedding_venue || '';
     if (!keyword) {
@@ -1029,19 +1029,22 @@ function openNavApp(type) {
     if (type === 'naver') {
         const webUrl = `https://m.map.naver.com/search2/search.naver?query=${encoded}`;
         const appName = encodeURIComponent(window.location.hostname || 'wedding_invitation');
+        const isKakaoTalk = /KAKAOTALK/i.test(navigator.userAgent);
         const isAndroid = /Android/i.test(navigator.userAgent);
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-        if (isAndroid) {
-            // 안드로이드 (크롬, 삼성인터넷, 카카오톡 인앱 브라우저 등):
-            // intent 스킴으로 앱 실행 (미설치 시 브라우저 fallback 웹 URL로 안전 전환)
+        if (isKakaoTalk) {
+            // 카카오톡 인앱 브라우저: 앱 스킴 직접 호출 시 웹뷰가 종료(Dismiss)되는 현상을 방지하기 위해,
+            // 카카오맵과 동일하게 새 창(웹)으로 열어 뒤로가기 시 청첩장 화면이 그대로 유지되도록 처리
+            window.open(webUrl, '_blank');
+        } else if (isAndroid) {
+            // 일반 안드로이드 브라우저 (삼성 인터넷, 크롬 등): 네이버 지도 앱 즉시 실행 (미설치 시 웹 폴백)
             location.href = `intent://search?query=${encoded}&appname=${appName}#Intent;scheme=nmap;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.nhn.android.nmap;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
         } else if (isIOS) {
-            // iOS (사파리, 카카오톡 인앱 브라우저 등):
-            // nmap 커스텀 스킴을 직접 호출하여 "‘네이버 지도’에서 여시겠습니까?" 팝업이 사라지지 않고 앱으로 진입되도록 처리
+            // 일반 iOS 브라우저 (사파리 등): 네이버 지도 앱 즉시 실행 확인창 호출
             location.href = `nmap://search?query=${encoded}&appname=${appName}`;
         } else {
-            // PC 브라우저 환경: 새 탭 모바일 웹 검색 실행
+            // PC 브라우저 환경: 새 탭 모바일 웹 검색
             window.open(webUrl, '_blank');
         }
         return;
