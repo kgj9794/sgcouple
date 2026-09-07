@@ -1016,7 +1016,7 @@ function resetMapZoom() {
     applyMapTransform();
 }
 
-// --- 내비게이션 연결 (카카오톡 및 기본 브라우저 전체 앱 실행 지원) ---
+// --- 내비게이션 연결 (iOS / Android / PC 전 환경 앱 실행 및 폴백 보완) ---
 function openNavApp(type) {
     const keyword = dbData.map_search_keyword || dbData.wedding_venue || '';
     if (!keyword) {
@@ -1033,21 +1033,15 @@ function openNavApp(type) {
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // 안드로이드 (카카오톡 인앱 브라우저, 삼성 인터넷, 크롬 등):
-            // location.href로 호출해야 카카오톡 웹뷰에서도 외부 앱 실행 인텐트가 즉시 정상 발동합니다.
+            // 안드로이드 (크롬, 삼성인터넷, 카카오톡 인앱 브라우저 등):
+            // intent 스킴으로 앱 실행 (미설치 시 브라우저 fallback 웹 URL로 안전 전환)
             location.href = `intent://search?query=${encoded}&appname=${appName}#Intent;scheme=nmap;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.nhn.android.nmap;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
         } else if (isIOS) {
-            // iOS (카카오톡 인앱 브라우저, 사파리 등):
-            // nmap 커스텀 스킴을 호출하여 앱 실행 확인창을 띄우고, 미설치 시 모바일 웹으로 대체
-            const clickedAt = Date.now();
+            // iOS (사파리, 카카오톡 인앱 브라우저 등):
+            // nmap 커스텀 스킴을 직접 호출하여 "‘네이버 지도’에서 여시겠습니까?" 팝업이 사라지지 않고 앱으로 진입되도록 처리
             location.href = `nmap://search?query=${encoded}&appname=${appName}`;
-            setTimeout(() => {
-                if (Date.now() - clickedAt < 2000) {
-                    location.href = webUrl;
-                }
-            }, 1500);
         } else {
-            // PC 브라우저 환경
+            // PC 브라우저 환경: 새 탭 모바일 웹 검색 실행
             window.open(webUrl, '_blank');
         }
         return;
