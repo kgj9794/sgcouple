@@ -23,79 +23,6 @@ const NIGHT_SKY_BGS = [
     "https://images.pexels.com/photos/25551863/pexels-photo-25551863.jpeg"
 ];
 
-// --- INDEXED DB 이미지 캐싱 엔진 ---
-const IDB_NAME = 'WeddingImageCacheDB';
-const IDB_STORE = 'images';
-let idbInstance = null;
-
-function getIDB() {
-    if (!idbInstance) {
-        idbInstance = new Promise((resolve) => {
-            if (!window.indexedDB) {
-                resolve(null);
-                return;
-            }
-            const req = indexedDB.open(IDB_NAME, 1);
-            req.onupgradeneeded = (e) => {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains(IDB_STORE)) {
-                    db.createObjectStore(IDB_STORE);
-                }
-            };
-            req.onsuccess = () => resolve(req.result);
-            req.onerror = () => resolve(null);
-        });
-    }
-    return idbInstance;
-}
-
-// 브라우저 DB에 저장된 이미지 Blob을 가져와 가상 URL 반환 (미저장 시 원본 반환 후 백그라운드 캐시)
-async function getCachedImageURL(url) {
-    if (!url || typeof url !== 'string' || !url.startsWith('http')) return url;
-
-    try {
-        const db = await getIDB();
-        if (!db) return url;
-
-        const blob = await new Promise((resolve) => {
-            const tx = db.transaction(IDB_STORE, 'readonly');
-            const store = tx.objectStore(IDB_STORE);
-            const req = store.get(url);
-            req.onsuccess = () => resolve(req.result);
-            req.onerror = () => resolve(null);
-        });
-
-        if (blob instanceof Blob) {
-            return URL.createObjectURL(blob);
-        }
-
-        // 캐시에 없으면 백그라운드에서 다운로드 후 IndexedDB 저장
-        fetchAndCacheImage(url);
-        return url;
-    } catch (err) {
-        return url;
-    }
-}
-
-// 이미지를 비동기로 fetch하여 IndexedDB에 영구 보관 (CORS 허용 이미지 대상)
-async function fetchAndCacheImage(url) {
-    if (!url || typeof url !== 'string' || !url.startsWith('http')) return;
-
-    try {
-        const db = await getIDB();
-        if (!db) return;
-
-        const res = await fetch(url, { mode: 'cors' });
-        if (!res.ok) return;
-
-        const blob = await res.blob();
-        const tx = db.transaction(IDB_STORE, 'readwrite');
-        tx.objectStore(IDB_STORE).put(blob, url);
-    } catch (err) {
-        // CORS 제한 또는 네트워크 오류 시 원본 URL 사용 유지
-    }
-}
-
 let dbData = {};
 let targetWeddingDate = null;
 let verifiedAdminPassword = "";
@@ -109,7 +36,7 @@ let isGalleryExpanded = false;
 
 let guestbookList = [];
 let selectedGuestbookId = null;
-let lastGuestbookRefreshTime = 0;
+let lastGuestbookRefreshTime = 0; // 방명록 마지막 새로고침 타임스탬프
 
 // RSVP 상태 변수
 let rsvpStatus = null;
@@ -201,23 +128,24 @@ function initKakaoSDK() {
     }
 }
 
-// 메인 배경 사진(섹션 1) 로딩 완료 감지 Promise (캐시 우선 적용)
-async function waitForHeroImageLoad(url) {
-    if (!url) return;
-
-    const cachedUrl = await getCachedImageURL(url);
-
+// 메인 배경 사진(섹션 1) 로딩 완료 감지 Promise
+function waitForHeroImageLoad(url) {
     return new Promise((resolve) => {
+        if (!url) {
+            resolve();
+            return;
+        }
+
         const heroImgEl = document.getElementById('hero-img-element');
         if (!heroImgEl) {
             const img = new Image();
-            img.src = cachedUrl;
+            img.src = url;
             img.onload = () => resolve();
             return;
         }
 
-        if (heroImgEl.src !== cachedUrl) {
-            heroImgEl.src = cachedUrl;
+        if (heroImgEl.src !== url) {
+            heroImgEl.src = url;
         }
 
         if (heroImgEl.complete && heroImgEl.naturalWidth > 0) {
@@ -256,6 +184,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initMapPinchZoom();
     initCongratsFireworks();
 
+    // 세션 및 로컬 스토리지 기반 인트로 실행 이력 검사 (복귀 시 인트로 재실행 차단)
     const hasSeenIntro = (sessionStorage.getItem('intro_passed') === 'true') || (localStorage.getItem('intro_passed') === 'true');
 
     if (hasSeenIntro) {
@@ -271,6 +200,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const typingPromise = hasSeenIntro ? Promise.resolve() : startTypingAnimation();
     const minIntroDelay = hasSeenIntro ? Promise.resolve() : new Promise(resolve => setTimeout(resolve, 2000));
 
+    // 5초 타임아웃: 메인 사진을 포함한 초기 로딩이 완료되지 않으면 자동 새로고침
     let isInitialLoaded = false;
     const heroLoadTimeoutTimer = setTimeout(() => {
         if (!isInitialLoaded) {
@@ -280,11 +210,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 5000);
 
     try {
+        // 1. DB 데이터 가져오기
         await fetchDBData();
 
+        // 2. 섹션 1 메인 사진 로딩 대기
         const heroImgUrl = dbData.hero_img || '';
         const heroImgPromise = waitForHeroImageLoad(heroImgUrl);
 
+        // 3. 메인 사진 로딩 + 타이핑 애니메이션 완료 동시 대기
         await Promise.all([heroImgPromise, minIntroDelay, typingPromise]);
 
         isInitialLoaded = true;
@@ -339,11 +272,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     setInterval(updateCountdown, 1000);
 
+    // 5초에 한번씩 자동 폭죽 발사
     congratsAutoTimer = setInterval(() => {
         launchCongratsFirework(false);
     }, 5000);
 });
 
+// bfcache 복귀 시 화면 보존 및 스크롤 고정 해제
 window.addEventListener('pageshow', (e) => {
     if (e.persisted || sessionStorage.getItem('intro_passed') === 'true' || localStorage.getItem('intro_passed') === 'true') {
         const introOverlay = document.getElementById('intro-overlay');
@@ -467,7 +402,9 @@ function startAudio() {
                 hasShownInitialBgmToast = true;
                 showToast('배경음악이 재생됩니다.');
             }
-        }).catch(() => {});
+        }).catch(() => {
+            // 브라우저 자동재생 제한 정책 대기
+        });
     }
 }
 
@@ -524,7 +461,7 @@ function hideIntroOverlay() {
     }
 }
 
-// --- 스토리 및 전체 이미지 사전 캐싱 (IndexedDB 저장) ---
+// --- 스토리 이미지 사전 로딩 ---
 function preloadStoryImages(data) {
     if (!data) return;
     const urlsToPreload = [];
@@ -532,8 +469,6 @@ function preloadStoryImages(data) {
     if (data.story_cover_img) urlsToPreload.push(data.story_cover_img);
     if (data.hero_img) urlsToPreload.push(data.hero_img);
     if (data.ending_img) urlsToPreload.push(data.ending_img);
-    if (data.groom_baby_img) urlsToPreload.push(data.groom_baby_img);
-    if (data.bride_baby_img) urlsToPreload.push(data.bride_baby_img);
 
     for (let i = 1; i <= 5; i++) {
         if (data[`story_img_${i}`]) {
@@ -541,14 +476,10 @@ function preloadStoryImages(data) {
         }
     }
 
-    if (Array.isArray(data.gallery)) {
-        urlsToPreload.push(...data.gallery);
-    }
-
-    // 브라우저 백그라운드에서 캐시 저장 진행
     urlsToPreload.forEach(url => {
         if (url) {
-            fetchAndCacheImage(url);
+            const img = new Image();
+            img.src = url;
         }
     });
 }
@@ -657,12 +588,7 @@ function renderStoryPage(page) {
     const titleText = dbData[`story_title_${page}`] || defaultTitles[page - 1];
     const descText = dbData[`story_desc_${page}`] || defaultDescs[page - 1];
 
-    if (imgEl && imgSrc) {
-        getCachedImageURL(imgSrc).then(cachedSrc => {
-            if (imgEl) imgEl.src = cachedSrc;
-        });
-    }
-
+    if (imgEl) imgEl.src = imgSrc;
     if (titleEl) titleEl.innerText = titleText;
     if (descEl) descEl.innerText = descText;
 
@@ -766,7 +692,7 @@ function nextStoryPage() {
     }
 }
 
-// --- 웨딩 갤러리 렌더링 (IndexedDB 캐시 적용) ---
+// --- 웨딩 갤러리 렌더링 & 더보기/접기 토글 ---
 function renderGalleryGrid(urls) {
     const container = document.getElementById('gallery-grid');
     const btnContainer = document.getElementById('gallery-more-btn-container');
@@ -793,16 +719,12 @@ function renderGalleryGrid(urls) {
         item.onclick = () => openLightbox(idx);
 
         const img = document.createElement('img');
+        img.src = url;
         img.alt = `웨딩 갤러리 사진 ${idx + 1}`;
         img.loading = 'lazy';
         img.setAttribute('decoding', 'async');
         img.oncontextmenu = () => false;
         img.ondragstart = () => false;
-
-        // DB 캐시 확인 후 이미지 바인딩
-        getCachedImageURL(url).then(src => {
-            img.src = src;
-        });
 
         item.appendChild(img);
         fragment.appendChild(item);
@@ -867,10 +789,7 @@ function openLightbox(index) {
         imgEl.style.transform = '';
         imgEl.style.opacity = '';
         imgEl.style.transition = '';
-        
-        getCachedImageURL(galleryUrls[currentGalleryIndex]).then(src => {
-            if (imgEl) imgEl.src = src;
-        });
+        imgEl.src = galleryUrls[currentGalleryIndex];
     }
     const counterEl = document.getElementById('lightbox-counter');
     if (counterEl) {
@@ -905,10 +824,7 @@ function navigateLightbox(direction) {
             currentGalleryIndex = 0;
         }
 
-        getCachedImageURL(galleryUrls[currentGalleryIndex]).then(src => {
-            if (imgEl) imgEl.src = src;
-        });
-
+        imgEl.src = galleryUrls[currentGalleryIndex];
         const counterEl = document.getElementById('lightbox-counter');
         if (counterEl) {
             counterEl.innerText = `${currentGalleryIndex + 1} / ${galleryUrls.length}`;
@@ -988,10 +904,7 @@ function navigateLightboxAfterSwipe(direction) {
         currentGalleryIndex = 0;
     }
 
-    getCachedImageURL(galleryUrls[currentGalleryIndex]).then(src => {
-        if (imgEl) imgEl.src = src;
-    });
-
+    imgEl.src = galleryUrls[currentGalleryIndex];
     const counterEl = document.getElementById('lightbox-counter');
     if (counterEl) {
         counterEl.innerText = `${currentGalleryIndex + 1} / ${galleryUrls.length}`;
@@ -1024,9 +937,7 @@ function openMapImageModal() {
             showToast('등록된 약도 이미지가 없습니다.');
             return;
         }
-        getCachedImageURL(url).then(src => {
-            if (imgEl) imgEl.src = src;
-        });
+        imgEl.src = url;
     }
     resetMapZoom();
     openModal('map-image-modal');
@@ -1105,7 +1016,7 @@ function resetMapZoom() {
     applyMapTransform();
 }
 
-// --- 내비게이션 연결 (카카오톡 인앱 브라우저 창 닫힘 방지 & 일반 브라우저 앱 즉시 실행) ---
+// --- 내비게이션 연결 (카카오톡 및 기본 브라우저 전체 앱 실행 지원) ---
 function openNavApp(type) {
     const keyword = dbData.map_search_keyword || dbData.wedding_venue || '';
     if (!keyword) {
@@ -1118,17 +1029,25 @@ function openNavApp(type) {
     if (type === 'naver') {
         const webUrl = `https://m.map.naver.com/search2/search.naver?query=${encoded}`;
         const appName = encodeURIComponent(window.location.hostname || 'wedding_invitation');
-        const isKakaoTalk = /KAKAOTALK/i.test(navigator.userAgent);
         const isAndroid = /Android/i.test(navigator.userAgent);
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-        if (isKakaoTalk) {
-            window.open(webUrl, '_blank');
-        } else if (isAndroid) {
+        if (isAndroid) {
+            // 안드로이드 (카카오톡 인앱 브라우저, 삼성 인터넷, 크롬 등):
+            // location.href로 호출해야 카카오톡 웹뷰에서도 외부 앱 실행 인텐트가 즉시 정상 발동합니다.
             location.href = `intent://search?query=${encoded}&appname=${appName}#Intent;scheme=nmap;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.nhn.android.nmap;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
         } else if (isIOS) {
+            // iOS (카카오톡 인앱 브라우저, 사파리 등):
+            // nmap 커스텀 스킴을 호출하여 앱 실행 확인창을 띄우고, 미설치 시 모바일 웹으로 대체
+            const clickedAt = Date.now();
             location.href = `nmap://search?query=${encoded}&appname=${appName}`;
+            setTimeout(() => {
+                if (Date.now() - clickedAt < 2000) {
+                    location.href = webUrl;
+                }
+            }, 1500);
         } else {
+            // PC 브라우저 환경
             window.open(webUrl, '_blank');
         }
         return;
@@ -1311,6 +1230,7 @@ async function refreshGuestbookOnly() {
     const now = Date.now();
     const elapsedSeconds = (now - lastGuestbookRefreshTime) / 1000;
 
+    // 10초 이내 연타 시 서버 요청 차단
     if (elapsedSeconds < 10) {
         showToast('10초 뒤에 다시 시도해 주세요.');
         return;
@@ -1320,10 +1240,11 @@ async function refreshGuestbookOnly() {
 
     const refreshBtn = document.getElementById('btn-guestbook-refresh');
     if (refreshBtn) {
-        refreshBtn.disabled = true;
+        refreshBtn.disabled = true; // 10초 동안 클릭/터치 차단
         refreshBtn.classList.add('spinning');
     }
 
+    // 10초 후 버튼 다시 활성화
     setTimeout(() => {
         const btn = document.getElementById('btn-guestbook-refresh');
         if (btn) btn.disabled = false;
@@ -1356,8 +1277,10 @@ async function refreshGuestbookOnly() {
 function isTooSimplePassword(pwd) {
     if (!pwd || pwd.length < 4) return true;
 
+    // 1. 모든 글자가 동일한 경우 (예: 1111, 0000, aaaa)
     if (/^(.)\1+$/.test(pwd)) return true;
 
+    // 2. 대표적인 연속/단순 패턴 포함 여부 검사
     const simpleSequences = [
         '0123', '1234', '2345', '3456', '4567', '5678', '6789', '7890',
         '0987', '9876', '8765', '7654', '6543', '5432', '4321', '3210',
@@ -1468,6 +1391,7 @@ async function handleGuestbookSubmit(event) {
         return;
     }
 
+    // 비밀번호 단순 패턴 유효성 검사
     if (isTooSimplePassword(password)) {
         alert('비밀번호가 너무 단순합니다. 조금만 더 복잡하게 설정 부탁드립니다.');
         const passInput = document.getElementById('guestbook-input-pass');
@@ -2809,10 +2733,7 @@ function applyDataToDOM(data) {
     }
 
     if (data.hero_img) {
-        getCachedImageURL(data.hero_img).then(src => {
-            const el = document.getElementById('hero-img-element');
-            if (el) el.src = src;
-        });
+        document.getElementById('hero-img-element').src = data.hero_img;
         const ogImage = document.getElementById('og-image');
         if (ogImage) ogImage.setAttribute('content', data.hero_img);
     }
@@ -2825,19 +2746,8 @@ function applyDataToDOM(data) {
     document.getElementById('groom-baby-name').innerText = groomName;
     document.getElementById('bride-baby-name').innerText = brideName;
 
-    if (data.groom_baby_img) {
-        getCachedImageURL(data.groom_baby_img).then(src => {
-            const el = document.getElementById('groom-baby-img');
-            if (el) el.src = src;
-        });
-    }
-
-    if (data.bride_baby_img) {
-        getCachedImageURL(data.bride_baby_img).then(src => {
-            const el = document.getElementById('bride-baby-img');
-            if (el) el.src = src;
-        });
-    }
+    if (data.groom_baby_img) document.getElementById('groom-baby-img').src = data.groom_baby_img;
+    if (data.bride_baby_img) document.getElementById('bride-baby-img').src = data.bride_baby_img;
 
     document.getElementById('groom-intro-display').innerText = data.groom_intro_text || '';
     document.getElementById('bride-intro-display').innerText = data.bride_intro_text || '';
@@ -2850,10 +2760,8 @@ function applyDataToDOM(data) {
     updateStoryDday(data.relationship_start_date);
 
     if (data.story_cover_img) {
-        getCachedImageURL(data.story_cover_img).then(src => {
-            const coverImgEl = document.getElementById('story-cover-img-element');
-            if (coverImgEl) coverImgEl.src = src;
-        });
+        const coverImgEl = document.getElementById('story-cover-img-element');
+        if (coverImgEl) coverImgEl.src = data.story_cover_img;
     }
 
     renderGalleryGrid(data.gallery || []);
@@ -2865,10 +2773,8 @@ function applyDataToDOM(data) {
     }
 
     if (data.ending_img) {
-        getCachedImageURL(data.ending_img).then(src => {
-            const endingImgEl = document.getElementById('ending-img-element');
-            if (endingImgEl) endingImgEl.src = src;
-        });
+        const endingImgEl = document.getElementById('ending-img-element');
+        if (endingImgEl) endingImgEl.src = data.ending_img;
     }
 
     const endingQuoteEl = document.getElementById('ending-quote-text');
