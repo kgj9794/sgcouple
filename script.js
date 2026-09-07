@@ -995,7 +995,7 @@ function resetMapZoom() {
     applyMapTransform();
 }
 
-// --- 내비게이션 연결 (안드로이드 앱 인텐트 + iOS/PC 안전 새 탭 모바일 웹 호출) ---
+// --- 내비게이션 연결 (카카오톡 인앱 브라우저 호환: 카카오맵과 동일한 새 탭 웹 호출) ---
 function openNavApp(type) {
     const keyword = dbData.map_search_keyword || dbData.wedding_venue || '';
     if (!keyword) {
@@ -1006,19 +1006,7 @@ function openNavApp(type) {
     const encoded = encodeURIComponent(keyword);
 
     if (type === 'naver') {
-        const webUrl = `https://m.map.naver.com/search2/search.naver?query=${encoded}`;
-        const appName = encodeURIComponent(window.location.hostname || 'wedding_invitation');
-        const isAndroid = /Android/i.test(navigator.userAgent);
-
-        if (isAndroid) {
-            // 안드로이드: 인텐트 스킴으로 앱 즉시 실행, 미설치 시 브라우저 fallback URL로 안전 이동
-            const intentUrl = `intent://search?query=${encoded}&appname=${appName}#Intent;scheme=nmap;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.nhn.android.nmap;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
-            window.open(intentUrl, '_blank');
-        } else {
-            // iOS 및 PC 브라우저: 사파리 URL 유효성 에러 팝업을 방지하고 카카오맵과 동일하게 새 탭으로 웹 페이지 실행
-            // (네이버 지도 모바일 웹 상단에 '네이버 지도 앱으로 보기'가 기본 제공되어 설치자는 원터치 앱 전환 가능)
-            window.open(webUrl, '_blank');
-        }
+        window.open(`https://m.map.naver.com/search2/search.naver?query=${encoded}`, '_blank');
         return;
     } else if (type === 'tmap') {
         window.open(`https://tmap.co.kr/tmap2/mobile/route.jsp?name=${encoded}`, '_blank');
@@ -3310,7 +3298,7 @@ function initSakura() {
             ctx.beginPath();
             const r = this.size;
             ctx.moveTo(0, 0);
-            ctx.bezierCurveTo(-r, -r * 0.8, -r * 1.2, -r * 1.8, 0, -r * 2.2);
+            ctx.bezierCurveTo(-r, -r * 0.8, -r * 1.8, 0, -r * 2.2);
             ctx.bezierCurveTo(r * 1.2, -r * 1.8, r, -r * 0.8, 0, 0);
             ctx.fill();
             ctx.restore();
