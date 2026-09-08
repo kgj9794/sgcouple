@@ -14,7 +14,7 @@ const BGM_PLAYLIST = [
 
 // 섹션 11 야경 배경 이미지 목록
 const NIGHT_SKY_BGS = [
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwBiO05V5GXZZN-_vIbjWiqgbQ2BsGZScXNzEcO7uURFAzlku7NqyhqtQ&s=10",
+    "https://cdn.pixabay.com/photo/2022/07/10/12/46/night-7312797_640.jpg",
     "https://images.unsplash.com/photo-1611416370495-50fac9e1b382?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fCVFQyU5NSVCQyVFQSVCMiVCRCUyMCVFQiU8RiU8NCVFQyU8QiU9Q3xlbnwwfHwwfHx8MA%3D%3D",
     "https://img.magnific.com/premium-photo/high-angle-view-illuminated-city-night_1599761-785.jpg?semt=ais_test_b&w=740&q=80",
     "https://image.utoimage.com/preview/cp932674/2021/12/202112026451_500.jpg",
