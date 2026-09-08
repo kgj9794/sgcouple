@@ -326,8 +326,8 @@ async function startTypingAnimation(isFast = false) {
     titleEl.classList.add('done');
     await new Promise(resolve => setTimeout(resolve, pauseDelay));
 
-    const groom = dbData.groom_name || '건주';
-    const bride = dbData.bride_name || '수아';
+    const groom = dbData.groom_name || '김건주';
+    const bride = dbData.bride_name || '강수아';
     const text2 = `From ${groom}와 ${bride}`;
 
     for (let i = 0; i < text2.length; i++) {
