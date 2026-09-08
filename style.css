@@ -91,6 +91,14 @@ body {
 @media (max-width: 480px) {
     body { background-color: #ffffff; }
     .mobile-frame { box-shadow: none; }
+    
+    /* 모바일 화면 토스트 알림 크기 최적화 */
+    .toast-msg {
+        font-size: 0.76rem;
+        padding: 8px 16px;
+        bottom: 30px;
+        border-radius: 20px;
+    }
 }
 
 .admin-lock-btn {
