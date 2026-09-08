@@ -1,9 +1,9 @@
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDQCQbrwOX9F_Kx2uf_fg4tBTyslIdWFd_CDIHSS98O79V42Mia94KYT9hpWzTY0K7Fw/exec";
-
 const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
-
-// 카카오 디벨로퍼스에서 발급받은 [JavaScript 키]를 입력해주세요.
 const KAKAO_JAVASCRIPT_KEY = "45a0a2cc0df0c3e8aac2e81b7082362a";
+
+// 로컬 스토리지 캐시 키
+const CACHE_DB_DATA_KEY = "wedding_invitation_db_cache";
 
 // BGM 음원 목록
 const BGM_PLAYLIST = [
@@ -36,7 +36,7 @@ let isGalleryExpanded = false;
 
 let guestbookList = [];
 let selectedGuestbookId = null;
-let lastGuestbookRefreshTime = 0; // 방명록 마지막 새로고침 타임스탬프
+let lastGuestbookRefreshTime = 0;
 
 // RSVP 상태 변수
 let rsvpStatus = null;
@@ -109,23 +109,38 @@ function initViewportHeight() {
 
 // 카카오 SDK 초기화 및 상태 검증
 function initKakaoSDK() {
-    if (!window.Kakao) {
-        console.warn("Kakao SDK가 index.html에 로드되지 않았습니다.");
-        return;
-    }
+    if (!window.Kakao) return;
 
     if (!window.Kakao.isInitialized()) {
         if (KAKAO_JAVASCRIPT_KEY && KAKAO_JAVASCRIPT_KEY !== "YOUR_KAKAO_JAVASCRIPT_KEY") {
             try {
                 window.Kakao.init(KAKAO_JAVASCRIPT_KEY);
-                console.log("Kakao SDK 초기화 성공:", window.Kakao.isInitialized());
             } catch (err) {
                 console.error("Kakao SDK 초기화 오류:", err);
             }
-        } else {
-            console.warn("카카오 JavaScript 키가 설정되지 않았습니다.");
         }
     }
+}
+
+// 로컬 스토리지 캐시 로드 (재방문자 감지)
+function loadCachedData() {
+    try {
+        const cachedStr = localStorage.getItem(CACHE_DB_DATA_KEY);
+        if (cachedStr) {
+            const parsed = JSON.parse(cachedStr);
+            if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+                dbData = parsed;
+                guestbookList = parsed.guestbook || [];
+                congratsCount = parseInt(parsed.congrats_count, 10) || 0;
+                applyDataToDOM(parsed);
+                preloadStoryImages(parsed);
+                return true;
+            }
+        }
+    } catch (e) {
+        console.warn("캐시 데이터 파싱 오류:", e);
+    }
+    return false;
 }
 
 // 메인 배경 사진(섹션 1) 로딩 완료 감지 Promise
@@ -141,6 +156,7 @@ function waitForHeroImageLoad(url) {
             const img = new Image();
             img.src = url;
             img.onload = () => resolve();
+            img.onerror = () => resolve();
             return;
         }
 
@@ -162,7 +178,6 @@ function waitForHeroImageLoad(url) {
         const onError = () => {
             heroImgEl.removeEventListener('load', onLoad);
             heroImgEl.removeEventListener('error', onError);
-            console.error("메인 배경 이미지 로드 실패");
             resolve();
         };
 
@@ -179,14 +194,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     initKakaoSDK();
     initBgm();
     initFireworks();
-    const typingPromise = startTypingAnimation();
     initAdminLongPress();
     initSakura();
     initLightboxTouch();
     initMapPinchZoom();
     initCongratsFireworks();
 
-    // 5초 타임아웃: 메인 사진을 포함한 초기 로딩이 완료되지 않으면 자동 새로고침
+    // 로컬 스토리지에 캐시가 있는지 확인 (재방문 여부 판별)
+    const hasCache = loadCachedData();
+
+    // 재방문자는 타이핑 애니메이션을 빠르게 재생(40ms), 첫 방문자는 일반 속도(75ms)
+    const typingPromise = startTypingAnimation(hasCache);
+
     let isInitialLoaded = false;
     const heroLoadTimeoutTimer = setTimeout(() => {
         if (!isInitialLoaded) {
@@ -195,24 +214,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }, 5000);
 
-    const minIntroDelay = new Promise(resolve => setTimeout(resolve, 2000));
-
     try {
-        // 1. DB 데이터 가져오기
-        await fetchDBData();
+        if (hasCache) {
+            // [재방문자 경로] 캐시로 즉시 렌더링된 상태이므로 구글 시트 대기 없이 바로 진행
+            const heroImgUrl = dbData.hero_img || '';
+            const heroImgPromise = waitForHeroImageLoad(heroImgUrl);
+            const minIntroDelay = new Promise(resolve => setTimeout(resolve, 600));
 
-        // 2. 섹션 1 메인 사진 로딩 대기
-        const heroImgUrl = dbData.hero_img || '';
-        const heroImgPromise = waitForHeroImageLoad(heroImgUrl);
+            // 백그라운드에서 구글 시트 최신 데이터 조용히 동기화
+            fetchDBData(true).catch(err => console.warn("백그라운드 동기화 실패:", err));
 
-        // 3. 메인 사진 로딩 + 최소 인트로 노출 시간(2초) + 타이핑 애니메이션 완료 동시 대기
-        await Promise.all([heroImgPromise, minIntroDelay, typingPromise]);
+            await Promise.all([heroImgPromise, minIntroDelay, typingPromise]);
+        } else {
+            // [첫 방문자 경로] 구글 시트에서 최초 데이터를 받아온 후 인트로 해제
+            const minIntroDelay = new Promise(resolve => setTimeout(resolve, 2000));
+            await fetchDBData(false);
+
+            const heroImgUrl = dbData.hero_img || '';
+            const heroImgPromise = waitForHeroImageLoad(heroImgUrl);
+
+            await Promise.all([heroImgPromise, minIntroDelay, typingPromise]);
+        }
 
         isInitialLoaded = true;
         clearTimeout(heroLoadTimeoutTimer);
         hideIntroOverlay();
     } catch (err) {
         console.error("초기 데이터 및 이미지 로딩 중 오류 발생:", err);
+        isInitialLoaded = true;
+        clearTimeout(heroLoadTimeoutTimer);
+        hideIntroOverlay();
     }
 
     setTimeout(() => {
@@ -254,7 +285,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     setInterval(updateCountdown, 1000);
 
-    // 5초에 한번씩 자동 폭죽 발사
     congratsAutoTimer = setInterval(() => {
         launchCongratsFirework(false);
     }, 5000);
@@ -273,7 +303,7 @@ window.addEventListener('pageshow', (e) => {
 });
 
 // --- 인트로 타이핑 애니메이션 ---
-async function startTypingAnimation() {
+async function startTypingAnimation(isFast = false) {
     const titleEl = document.getElementById('typing-title');
     const subEl = document.getElementById('typing-sub');
     if (!titleEl || !subEl) return;
@@ -283,15 +313,18 @@ async function startTypingAnimation() {
     titleEl.classList.remove('done');
     subEl.classList.remove('done');
 
+    const charDelay = isFast ? 40 : 75;
+    const pauseDelay = isFast ? 100 : 180;
+
     const text1 = "소중한 여러분을 초대합니다.";
 
     for (let i = 0; i < text1.length; i++) {
         titleEl.textContent += text1[i];
-        await new Promise(resolve => setTimeout(resolve, 75));
+        await new Promise(resolve => setTimeout(resolve, charDelay));
     }
 
     titleEl.classList.add('done');
-    await new Promise(resolve => setTimeout(resolve, 180));
+    await new Promise(resolve => setTimeout(resolve, pauseDelay));
 
     const groom = dbData.groom_name || '건주';
     const bride = dbData.bride_name || '수아';
@@ -299,10 +332,10 @@ async function startTypingAnimation() {
 
     for (let i = 0; i < text2.length; i++) {
         subEl.textContent += text2[i];
-        await new Promise(resolve => setTimeout(resolve, 75));
+        await new Promise(resolve => setTimeout(resolve, charDelay));
     }
 
-    await new Promise(resolve => setTimeout(resolve, 350));
+    await new Promise(resolve => setTimeout(resolve, isFast ? 150 : 350));
     subEl.classList.add('done');
 }
 
@@ -384,9 +417,7 @@ function startAudio() {
                 hasShownInitialBgmToast = true;
                 showToast('배경음악이 재생됩니다.');
             }
-        }).catch(() => {
-            // 브라우저 자동재생 제한 정책 대기
-        });
+        }).catch(() => {});
     }
 }
 
@@ -995,7 +1026,7 @@ function resetMapZoom() {
     applyMapTransform();
 }
 
-// --- 내비게이션 연결 (카카오톡 인앱 브라우저 호환: 카카오맵과 동일한 새 탭 웹 호출) ---
+// --- 내비게이션 연결 (카카오톡 인앱 브라우저 호환: 새 탭 모바일 웹 호출) ---
 function openNavApp(type) {
     const keyword = dbData.map_search_keyword || dbData.wedding_venue || '';
     if (!keyword) {
@@ -1182,12 +1213,11 @@ function renderGuestbookFullList() {
     listContainer.appendChild(fragment);
 }
 
-// 방명록 전용 새로고침 (10초 쿨다운 및 버튼 터치 비활성화 적용)
+// 방명록 전용 새로고침 (10초 쿨다운)
 async function refreshGuestbookOnly() {
     const now = Date.now();
     const elapsedSeconds = (now - lastGuestbookRefreshTime) / 1000;
 
-    // 10초 이내 연타 시 서버 요청 차단
     if (elapsedSeconds < 10) {
         showToast('10초 뒤에 다시 시도해 주세요.');
         return;
@@ -1197,11 +1227,10 @@ async function refreshGuestbookOnly() {
 
     const refreshBtn = document.getElementById('btn-guestbook-refresh');
     if (refreshBtn) {
-        refreshBtn.disabled = true; // 10초 동안 클릭/터치 차단
+        refreshBtn.disabled = true;
         refreshBtn.classList.add('spinning');
     }
 
-    // 10초 후 버튼 다시 활성화
     setTimeout(() => {
         const btn = document.getElementById('btn-guestbook-refresh');
         if (btn) btn.disabled = false;
@@ -1214,6 +1243,11 @@ async function refreshGuestbookOnly() {
         if (data && data.guestbook) {
             dbData.guestbook = data.guestbook;
             guestbookList = data.guestbook || [];
+            
+            try {
+                localStorage.setItem(CACHE_DB_DATA_KEY, JSON.stringify(dbData));
+            } catch (e) {}
+
             renderGuestbookSlider();
             renderGuestbookFullList();
             showToast('방명록을 새로고침했습니다.');
@@ -1230,14 +1264,10 @@ async function refreshGuestbookOnly() {
     }
 }
 
-// 단순 비밀번호 검증 (동일 문자 반복 및 연속 번호 차단)
 function isTooSimplePassword(pwd) {
     if (!pwd || pwd.length < 4) return true;
-
-    // 1. 모든 글자가 동일한 경우 (예: 1111, 0000, aaaa)
     if (/^(.)\1+$/.test(pwd)) return true;
 
-    // 2. 대표적인 연속/단순 패턴 포함 여부 검사
     const simpleSequences = [
         '0123', '1234', '2345', '3456', '4567', '5678', '6789', '7890',
         '0987', '9876', '8765', '7654', '6543', '5432', '4321', '3210',
@@ -1348,7 +1378,6 @@ async function handleGuestbookSubmit(event) {
         return;
     }
 
-    // 비밀번호 단순 패턴 유효성 검사
     if (isTooSimplePassword(password)) {
         alert('비밀번호가 너무 단순합니다. 조금만 더 복잡하게 설정 부탁드립니다.');
         const passInput = document.getElementById('guestbook-input-pass');
@@ -1384,7 +1413,7 @@ async function handleGuestbookSubmit(event) {
         if (result.result === 'success') {
             showToast('방명록이 등록되었습니다.');
             closeGuestbookWriteModal();
-            await fetchDBData();
+            await fetchDBData(false);
         } else {
             alert(result.message || '방명록 저장에 실패했습니다.');
         }
@@ -1414,7 +1443,7 @@ async function deleteGuestbookItem(id, password) {
 
         if (result.result === 'success') {
             showToast('방명록이 삭제되었습니다.');
-            await fetchDBData();
+            await fetchDBData(false);
             renderGuestbookFullList();
         } else {
             alert(result.message || '삭제에 실패했습니다.');
@@ -2117,6 +2146,13 @@ async function syncCongratsToDB() {
             congratsCount = Math.max(congratsCount, serverCount + pendingCongratsIncrement);
             const numEl = document.getElementById('congrats-count-num');
             if (numEl) numEl.innerText = congratsCount.toLocaleString();
+
+            if (dbData) {
+                dbData.congrats_count = congratsCount;
+                try {
+                    localStorage.setItem(CACHE_DB_DATA_KEY, JSON.stringify(dbData));
+                } catch (e) {}
+            }
         }
     } catch (err) {
         console.error("축하 폭죽 카운트 연동 오류:", err);
@@ -2209,7 +2245,6 @@ function shareKakao() {
             }
         }
     } else {
-        console.warn("Kakao SDK가 초기화되지 않았습니다. JavaScript 키 및 도메인 설정을 확인해주세요.");
         if (navigator.share) {
             navigator.share({
                 title: `${groom} ♥ ${bride} 청첩장`,
@@ -2650,7 +2685,8 @@ function handleBackdropClick(event) {
     }
 }
 
-async function fetchDBData() {
+// 구글 앱스 스크립트 DB 통신 및 캐시 저장 함수
+async function fetchDBData(isBackground = false) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 6500);
 
@@ -2658,15 +2694,24 @@ async function fetchDBData() {
         const res = await fetch(`${APPS_SCRIPT_URL}?action=getData`, { signal: controller.signal });
         clearTimeout(timeoutId);
         const data = await res.json();
+        
         dbData = data;
         guestbookList = data.guestbook || [];
         congratsCount = parseInt(data.congrats_count, 10) || 0;
+
+        // 브라우저 로컬 스토리지에 최신 데이터 텍스트 캐싱
+        try {
+            localStorage.setItem(CACHE_DB_DATA_KEY, JSON.stringify(data));
+        } catch (e) {
+            console.warn("로컬 캐시 저장 오류:", e);
+        }
+
         preloadStoryImages(data);
         applyDataToDOM(data);
     } catch (err) {
         clearTimeout(timeoutId);
         console.error("DB 데이터 연동 실패:", err);
-        throw err;
+        if (!isBackground) throw err;
     }
 }
 
@@ -2888,7 +2933,6 @@ function renderCalendar(year, month, weddingDay) {
     }
 }
 
-// --- 플립 카드 3D 회전 제어 함수 ---
 function flipCardTo(boxId, newVal) {
     const box = document.getElementById(boxId);
     if (!box) return;
@@ -3230,6 +3274,12 @@ async function saveAdminSettings(event) {
         if (result.result === 'success') {
             alert('성공적으로 저장되었습니다!');
             dbData = { ...dbData, ...payload.data, gallery: adminGalleryUrls };
+            
+            // 관리자 수정 내용 로컬 스토리지 캐시에도 즉시 반영
+            try {
+                localStorage.setItem(CACHE_DB_DATA_KEY, JSON.stringify(dbData));
+            } catch (e) {}
+
             applyDataToDOM(dbData);
             closeAdminModal();
         } else {
@@ -3298,7 +3348,7 @@ function initSakura() {
             ctx.beginPath();
             const r = this.size;
             ctx.moveTo(0, 0);
-            ctx.bezierCurveTo(-r, -r * 0.8, -r * 1.8, 0, -r * 2.2);
+            ctx.bezierCurveTo(-r, -r * 0.8, -r * 1.2, -r * 1.8, 0, -r * 2.2);
             ctx.bezierCurveTo(r * 1.2, -r * 1.8, r, -r * 0.8, 0, 0);
             ctx.fill();
             ctx.restore();
