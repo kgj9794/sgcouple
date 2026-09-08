@@ -326,8 +326,12 @@ async function startTypingAnimation(isFast = false) {
     titleEl.classList.add('done');
     await new Promise(resolve => setTimeout(resolve, pauseDelay));
 
-    const groom = dbData.groom_name || '김건주';
-    const bride = dbData.bride_name || '강수아';
+    // 성을 제외하고 이름만 추출 (3글자 이상: 뒤 2자리, 2글자: 뒤 1자리)
+    const groomRaw = dbData.groom_name || '김건주';
+    const brideRaw = dbData.bride_name || '강수아';
+    const groom = groomRaw.length > 2 ? groomRaw.slice(-2) : (groomRaw.length === 2 ? groomRaw.slice(1) : groomRaw);
+    const bride = brideRaw.length > 2 ? brideRaw.slice(-2) : (brideRaw.length === 2 ? brideRaw.slice(1) : brideRaw);
+
     const text2 = `From ${groom}와 ${bride}`;
 
     for (let i = 0; i < text2.length; i++) {
