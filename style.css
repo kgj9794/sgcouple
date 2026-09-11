@@ -279,7 +279,7 @@ body {
     50% { border-color: rgba(255, 255, 255, 0.85); }
 }
 
-/* HERO SECTION */
+/* HERO SECTION (iOS Safari 우측 서브픽셀 라인 완벽 방지) */
 .hero-section {
     position: relative;
     width: 100%;
@@ -292,6 +292,7 @@ body {
     padding: 0 24px 30px;
     text-align: center;
     overflow: hidden;
+    background-color: #1a1a1a;
 }
 
 #sakura-canvas {
@@ -307,10 +308,11 @@ body {
 .hero-bg-img {
     position: absolute;
     top: 0;
-    left: 0;
-    width: 100%;
+    left: -1px;
+    width: calc(100% + 2px);
     height: 100%;
     z-index: 1;
+    overflow: hidden;
 }
 
 .hero-bg-img img {
@@ -318,13 +320,16 @@ body {
     height: 100%;
     object-fit: cover;
     object-position: center;
+    transform: scale(1.02);
+    -webkit-transform: scale(1.02);
+    display: block;
 }
 
 .hero-overlay {
     position: absolute;
     top: 0;
-    left: 0;
-    width: 100%;
+    left: -1px;
+    width: calc(100% + 2px);
     height: 100%;
     background: linear-gradient(
         180deg, 
