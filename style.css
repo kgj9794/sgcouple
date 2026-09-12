@@ -1342,6 +1342,11 @@ body {
 }
 
 .gallery-item {
+    display: inline-block;
+    width: 100%;
+    vertical-align: top;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
     break-inside: avoid;
     margin-bottom: 12px;
     border-radius: 12px;
