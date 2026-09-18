@@ -2173,7 +2173,7 @@ function shareKakao() {
     
     let heroImg = dbData.hero_img;
     if (!heroImg || !heroImg.startsWith('http')) {
-        heroImg = 'https://sgcouple.o-r.kr/A.jpg';
+        heroImg = 'https://sgcouple.o-r.kr/image/1.jpeg';
     }
 
     function formatWeddingDatetime(datetimeStr) {
