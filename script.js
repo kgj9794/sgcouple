@@ -475,7 +475,7 @@ function hideIntroOverlay() {
     }
 }
 
-// --- 스토리 이미지 사전 로딩 ---
+// --- 스토리 및 갤러리 이미지 사전 로딩 (Preload) ---
 function preloadStoryImages(data) {
     if (!data) return;
     const urlsToPreload = [];
@@ -488,6 +488,13 @@ function preloadStoryImages(data) {
         if (data[`story_img_${i}`]) {
             urlsToPreload.push(data[`story_img_${i}`]);
         }
+    }
+
+    // 웨딩 갤러리(섹션 6) 이미지 전체 사전 로딩 추가
+    if (Array.isArray(data.gallery)) {
+        data.gallery.forEach(url => {
+            if (url) urlsToPreload.push(url);
+        });
     }
 
     urlsToPreload.forEach(url => {
